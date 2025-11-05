@@ -1,11 +1,4 @@
-/**
- * @Descripttion: 水瓶交互控制组件
- * @version: 1.0
- * @Author: Lioesquieu
- * @Date: 2025-07-20
- * @LastEditors: Lioesquieu
- * @LastEditTime: 2025-07-22
- */
+
 import {_decorator, AudioClip, AudioSource, Color, Component, Node, Sprite, tween, UIOpacity, UITransform} from 'cc';
 
 const {ccclass, menu, property} = _decorator;

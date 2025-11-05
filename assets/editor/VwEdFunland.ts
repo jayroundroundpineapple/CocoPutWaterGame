@@ -1,11 +1,6 @@
 /**
  * @Descripttion:游乐场编辑器视图
  * @classdesc 负责游乐场布局编辑的视图组件
- * @version: 1.0
- * @Author: Lioesquieu
- * @Date: 2025-07-20
- * @LastEditors: Lioesquieu
- * @LastEditTime: 2025-07-22
  */
 import {_decorator, Component, EventTouch, Node, Vec2} from 'cc';
 import {CwgPools} from '../core/CwgPools';

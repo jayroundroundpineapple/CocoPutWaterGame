@@ -1,10 +1,5 @@
 /**
  * @Descripttion: 玻璃杯设置界面组件 - 用于编辑单个玻璃杯的颜色数量和隐藏数量
- * @version: 1.0
- * @Author: Lioesquieu
- * @Date: 2025-07-20
- * @LastEditors: Lioesquieu
- * @LastEditTime: 2025-07-20
  * 
  * 该组件提供以下功能：
  * 1. 设置玻璃杯中的颜色数量（0-4种颜色）

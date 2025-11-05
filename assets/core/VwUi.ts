@@ -1,11 +1,4 @@
-/**
- * @Descripttion:
- * @version: 1.0
- * @Author: Lioesquieu
- * @Date: 2025-07-20
- * @LastEditors: Lioesquieu
- * @LastEditTime: 2024-08-08
- */
+
 import {_decorator, Component, Label, Button, Sprite} from 'cc';
 import { CwgStateInfo } from './CwgState';
 import { VwFunland } from './VwFunland';

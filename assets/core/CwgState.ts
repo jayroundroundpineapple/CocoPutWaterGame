@@ -1,11 +1,3 @@
-/**
- * @Descripttion:
- * @version: 1.0
- * @Author: Lioesquieu
- * @Date: 2025-07-20
- * @LastEditors: Lioesquieu
- * @LastEditTime: 2024-08-10
- */
 import LocalStorage from "../common/LocalStorage";
 import ResLoader from "../common/ResLoader";
 

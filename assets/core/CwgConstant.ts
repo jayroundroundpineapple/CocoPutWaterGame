@@ -1,12 +1,3 @@
-/**
- * @Descripttion:
- * @version: 1.0
- * @Author: Lioesquieu
- * @Date: 2025-07-20
- * @LastEditors: Lioesquieu
- * @LastEditTime: 2025-07-22
- */
-
 export const enum WaterColor {
     None = 0,
     Red,

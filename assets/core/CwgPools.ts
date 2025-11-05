@@ -1,11 +1,3 @@
-/**
- * @Descripttion:
- * @version: 1.0
- * @Author: Lioesquieu
- * @Date: 2025-07-20
- * @LastEditors: Lioesquieu
- * @LastEditTime: 2025-07-22
- */
 import {_decorator, Component, Node, Tween, Vec3} from 'cc';
 import Pool from "../common/Pool";
 import Glass from "./Glass";

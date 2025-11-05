@@ -1,10 +1,5 @@
 /**
  * @Descripttion: 编辑模式下的游戏控制器 - 用于关卡编辑和测试
- * @version: 1.0
- * @Author: Lioesquieu
- * @Date: 2025-07-20
- * @LastEditors: Lioesquieu
- * @LastEditTime:2025-07-20
  * 
  * 功能说明：
  * - 管理编辑模式下的游戏状态

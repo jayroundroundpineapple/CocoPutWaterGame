@@ -1,11 +1,3 @@
-/**
- * @Descripttion:
- * @version: 1.0
- * @Author: Lioesquieu
- * @Date: 2025-07-20
- * @LastEditors: Lioesquieu
- * @LastEditTime: 2025-07-22
- */
 import {_decorator, Animation, AnimationClip, Color, math, Node, Sprite, tween, UIOpacity, v3, Vec3} from 'cc';
 import Glass from "../Glass";
 import {WaterColor, WaterColors} from "../CwgConstant";

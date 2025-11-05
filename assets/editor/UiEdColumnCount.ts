@@ -3,11 +3,6 @@
  * 1. 管理关卡编辑器的列数显示
  * 2. 同步列数与关卡数据的映射关系
  * 3. 控制列数增减操作
- * @version: 1.0
- * @Author: Lioesquieu
- * @Date: 2025-07-20
- * @LastEditors: Lioesquieu
- * @LastEditTime: 2024-08-08
  */
 import {_decorator, Component, Label, Node} from 'cc';
 import UiEdColumnCtrl from './UiEdColumnCtrl';

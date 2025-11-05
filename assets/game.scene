@@ -283,7 +283,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Glass-玻璃瓶",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 5
@@ -540,7 +540,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Node",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 6
@@ -716,7 +716,7 @@
   {
     "__type__": "cc.Node",
     "_name": "被子底",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 13
@@ -828,7 +828,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Water Node",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 13
@@ -886,7 +886,7 @@
   {
     "__type__": "cc.Node",
     "_name": "SpriteSplash",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 20
@@ -941,7 +941,7 @@
   {
     "__type__": "cc.Node",
     "_name": "水面颜色",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 21
@@ -1262,7 +1262,7 @@
   {
     "__type__": "cc.Node",
     "_name": "SpriteSplash-001",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 20
@@ -1317,7 +1317,7 @@
   {
     "__type__": "cc.Node",
     "_name": "水面颜色-001",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 31
@@ -1638,7 +1638,7 @@
   {
     "__type__": "cc.Node",
     "_name": "SpriteSplash-002",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 20
@@ -1693,7 +1693,7 @@
   {
     "__type__": "cc.Node",
     "_name": "水面颜色-002",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 41
@@ -2014,7 +2014,7 @@
   {
     "__type__": "cc.Node",
     "_name": "SpriteSplash-003",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 20
@@ -2069,7 +2069,7 @@
   {
     "__type__": "cc.Node",
     "_name": "水面颜色-003",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 51
@@ -2124,7 +2124,7 @@
   {
     "__type__": "cc.Node",
     "_name": "瓶口的水",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 52
@@ -2531,7 +2531,7 @@
   {
     "__type__": "cc.Node",
     "_name": "slice_pz",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 13
@@ -2823,7 +2823,7 @@
   {
     "__type__": "cc.Node",
     "_name": "瓶盖",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 13
