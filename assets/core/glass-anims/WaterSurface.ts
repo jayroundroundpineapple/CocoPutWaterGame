@@ -25,6 +25,7 @@ export default class WaterSurface extends Component {
      */
     public reset() {
         this.waterMaterial = undefined;
+        //拿到水的Sprite实例
         const surfaceSprite = this.getSurfaceSprite();
         if (!surfaceSprite) {
             return;
@@ -32,6 +33,7 @@ export default class WaterSurface extends Component {
         if (!surfaceSprite.node.active) {
             surfaceSprite.node.active = true;
         }
+        //获取水的Sprite的材质实例
         this.waterMaterial = surfaceSprite.getMaterialInstance(0);
         if (this.waterMaterial) {
             this.surfaceEffect = true;
@@ -43,10 +45,8 @@ export default class WaterSurface extends Component {
             this.waterMaterial.setProperty('edgeDamping', 1);
             this.waterMaterial.setProperty('time', 0);
             this.waterMaterial.setProperty('mainTexture', surfaceSprite.spriteFrame.texture);
-
         }
     }
-
     /**
      * 获取当前激活水面的精灵组件
      * @returns 水面精灵对象，未找到时返回null

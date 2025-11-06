@@ -312,7 +312,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -312.006,
-      "y": -557.9860000000001,
+      "y": -557.986,
       "z": 1000
     },
     "_lrot": {
@@ -3089,7 +3089,6 @@
     "__type__": "a00bdwvCvVExLUTsg6BMSMd",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 6
     },
@@ -3121,7 +3120,6 @@
     "__type__": "cad1eGn1LJMRKWrQr3f1pXq",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 6
     },
@@ -5841,7 +5839,6 @@
     "__type__": "19a27h1RghJZLafkG4IVWov",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 83
     },
@@ -8687,7 +8684,6 @@
     "__type__": "2db6dKo3RpDE6Xxi4KCzOpw",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 157
     },
@@ -8723,7 +8719,6 @@
     "__type__": "cad1eGn1LJMRKWrQr3f1pXq",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 157
     },
@@ -8891,7 +8886,7 @@
         "__id__": 239
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 242
@@ -9216,7 +9211,6 @@
     "__type__": "ff07eOgmElCfqWe/NBXj93l",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 245
     },
@@ -9239,7 +9233,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Bg Node",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 2
@@ -9300,7 +9294,7 @@
   {
     "__type__": "cc.Node",
     "_name": "SpriteSplash",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 247
@@ -9442,7 +9436,7 @@
   {
     "__type__": "cc.Node",
     "_name": "桌面",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 247
@@ -9464,7 +9458,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 498.4550000000004,
+      "y": 495.89800000000014,
       "z": 0
     },
     "_lrot": {
@@ -9503,7 +9497,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 750,
-      "height": 337.08999999999924
+      "height": 337.08999999999946
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -9565,8 +9559,8 @@
     "_target": null,
     "_left": 0,
     "_right": 0,
-    "_top": 2.842170943040401e-14,
-    "_bottom": 0.747308845577212,
+    "_top": 2.5570000000001585,
+    "_bottom": 0.7453920539730138,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
     "_isAbsLeft": true,
@@ -9606,7 +9600,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -173.42000000000002,
+      "y": -136.639,
       "z": 0
     },
     "_lrot": {
@@ -9645,7 +9639,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 750,
-      "height": 987.16
+      "height": 987.1600000000008
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -9707,8 +9701,8 @@
     "_target": null,
     "_left": 0,
     "_right": 0,
-    "_top": 0.26,
-    "_bottom": 0,
+    "_top": 0.23242803598200876,
+    "_bottom": 36.780999999999636,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
     "_isAbsLeft": true,
@@ -10104,7 +10098,6 @@
     "__type__": "5c387jEqWtFxZjFvHOcXcfw",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 268
     },
@@ -10163,7 +10156,6 @@
     "__type__": "0376bYXWolOxqvcWS84z2z8",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 264
     },
@@ -10212,7 +10204,6 @@
     "__type__": "8feb5b2nY9ItZZAB5zEe4Rm",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 263
     },
@@ -10230,7 +10221,6 @@
     "__type__": "109a6Ig7eZM2bzYZfOo6w8r",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 277
     },
@@ -12353,7 +12343,6 @@
     "__type__": "36a804ym+9ORIMesu3lkZAw",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 327
     },
@@ -12543,7 +12532,6 @@
     "__type__": "8cb189/syFMT589XtE8gJBU",
     "_name": "",
     "_objFlags": 0,
-    "__editorExtras__": {},
     "node": {
       "__id__": 333
     },
