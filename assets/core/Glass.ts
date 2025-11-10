@@ -174,7 +174,6 @@ export default class Glass extends Component {
         Tween.stopAllByTarget(this.shadowNode);
         const currentY = this.glassNode.position.y;
         const targetY = this.pickupHeight;
-        console.log(`当前位置: ${currentY}, 目标位置: ${targetY}`);
         tween(this.glassNode).to(0.17, {position:v3(this.glassNode.position.x, targetY, 0)}).start();
         tween(this.shadowNode).to(0.17, {position:v3(17.3,20,0)}).start();
         this.resetSurface();
