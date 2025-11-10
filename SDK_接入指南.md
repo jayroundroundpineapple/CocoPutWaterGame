@@ -2,8 +2,7 @@
 
 ## 概述
 
-本指南介绍如何在 Cocos Creator 3.8 中接入 IAA SDK，并提供类似 Unity 的插件导出方案。
-
+本指南介绍如何在 Cocos Creator 3.8 中接入 IAA SDK
 ## 目录结构
 
 ```

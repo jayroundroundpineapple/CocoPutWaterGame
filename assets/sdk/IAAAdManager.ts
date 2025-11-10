@@ -101,12 +101,12 @@ export class IAAAdManager extends Component {
         IAAAdManager.getInstance();
         
         // 调用原生接口
+        // 注意：JSB 不能直接传递 JavaScript 函数作为回调
+        // 回调通过原生代码调用静态方法实现（onUserAttributeResult、onAdInitResult）
         if (JSB && (typeof jsb !== 'undefined')) {
             jsb.reflection.callStaticMethod(
                 'IAAAdsBridge',
-                'initSDK:adInitCallback:',
-                userAttributeCallback,
-                adInitCallback
+                'initSDK'
             );
         } else {
             console.log('[IAAAdManager] InitSDK called in Editor. Skipping native call.');
@@ -129,10 +129,9 @@ export class IAAAdManager extends Component {
         if (JSB && (typeof jsb !== 'undefined')) {
             jsb.reflection.callStaticMethod(
                 'IAAAdsBridge',
-                'showAd:placement:adEventCallback:',
+                'showAd:placement:',
                 adType,
-                placement,
-                adEventCallback
+                placement
             );
         } else {
             console.log(`[IAAAdManager] ShowAd called in Editor for type ${adType}. Skipping native call.`);
@@ -149,8 +148,7 @@ export class IAAAdManager extends Component {
         if (JSB && (typeof jsb !== 'undefined')) {
             jsb.reflection.callStaticMethod(
                 'IAAAdsBridge',
-                'checkOpenWebAccessable:',
-                resultCallback
+                'checkOpenWebAccessable'
             );
         } else {
             console.log('[IAAAdManager] CheckOpenWebAccessable called in Editor. Skipping native call.');
@@ -204,8 +202,7 @@ export class IAAAdManager extends Component {
         if (JSB && (typeof jsb !== 'undefined')) {
             jsb.reflection.callStaticMethod(
                 'IAAAdsBridge',
-                'showAppstorePage:',
-                resultCallback
+                'showAppstorePage'
             );
         } else {
             console.log('[IAAAdManager] ShowAppstorePage called in Editor. Skipping native call.');
