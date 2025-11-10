@@ -1,0 +1,6 @@
+framework module PixelInsight {
+  umbrella header "PixelInsight.h"
+  export *
+
+  module * { export * }
+}
