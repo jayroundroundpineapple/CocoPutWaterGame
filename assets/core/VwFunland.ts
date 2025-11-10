@@ -73,38 +73,33 @@ export class VwFunland extends Component {
         glassNode.position = v3(glassInfo.position.x, glassInfo.position.y, 0);
         glassNode.parent = this.glassesNode;
         glassNode.active = true;
-
         return glass;
     }
 
     // 触摸事件处理
     protected setTouchListener() {
         this.contentNode.targetOff(this);
-
         let lastSelectedGlass: Glass = undefined;
-
         // 注册触摸结束事件
         this.contentNode.on(Node.EventType.TOUCH_END, (touch: EventTouch) => {
+            console.log("jay触摸事件处理")
             if (this.finished) {
                 return;
             }
-
             // 判断哪个瓶子被点击到了
             // 查找被点击的玻璃瓶
             const currentSelected = this.handleTouchEnd(touch.getUILocation());
-
             // 有效性检查
             if (!this.isValidSelection(currentSelected)) {
                 return;
             }
-
             if (currentSelected.isAd()) {
                 this.handleAdGlass(currentSelected);
                 return;
             }
-
             // 处理重复点击同一玻璃瓶
             if (lastSelectedGlass && currentSelected == lastSelectedGlass) {
+                console.log('jay重复点击同一玻璃瓶')
                 lastSelectedGlass.putDown();
                 lastSelectedGlass = undefined;
                 return;
@@ -121,7 +116,6 @@ export class VwFunland extends Component {
                     return;
                 }
             }
-
             // 更新选中状态
             lastSelectedGlass?.putDown();
             this.pickup(currentSelected);

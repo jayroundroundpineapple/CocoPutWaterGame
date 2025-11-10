@@ -24,7 +24,6 @@ export class VwPlay extends Component {
         this.gameState = new CwgState();
         this.funland = new FunlandInfo();
         this.funland.init(this.gameState);
-
         this.restartLevel();
     }
 
