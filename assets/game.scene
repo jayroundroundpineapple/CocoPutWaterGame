@@ -3105,7 +3105,7 @@
       "__id__": 73
     },
     "waterHeight": 40,
-    "pickupHeight": 32,
+    "pickupHeight": 100,
     "shadowNode": {
       "__id__": 8
     },
@@ -5857,7 +5857,7 @@
       "__id__": 147
     },
     "waterHeight": 40,
-    "pickupHeight": 32,
+    "pickupHeight": 100,
     "shadowNode": {
       "__id__": 85
     },
@@ -8703,7 +8703,7 @@
       "__id__": 227
     },
     "waterHeight": 40,
-    "pickupHeight": 32,
+    "pickupHeight": 100,
     "shadowNode": {
       "__id__": 159
     },

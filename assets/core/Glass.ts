@@ -1,4 +1,4 @@
-import {_decorator, Color, Component, Node, Sprite, tween, UIOpacity, UITransform} from 'cc';
+import {_decorator, Color, Component, Node, Sprite, tween, Tween, UIOpacity, UITransform, v3} from 'cc';
 import {WaterColor, WaterColors} from './CwgConstant';
 import WaterSurface from './glass-anims/WaterSurface';
 import { GlassInfo } from './FunlandInfo';
@@ -23,7 +23,7 @@ export default class Glass extends Component {
     protected waterHeight: number = 40;          // 每节水柱的高度
 
     @property
-    public pickupHeight: number = 32;
+    public pickupHeight: number = 232;
 
     @property(Node)
     public shadowNode: Node;
@@ -154,20 +154,29 @@ export default class Glass extends Component {
             return;
         }
         this.isPickedUp = false;
-        tween(this.glassNode).to(0.17, {y: 0}).start();
-        tween(this.shadowNode).to(0.17, {x: 0, y: 0}).start();
+        Tween.stopAllByTarget(this.glassNode);
+        Tween.stopAllByTarget(this.shadowNode);
+        tween(this.glassNode).to(0.17, {position:v3(this.glassNode.position.x, 0, 0)}).start();
+        tween(this.shadowNode).to(0.17, {position:v3(0,0,0)}).start();
         this.resetSurface();
     }
 
     // 把瓶子拿起来
     public pickup() {
         if (this.isPickedUp) {
+            console.log('jay已经拿起')
             return;
         }
+        console.log('jay_PickUP动画执行')
         this.isPickedUp = true;
-        this.glassNode.y = this.pickupHeight;
-        tween(this.glassNode).to(0.17, {y: this.pickupHeight}).start();
-        tween(this.shadowNode).to(0.17, {x: 17.3, y: 10}).start();
+        // 先停止之前的动画
+        Tween.stopAllByTarget(this.glassNode);
+        Tween.stopAllByTarget(this.shadowNode);
+        const currentY = this.glassNode.position.y;
+        const targetY = this.pickupHeight;
+        console.log(`当前位置: ${currentY}, 目标位置: ${targetY}`);
+        tween(this.glassNode).to(0.17, {position:v3(this.glassNode.position.x, targetY, 0)}).start();
+        tween(this.shadowNode).to(0.17, {position:v3(17.3,20,0)}).start();
         this.resetSurface();
     }
 
