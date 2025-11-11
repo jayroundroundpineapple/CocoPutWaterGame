@@ -293,3 +293,37 @@ void register_IAACCoreAdsBridge(se::Object* global) {
     
     NSLog(@"[IAACoreAdsJSB] 所有 JSB 函数注册完成");
 }
+
+// 自动注册：使用静态构造函数在模块加载时自动注册
+static struct AutoRegister {
+    AutoRegister() {
+        // 延迟注册，确保脚本引擎已初始化
+        dispatch_async(dispatch_get_main_queue(), ^{
+            se::ScriptEngine* se = se::ScriptEngine::getInstance();
+            if (se && se->isValid()) {
+                se::AutoHandleScope hs(se);
+                se::Object* global = se->getGlobalObject();
+                if (global) {
+                    register_IAACCoreAdsBridge(global);
+                    NSLog(@"[IAACCoreAdsJSB] 自动注册完成");
+                } else {
+                    NSLog(@"[IAACoreAdsJSB] WARNING: Global object is null");
+                }
+            } else {
+                NSLog(@"[IAACoreAdsJSB] WARNING: ScriptEngine not initialized, will retry");
+                // 如果脚本引擎未初始化，延迟重试
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    se::ScriptEngine* retrySe = se::ScriptEngine::getInstance();
+                    if (retrySe && retrySe->isValid()) {
+                        se::AutoHandleScope hs(retrySe);
+                        se::Object* global = retrySe->getGlobalObject();
+                        if (global) {
+                            register_IAACCoreAdsBridge(global);
+                            NSLog(@"[IAACoreAdsJSB] 延迟注册完成");
+                        }
+                    }
+                });
+            }
+        });
+    }
+} s_auto_register;
