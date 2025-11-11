@@ -34,7 +34,7 @@ export class AdManager extends Component {
     }
 
     /** 注册原生回调，转发到 TS 外部回调 */
-    private registerNativeCallbacks(): void {
+    public registerNativeCallbacks(): void {
         // 用户归因结果回调
         IAACoreAdsBridge.OnUserAttributeResult = (attributed, info) => {
             AdManager._userAttributeCallback?.call(null, attributed, info);
@@ -65,8 +65,14 @@ export class AdManager extends Component {
         userAttributeCallback: (attributed: boolean, info: string) => void,
         adInitCallback: (initialized: boolean) => void
     ): void {
+        // 确保单例已创建并注册回调
+        const instance = AdManager.Instance;
         this._userAttributeCallback = userAttributeCallback;
         this._adInitCallback = adInitCallback;
+        // 确保回调已注册（如果 onLoad 还没执行，这里会注册）
+        if (!IAACoreAdsBridge.OnUserAttributeResult || !IAACoreAdsBridge.OnAdInitResult) {
+            instance.registerNativeCallbacks();
+        }
         IAACoreAdsBridge.InitSDK();
     }
 

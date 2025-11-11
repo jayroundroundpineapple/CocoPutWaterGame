@@ -42,7 +42,7 @@ declare global {
     }
 }
 
-/** 原生 SDK JSB 桥接层（对应原 IAACoreAdsBridge） */
+/** 原生 SDK JSB 桥接层 */
 export class IAACoreAdsBridge {
     // 事件回调（与原 C# 一致）
     public static OnUserAttributeResult: ((attributed: boolean, info: string) => void) | null = null;
@@ -51,7 +51,7 @@ export class IAACoreAdsBridge {
     public static OnCheckWebAccessableResult: ((accessable: boolean) => void) | null = null;
     public static OnShowAppstoreResult: ((success: boolean) => void) | null = null;
 
-    // 初始化 SDK（复刻原 C# 接口）
+    // 初始化 SDK
     public static InitSDK(): void {
         if (JSB && IOS) { // 仅 iOS 原生环境执行
             window.iaacf_initSDK(
@@ -69,11 +69,22 @@ export class IAACoreAdsBridge {
                 }
             );
         } else {
-            log('[IAACoreAdsBridge] InitSDK: 非 iOS 原生环境，跳过调用');
+            log('[IAACoreAdsBridge] InitSDK: 非 iOS 原生环境，模拟回调');
+            // 模拟异步回调：先用户归因，后初始化结果
+            setTimeout(() => {
+                this.dispatchToMainThread(() => {
+                    this.OnUserAttributeResult?.call(null, true, '{"source":"editor","test":true}');
+                });
+            }, 100);
+            setTimeout(() => {
+                this.dispatchToMainThread(() => {
+                    this.OnAdInitResult?.call(null, true);
+                });
+            }, 200);
         }
     }
 
-    // 显示广告（复刻原 C# 接口）
+    // 显示广告
     public static ShowAd(adType: AdType, placement: string): void {
         if (JSB && IOS) {
             window.iaacf_showAd(
