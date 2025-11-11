@@ -1,4 +1,4 @@
-#import <OpenPixel/OpenPixel.h>
+#import <PixelInsight/PixelInsight.h>
 #import "IAACHelper.h"
 
 // --- C# 回调函数指针类型定义 ---

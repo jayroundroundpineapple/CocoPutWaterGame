@@ -1,5 +1,6 @@
 /**
  * IAA SDK Manager for Cocos Creator 3.8
+ * 对应 Unity 的 AdManager，提供相同的接口
  */
 
 import { _decorator, Component, director, Node } from 'cc';
@@ -44,7 +45,7 @@ type ShowAppstoreCallback = (success: boolean) => void;
 
 /**
  * IAA SDK Manager
- * 单例模式，管理 SDK 的初始化和调用
+ * 对应 Unity 的 AdManager，提供相同的接口
  */
 @ccclass('IAAAdManager')
 export class IAAAdManager extends Component {
@@ -66,7 +67,6 @@ export class IAAAdManager extends Component {
                 if (node) {
                     IAAAdManager._instance = node.getComponent(IAAAdManager);
                 } else {
-                    // 创建新的节点和组件
                     const newNode = new Node('IAAAdManager');
                     IAAAdManager._instance = newNode.addComponent(IAAAdManager);
                     scene.addChild(newNode);
@@ -87,8 +87,7 @@ export class IAAAdManager extends Component {
 
     /**
      * 初始化 SDK
-     * @param userAttributeCallback 用户属性回调
-     * @param adInitCallback 广告初始化回调
+     * 对应 Unity: AdManager.InitSdk(userAttributeCallback, adInitCallback)
      */
     public static initSdk(
         userAttributeCallback: UserAttributeCallback,
@@ -101,12 +100,15 @@ export class IAAAdManager extends Component {
         IAAAdManager.getInstance();
         
         // 调用原生接口
+        // 注意：虽然传递回调参数，但 JSB 不能直接传递 JavaScript 函数
+        // 回调已经在上面保存到静态变量，原生层通过 evalString 回调
+        // 对应 Unity: IAACoreAdsBridge.InitSDK() 不传回调，通过事件机制
         if (JSB && (typeof jsb !== 'undefined')) {
             jsb.reflection.callStaticMethod(
-                'IAAAdsBridge',
+                'IAAJSBridge',
                 'initSDK:adInitCallback:',
-                userAttributeCallback,
-                adInitCallback
+                userAttributeCallback,  // 虽然传递，但原生层不会使用
+                adInitCallback           // 虽然传递，但原生层不会使用
             );
         } else {
             console.log('[IAAAdManager] InitSDK called in Editor. Skipping native call.');
@@ -115,9 +117,7 @@ export class IAAAdManager extends Component {
 
     /**
      * 显示广告
-     * @param adType 广告类型
-     * @param placement 广告位
-     * @param adEventCallback 广告事件回调
+     * 对应 Unity: AdManager.ShowAd(adType, placement, adEventCallback)
      */
     public static showAd(
         adType: AdType,
@@ -128,11 +128,11 @@ export class IAAAdManager extends Component {
         
         if (JSB && (typeof jsb !== 'undefined')) {
             jsb.reflection.callStaticMethod(
-                'IAAAdsBridge',
+                'IAAJSBridge',
                 'showAd:placement:adEventCallback:',
                 adType,
                 placement,
-                adEventCallback
+                adEventCallback  // 虽然传递，但原生层不会使用
             );
         } else {
             console.log(`[IAAAdManager] ShowAd called in Editor for type ${adType}. Skipping native call.`);
@@ -141,16 +141,16 @@ export class IAAAdManager extends Component {
 
     /**
      * 检查是否可以打开网页
-     * @param resultCallback 结果回调
+     * 对应 Unity: AdManager.CheckOpenWebAccessable(resultCallback)
      */
     public static checkOpenWebAccessable(resultCallback: CheckWebCallback): void {
         IAAAdManager._checkWebCallback = resultCallback;
         
         if (JSB && (typeof jsb !== 'undefined')) {
             jsb.reflection.callStaticMethod(
-                'IAAAdsBridge',
+                'IAAJSBridge',
                 'checkOpenWebAccessable:',
-                resultCallback
+                resultCallback  // 虽然传递，但原生层不会使用
             );
         } else {
             console.log('[IAAAdManager] CheckOpenWebAccessable called in Editor. Skipping native call.');
@@ -159,10 +159,11 @@ export class IAAAdManager extends Component {
 
     /**
      * 显示打开网页页面
+     * 对应 Unity: AdManager.ShowOpenWebPage()
      */
     public static showOpenWebPage(): void {
         if (JSB && (typeof jsb !== 'undefined')) {
-            jsb.reflection.callStaticMethod('IAAAdsBridge', 'showOpenWebPage');
+            jsb.reflection.callStaticMethod('IAAJSBridge', 'showOpenWebPage');
         } else {
             console.log('[IAAAdManager] ShowOpenWebPage called in Editor. Skipping native call.');
         }
@@ -170,11 +171,11 @@ export class IAAAdManager extends Component {
 
     /**
      * 取消广告显示
-     * @param adType 广告类型
+     * 对应 Unity: AdManager.cancelAdShow(adType)
      */
     public static cancelAdShow(adType: AdType): void {
         if (JSB && (typeof jsb !== 'undefined')) {
-            jsb.reflection.callStaticMethod('IAAAdsBridge', 'cancelAdShow:', adType);
+            jsb.reflection.callStaticMethod('IAAJSBridge', 'cancelAdShow:', adType);
         } else {
             console.log('[IAAAdManager] CancelAdShow called in Editor. Skipping native call.');
         }
@@ -182,12 +183,11 @@ export class IAAAdManager extends Component {
 
     /**
      * 判断广告是否准备好
-     * @param adType 广告类型
-     * @returns 是否准备好
+     * 对应 Unity: AdManager.isAdReady(adType)
      */
     public static isAdReady(adType: AdType): boolean {
         if (JSB && (typeof jsb !== 'undefined')) {
-            return jsb.reflection.callStaticMethod('IAAAdsBridge', 'isAdReady:', adType) as boolean;
+            return jsb.reflection.callStaticMethod('IAAJSBridge', 'isAdReady:', adType) as boolean;
         } else {
             console.log('[IAAAdManager] IsAdReady called in Editor. Returning false.');
             return false;
@@ -196,16 +196,16 @@ export class IAAAdManager extends Component {
 
     /**
      * 显示应用商店页面
-     * @param resultCallback 结果回调
+     * 对应 Unity: AdManager.ShowAppstorePage(resultCallback)
      */
     public static showAppstorePage(resultCallback: ShowAppstoreCallback): void {
         IAAAdManager._showAppstoreCallback = resultCallback;
         
         if (JSB && (typeof jsb !== 'undefined')) {
             jsb.reflection.callStaticMethod(
-                'IAAAdsBridge',
+                'IAAJSBridge',
                 'showAppstorePage:',
-                resultCallback
+                resultCallback  // 虽然传递，但原生层不会使用
             );
         } else {
             console.log('[IAAAdManager] ShowAppstorePage called in Editor. Skipping native call.');
@@ -214,18 +214,12 @@ export class IAAAdManager extends Component {
 
     /**
      * 记录传感器事件
-     * @param eventName 事件名称
-     * @param properties 事件属性
+     * 对应 Unity: AdManager.LogSensorEvent(eventName, properties)
      */
     public static logSensorEvent(eventName: string, properties: Record<string, any>): void {
         if (JSB && (typeof jsb !== 'undefined')) {
             const propertiesJson = properties ? JSON.stringify(properties) : null;
-            jsb.reflection.callStaticMethod(
-                'IAAAdsBridge',
-                'logSensorEvent:properties:',
-                eventName,
-                propertiesJson
-            );
+            jsb.reflection.callStaticMethod('IAAJSBridge', 'logSensorEvent:properties:', eventName, propertiesJson);
         } else {
             const propertiesJson = properties ? JSON.stringify(properties) : null;
             console.log(`[IAAAdManager] LogSensorEvent called in Editor for event ${eventName}.`, propertiesJson);
@@ -234,10 +228,11 @@ export class IAAAdManager extends Component {
 
     /**
      * 应用进入游戏
+     * 对应 Unity: AdManager.ApplicationDidEnterGame()
      */
     public static applicationDidEnterGame(): void {
         if (JSB && (typeof jsb !== 'undefined')) {
-            jsb.reflection.callStaticMethod('IAAAdsBridge', 'applicationDidEnterGame');
+            jsb.reflection.callStaticMethod('IAAJSBridge', 'applicationDidEnterGame');
         } else {
             console.log('[IAAAdManager] ApplicationDidEnterGame called in Editor. Skipping native call.');
         }
@@ -245,11 +240,11 @@ export class IAAAdManager extends Component {
 
     /**
      * 获取 SDK 版本
-     * @returns SDK 版本号
+     * 对应 Unity: AdManager.GetSDKVersion()
      */
     public static getSDKVersion(): string {
         if (JSB && (typeof jsb !== 'undefined')) {
-            return jsb.reflection.callStaticMethod('IAAAdsBridge', 'getSDKVersion') as string;
+            return jsb.reflection.callStaticMethod('IAAJSBridge', 'getSDKVersion') as string;
         } else {
             return '1.0.0-editor';
         }
@@ -257,8 +252,7 @@ export class IAAAdManager extends Component {
 
     /**
      * 原生回调：用户属性结果
-     * @param attributed 是否归因
-     * @param info 信息
+     * 由原生代码通过 evalString 调用
      */
     public static onUserAttributeResult(attributed: boolean, info: string): void {
         if (IAAAdManager._userAttributeCallback) {
@@ -268,7 +262,7 @@ export class IAAAdManager extends Component {
 
     /**
      * 原生回调：广告初始化结果
-     * @param initialized 是否初始化成功
+     * 由原生代码通过 evalString 调用
      */
     public static onAdInitResult(initialized: boolean): void {
         if (IAAAdManager._adInitCallback) {
@@ -278,9 +272,7 @@ export class IAAAdManager extends Component {
 
     /**
      * 原生回调：广告事件
-     * @param adType 广告类型
-     * @param adEvent 广告事件
-     * @param error 错误信息
+     * 由原生代码通过 evalString 调用
      */
     public static onAdEvent(adType: number, adEvent: number, error: string): void {
         if (IAAAdManager._adEventCallback) {
@@ -290,7 +282,7 @@ export class IAAAdManager extends Component {
 
     /**
      * 原生回调：检查网页可访问性结果
-     * @param accessable 是否可访问
+     * 由原生代码通过 evalString 调用
      */
     public static onCheckWebAccessableResult(accessable: boolean): void {
         if (IAAAdManager._checkWebCallback) {
@@ -300,7 +292,7 @@ export class IAAAdManager extends Component {
 
     /**
      * 原生回调：显示应用商店结果
-     * @param success 是否成功
+     * 由原生代码通过 evalString 调用
      */
     public static onShowAppstoreResult(success: boolean): void {
         if (IAAAdManager._showAppstoreCallback) {
@@ -308,4 +300,3 @@ export class IAAAdManager extends Component {
         }
     }
 }
-

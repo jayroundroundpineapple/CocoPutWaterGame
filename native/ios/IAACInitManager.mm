@@ -1,5 +1,5 @@
 #import "IAACInitManager.h"
-#import <OpenPixel/OpenPixel.h>
+#import <PixelInsight/PixelInsight.h>
 #import "IAACHelper.h"
 
 
