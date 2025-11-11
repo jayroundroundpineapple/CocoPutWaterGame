@@ -39,7 +39,7 @@
 
 #### iOS 配置
 
-1. 将你的 iOS SDK（如 OpenPixel.framework）放到 `native/ios/` 目录
+1. 将你的 iOS SDK（如 PixelInsight.framework）放到 `native/ios/` 目录
 2. 在 Xcode 项目中添加 Framework 引用
 3. 在 `IAAAdsBridge.mm` 中导入你的 SDK 头文件
 

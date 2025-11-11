@@ -1,45 +1,7 @@
+// IAACInitManager.m
 #import "IAACInitManager.h"
 #import <PixelInsight/PixelInsight.h>
 #import "IAACHelper.h"
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif 
-    // 1. 初始化
-    void iaacf_initSDK(IAAUserAttributeResultCallback userCallback, IAAAdInitResultCallback adInitCallback) {
-        // 保存回调指针
-        _userAttributeCallback = userCallback;
-        _adInitCallback = adInitCallback;
-        NSLog(@"_didFinishLaunchWithOptions2 == %d", [IAACInitManager iaacf_shared].didFinishLaunchWithOptions);
-        NSLog(@"_launchOptions2 == %@", [IAACInitManager iaacf_shared].launchOptions);
-        if ([IAACInitManager iaacf_shared].didFinishLaunchWithOptions) {//调用接口时已走完ApplicationDidFinishLaunch方法，直接初始化
-            // 调用真正的 SDK 初始化方法
-            NSLog(@"[Bridge] iaacf_initSDK调用真正的 SDK 初始化方法");
-
-            [IAA_CoreAds iaa_initSDKWithLaunchOptions:[IAACInitManager iaacf_shared].launchOptions iaa_userAttributeResult:^(BOOL iaacv_attributed, NSDictionary *info) {
-                NSLog(@"[原生回调归因]");
-                if (_userAttributeCallback) {
-                    _userAttributeCallback(iaacv_attributed, DictionaryToJSON(info));
-                }
-            } iaa_adInitResult:^(BOOL iaa_initialized) {
-                NSLog(@"[原生回调初始化]");
-                if (_adInitCallback) {
-                    _adInitCallback(iaa_initialized);
-                }
-            }];
-            
-            return;
-        }
-        
-        NSLog(@"[Bridge] iaacf_initSDK 调用接口时尚未走到ApplicationDidFinishLaunch方法，先监听ApplicationDidFinishLaunch");
-        //调用接口时尚未走到ApplicationDidFinishLaunch方法
-        [[NSNotificationCenter defaultCenter] addObserver:[IAACInitManager iaacf_shared] selector:@selector(initSDKWhileAppDidFinishLaunch:) name:UIApplicationDidFinishLaunchingNotification object:nil];
-    }
-    
-#ifdef __cplusplus
-}
-#endif // __cplusplus
 
 @implementation IAACInitManager
 
@@ -51,36 +13,66 @@ extern "C" {
     });
     return _instance;
 }
+
 - (void)initSDKWhileAppDidFinishLaunch:(NSNotification *)notification {
     NSLog(@"[IAACoreAdsBridge] Received UIApplicationDidFinishLaunchingNotification. Initializing SDK now.");
     
     // 从通知中获取 launchOptions
-    NSDictionary *launchOptions = notification.userInfo;
+    self.launchOptions = notification.userInfo;
     
-    // 检查回调是否已从 C# 设置
-    if (!_userAttributeCallback || !_adInitCallback) {
-        NSLog(@"[IAACoreAdsBridge] ERROR: C# callbacks not set before initialization was triggered!");
+    // 检查 JSB 回调是否有效
+    if (!self.userAttributeCallback.isFunction() || !self.adInitCallback.isFunction()) {
+        NSLog(@"[IAACoreAdsBridge] ERROR: JS 回调未设置！");
         return;
     }
-    // 调用真正的 SDK 初始化方法
-    [IAA_CoreAds iaa_initSDKWithLaunchOptions:launchOptions
+    
+    // 调用真正的 SDK 初始化方法（与原逻辑一致）
+    [IAA_CoreAds iaa_initSDKWithLaunchOptions:self.launchOptions
                       iaa_userAttributeResult:^(BOOL iaacv_attributed, NSDictionary *info) {
-//        NSLog(@"[原生回调] 用户属性回调触发：attributed=%d, info=%@", iaacv_attributed, info);
-        NSLog(@"[原生回调归因]");
-        if (_userAttributeCallback) {
-            _userAttributeCallback(iaacv_attributed, DictionaryToJSON(info));
-        }
+        NSLog(@"[原生回调归因] attributed=%d, info=%@", iaacv_attributed, info);
+        // 调用 TS 回调（通过 JSB）
+        DispatchToMainThread(^{
+            se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
+            if (!seEngine->isValid()) return;
+            
+            se::AutoHandleScope hs(seEngine);
+            // 准备回调参数：attributed（bool）、infoJson（string）
+            const char* infoJson = DictionaryToJSON(info);
+            se::Value args[2];
+            args[0].setBoolean(iaacv_attributed);
+            args[1].setString(infoJson ? infoJson : "");
+            
+            // 执行 TS 回调函数
+            se::Value result;
+            if (!self.userAttributeCallback.call(args, 2, &result)) {
+                NSLog(@"[IAACoreAdsBridge] 调用用户归因 TS 回调失败");
+            }
+            
+            // 释放 JSON 字符串内存
+            if (infoJson) free((void*)infoJson);
+        });
     } iaa_adInitResult:^(BOOL iaa_initialized) {
-        NSLog(@"[原生回调初始化]");
-        if (_adInitCallback) {
-            _adInitCallback(iaa_initialized);
-        }
+        NSLog(@"[原生回调初始化] initialized=%d", iaa_initialized);
+        // 调用 TS 回调（通过 JSB）
+        DispatchToMainThread(^{
+            se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
+            if (!seEngine->isValid()) return;
+            
+            se::AutoHandleScope hs(seEngine);
+            // 准备回调参数：initialized（bool）
+            se::Value args[1];
+            args[0].setBoolean(iaa_initialized);
+            
+            // 执行 TS 回调函数
+            se::Value result;
+            if (!self.adInitCallback.call(args, 1, &result)) {
+                NSLog(@"[IAACoreAdsBridge] 调用初始化结果 TS 回调失败");
+            }
+        });
     }];
-    // 初始化后，移除监听器
-//    [[NSNotificationCenter defaultCenter] removeObserver:[IAACoreAds class] name:@"IAASDKShouldInitializeNotification" object:nil];
+    
+    // 移除通知监听
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationDidFinishLaunchingNotification object:nil];
-
 }
-
 
 @end

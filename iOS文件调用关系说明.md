@@ -298,3 +298,4 @@ IAAAdManager.ts
 - ❌ `IAAAdManager.ts` 和 `IAAAdsBridge.mm` 的方法签名不匹配
 - ⚠️ 需要在 AppDelegate 中设置 `launchOptions`
 
+

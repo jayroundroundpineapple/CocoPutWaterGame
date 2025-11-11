@@ -2,14 +2,14 @@
 #define IAACHelper_h
 
 #import <Foundation/Foundation.h>
+// 引入 Cocos JSB 头文件
+#include "cocos/scripting/js-bindings/jswrapper/SeApi.h"
 
-// --- 工具函数 ---
-// C 字符串转 NSString
+// --- 原有工具函数（保留） ---
 static NSString* CreateNSString(const char* string) {
     return string ? [NSString stringWithUTF8String:string] : nil;
 }
 
-// NSString 转 C 字符串 (需要调用 free() 释放)
 static const char* CStringCopy(NSString* string) {
     if (string == nil) {
         return NULL;
@@ -20,7 +20,6 @@ static const char* CStringCopy(NSString* string) {
     return res;
 }
 
-// NSDictionary 转 JSON 字符串 (C 字符串)
 static const char* DictionaryToJSON(NSDictionary* dict) {
     if (dict == nil) {
         return NULL;
@@ -35,7 +34,6 @@ static const char* DictionaryToJSON(NSDictionary* dict) {
     return CStringCopy(jsonString);
 }
 
-// JSON 字符串 (C 字符串) 转 NSDictionary
 static NSDictionary* JSONToDictionary(const char* jsonString) {
     if (jsonString == NULL) {
         return nil;
@@ -48,6 +46,28 @@ static NSDictionary* JSONToDictionary(const char* jsonString) {
         return nil;
     }
     return (NSDictionary*)jsonObject;
+}
+
+// --- JSB 新增工具函数（TS 回调与原生转换） ---
+// se::Value（TS 回调）转 NSString（日志用）
+static NSString* SeValueToNSString(const se::Value& val) {
+    if (val.isString()) {
+        return CreateNSString(val.toString().c_str());
+    } else if (val.isObject()) {
+        return @"[JS Object]";
+    } else if (val.isFunction()) {
+        return @"[JS Function]";
+    }
+    return @"[Unknown JS Value]";
+}
+
+// 主线程执行 JS 回调（避免线程安全问题）
+static void DispatchToMainThread(void (^block)(void)) {
+    if ([NSThread isMainThread]) {
+        block();
+    } else {
+        dispatch_async(dispatch_get_main_queue(), block);
+    }
 }
 
 #endif /* IAACHelper_h */

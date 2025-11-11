@@ -1,10 +1,6 @@
+// IAACInitManager.h
 #import <Foundation/Foundation.h>
-
-typedef void (*IAAUserAttributeResultCallback)(bool attributed, const char* infoJson);
-typedef void (*IAAAdInitResultCallback)(bool initialized);
-
-static IAAUserAttributeResultCallback _userAttributeCallback = NULL;
-static IAAAdInitResultCallback _adInitCallback = NULL;
+#include "cocos/scripting/js-bindings/jswrapper/SeApi.h"
 
 @interface IAACInitManager : NSObject
 
@@ -12,5 +8,9 @@ static IAAAdInitResultCallback _adInitCallback = NULL;
 
 @property (nonatomic, assign) bool didFinishLaunchWithOptions;
 @property (nonatomic, copy) NSDictionary *launchOptions;
+
+// 保存 JSB 回调
+@property (nonatomic, assign) se::Value userAttributeCallback;
+@property (nonatomic, assign) se::Value adInitCallback;
 
 @end

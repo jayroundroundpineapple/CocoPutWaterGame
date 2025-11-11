@@ -1,5 +1,5 @@
 import { _decorator, Component, Node } from 'cc';
-import { IAAAdManager } from './IAAAdManager';
+import { AdManager } from './adManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameUI')
@@ -12,7 +12,7 @@ export class GameUI extends Component {
 
     onInitButtonClick() {
         console.log('onInitButtonClick');
-        IAAAdManager.initSdk(
+        AdManager.InitSdk(
             (attributed: boolean, info: string) => {
                 console.log('User Attribute:', attributed, info);
             },
