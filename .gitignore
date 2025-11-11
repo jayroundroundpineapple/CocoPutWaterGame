@@ -9,11 +9,11 @@ build/
 profiles/
 extensions/
 native/engine/ios/*.xcframework
+native/plugins/ios/*.xcframework
 #//////////////////////////
 # NPM
 #//////////////////////////
 node_modules/
-
 #//////////////////////////
 # VSCode
 #//////////////////////////
