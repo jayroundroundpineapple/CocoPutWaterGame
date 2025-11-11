@@ -3,7 +3,7 @@
 #import "IAACInitManager.h"
 #import "IAACHelper.h"
 #import <PixelInsight/PixelInsight.h>
-#include "cocos/scripting/js-bindings/jswrapper/SeApi.h"
+#include "cocos/bindings/jswrapper/SeApi.h"
 
 // 全局变量：保存其他 JS 回调（广告事件、网页检查等）
 static se::Value g_adEventCallback;

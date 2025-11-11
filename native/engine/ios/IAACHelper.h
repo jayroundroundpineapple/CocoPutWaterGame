@@ -3,7 +3,7 @@
 
 #import <Foundation/Foundation.h>
 // 引入 Cocos JSB 头文件
-#include "cocos/scripting/js-bindings/jswrapper/SeApi.h"
+#include "cocos/bindings/jswrapper/SeApi.h"
 
 // --- 原有工具函数（保留） ---
 static NSString* CreateNSString(const char* string) {

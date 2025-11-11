@@ -1,29 +1,66 @@
-cmake_minimum_required(VERSION 3.8)
+enable_language(C ASM)
+set(DEVELOPMENT_TEAM    ""  CACHE STRING "APPLE Developtment Team")
+set(RES_DIR             ""  CACHE STRING "Resource path")
+set(COCOS_X_PATH        ""  CACHE STRING "Path to engine/native/")
 
-set(CMAKE_SYSTEM_NAME iOS)
-set(APP_NAME "waterdemo"  CACHE STRING "Project Name")
+set(TARGET_OSX_VERSION "10.14" CACHE STRING "Target MacOSX version" FORCE)
+set(TARGET_IOS_VERSION "11.0"  CACHE STRING "Target iOS version" FORCE)
 
-project(${APP_NAME} CXX)
+set(CMAKE_CXX_STANDARD 17)
+option(CC_DEBUG_FORCE           "Force enable CC_DEBUG in release mode" OFF)
+option(USE_SE_V8                "Use V8 JavaScript Engine"              ON)
+option(USE_V8_DEBUGGER          "Compile v8 inspector ws server"        ON)
+option(USE_V8_DEBUGGER_FORCE    "Force enable debugger in release mode" OFF)
+option(USE_SOCKET               "Enable WebSocket & SocketIO"           ON)
+option(USE_AUDIO                "Enable Audio"                          ON)     #Enable AudioEngine
+option(USE_EDIT_BOX             "Enable EditBox"                        ON)
+option(USE_SE_JSC               "Use JavaScriptCore on MacOSX/iOS"      OFF)
+option(USE_VIDEO                "Enable VideoPlayer Component"          ON)
+option(USE_WEBVIEW              "Enable WebView Component"              ON)
+option(USE_MIDDLEWARE           "Enable Middleware"                     ON)
+option(USE_DRAGONBONES          "Enable Dragonbones"                    ON)
+option(USE_SPINE                "Enable Spine"                          ON)
+option(USE_WEBSOCKET_SERVER     "Enable WebSocket Server"               OFF)
+option(USE_JOB_SYSTEM_TASKFLOW  "Use taskflow as job system backend"    OFF)
+option(USE_JOB_SYSTEM_TBB       "Use tbb as job system backend"         OFF)
+option(USE_PHYSICS_PHYSX        "Use PhysX Physics"                     ON)
+option(USE_OCCLUSION_QUERY      "Use Occlusion Query"                   ON)
+option(USE_DEBUG_RENDERER       "Use Debug Renderer"                    ON)
+option(USE_GEOMETRY_RENDERER    "Use Geometry Renderer"                 ON)
+option(USE_WEBP                 "Use Webp"                              ON)
 
-set(CC_PROJECT_DIR ${CMAKE_CURRENT_LIST_DIR})
-set(CC_UI_RESOURCES)
-set(CC_PROJ_SOURCES)
-set(CC_ASSET_FILES)
-set(CC_COMMON_SOURCES)
-set(CC_ALL_SOURCES)
+if(NOT RES_DIR)
+    message(FATAL_ERROR "RES_DIR is not set!")
+endif()
 
-include(${CC_PROJECT_DIR}/../common/CMakeLists.txt)
-set(EXECUTABLE_NAME ${APP_NAME}-mobile)
+include(${RES_DIR}/proj/cfg.cmake)
 
-cc_ios_before_target(${EXECUTABLE_NAME})
-add_executable(${EXECUTABLE_NAME} ${CC_ALL_SOURCES})
+if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/localCfg.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/localCfg.cmake)
+endif()
 
-# 设置源文件属性，确保文件出现在 Xcode 项目中
+if(NOT COCOS_X_PATH)
+    message(FATAL_ERROR "COCOS_X_PATH is not set!")
+endif()
+
+if(USE_XR OR USE_AR_MODULE)
+    include(${CMAKE_CURRENT_LIST_DIR}/xr.cmake)
+endif()
+
+include(${COCOS_X_PATH}/CMakeLists.txt)
+
+list(APPEND CC_COMMON_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/Classes/Game.h
+    ${CMAKE_CURRENT_LIST_DIR}/Classes/Game.cpp
+)
+
+# 添加 IAA SDK 原生文件（iOS）
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    # 获取 native/ios 目录的绝对路径
     get_filename_component(NATIVE_IOS_DIR "${CMAKE_CURRENT_LIST_DIR}/../../ios" ABSOLUTE)
     
-    # 为每个源文件设置 Xcode 属性，确保它们出现在项目导航器中
-    set(IAA_SDK_FILES
+    # 定义源文件列表
+    set(IAA_SDK_SOURCES
         ${NATIVE_IOS_DIR}/IAACoreAdsJSB.mm
         ${NATIVE_IOS_DIR}/IAACoreAdsJSB.h
         ${NATIVE_IOS_DIR}/IAACInitManager.mm
@@ -31,37 +68,15 @@ if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         ${NATIVE_IOS_DIR}/IAACHelper.h
     )
     
-    foreach(file ${IAA_SDK_FILES})
+    # 检查文件是否存在
+    foreach(file ${IAA_SDK_SOURCES})
         if(EXISTS ${file})
-            # 设置文件属性，确保在 Xcode 中可见
-            set_source_files_properties(${file} PROPERTIES
-                XCODE_FILE_ATTRIBUTES "Public"
-            )
+            list(APPEND CC_COMMON_SOURCES ${file})
+            message(STATUS "IAA SDK file found: ${file}")
+        else()
+            message(WARNING "IAA SDK file not found: ${file}")
         endif()
     endforeach()
-endif()
-
-# 添加 IAA SDK Framework 链接
-set(IAA_FRAMEWORK_DIR "${CMAKE_CURRENT_LIST_DIR}/../../ios/Frameworks")
-set(PIXELINSIGHT_FRAMEWORK "${IAA_FRAMEWORK_DIR}/PixelInsight.xcframework")
-
-if(EXISTS "${PIXELINSIGHT_FRAMEWORK}")
-    # 设置 Framework Search Paths（Xcode 项目属性）
-    set_target_properties(${EXECUTABLE_NAME} PROPERTIES
-        XCODE_ATTRIBUTE_FRAMEWORK_SEARCH_PATHS "$(inherited) ${IAA_FRAMEWORK_DIR}"
-    )
     
-    # 对于 xcframework，需要直接链接路径
-    # 注意：CMake 可能不支持直接链接 xcframework，需要在 Xcode 中手动添加
-    # 这里设置变量供后续使用
-    set(IAA_FRAMEWORKS ${PIXELINSIGHT_FRAMEWORK})
-    
-    message(STATUS "IAA SDK Framework found: ${PIXELINSIGHT_FRAMEWORK}")
-    message(STATUS "Framework Search Path: ${IAA_FRAMEWORK_DIR}")
-    message(WARNING "注意：xcframework 可能需要在 Xcode 中手动添加到 'Frameworks, Libraries, and Embedded Content'")
-else()
-    message(WARNING "IAA SDK Framework not found at: ${PIXELINSIGHT_FRAMEWORK}")
-    message(WARNING "请确保 PixelInsight.xcframework 位于: native/ios/Frameworks/")
+    message(STATUS "IAA SDK source files added from: ${NATIVE_IOS_DIR}")
 endif()
-
-cc_ios_after_target(${EXECUTABLE_NAME})

@@ -1,7 +1,6 @@
 // IAACInitManager.h
 #import <Foundation/Foundation.h>
-#include "cocos/scripting/js-bindings/jswrapper/SeApi.h"
-
+#include "cocos/bindings/jswrapper/SeApi.h"
 @interface IAACInitManager : NSObject
 
 + (instancetype)iaacf_shared;

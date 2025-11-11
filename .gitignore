@@ -8,8 +8,7 @@ local/
 build/
 profiles/
 extensions/
-native/ios/Frameworks/*.xcframework
-native/ios/*.xcframework
+native/engine/ios/*.xcframework
 #//////////////////////////
 # NPM
 #//////////////////////////
