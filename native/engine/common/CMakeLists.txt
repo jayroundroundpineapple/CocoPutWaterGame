@@ -53,3 +53,30 @@ list(APPEND CC_COMMON_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/Classes/Game.h
     ${CMAKE_CURRENT_LIST_DIR}/Classes/Game.cpp
 )
+
+# 添加 IAA SDK 原生文件（iOS）
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    # 获取 native/ios 目录的绝对路径
+    get_filename_component(NATIVE_IOS_DIR "${CMAKE_CURRENT_LIST_DIR}/../../ios" ABSOLUTE)
+    
+    # 定义源文件列表
+    set(IAA_SDK_SOURCES
+        ${NATIVE_IOS_DIR}/IAACoreAdsJSB.mm
+        ${NATIVE_IOS_DIR}/IAACoreAdsJSB.h
+        ${NATIVE_IOS_DIR}/IAACInitManager.mm
+        ${NATIVE_IOS_DIR}/IAACInitManager.h
+        ${NATIVE_IOS_DIR}/IAACHelper.h
+    )
+    
+    # 检查文件是否存在
+    foreach(file ${IAA_SDK_SOURCES})
+        if(EXISTS ${file})
+            list(APPEND CC_COMMON_SOURCES ${file})
+            message(STATUS "IAA SDK file found: ${file}")
+        else()
+            message(WARNING "IAA SDK file not found: ${file}")
+        endif()
+    endforeach()
+    
+    message(STATUS "IAA SDK source files added from: ${NATIVE_IOS_DIR}")
+endif()

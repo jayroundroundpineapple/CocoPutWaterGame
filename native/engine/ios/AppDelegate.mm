@@ -32,6 +32,8 @@
 #include "platform/ios/IOSPlatform.h"
 #import "platform/ios/AppDelegateBridge.h"
 #import "service/SDKWrapper.h"
+#import "../../ios/IAACInitManager.h"
+#import "../../ios/IAACCoreAdsJSB.h"
 
 @implementation AppDelegate
 @synthesize window;
@@ -41,6 +43,10 @@
 #pragma mark Application lifecycle
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    // 设置 IAA SDK 的 launchOptions（必须在最早设置）
+    [IAACInitManager iaacf_shared].launchOptions = launchOptions;
+    [IAACInitManager iaacf_shared].didFinishLaunchWithOptions = YES;
+    
     [[SDKWrapper shared] application:application didFinishLaunchingWithOptions:launchOptions];
     appDelegateBridge = [[AppDelegateBridge alloc] init];
     
