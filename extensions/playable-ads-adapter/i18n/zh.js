@@ -1,1 +1,0 @@
-"use strict";module.exports={description:"广告试玩适配器"};
