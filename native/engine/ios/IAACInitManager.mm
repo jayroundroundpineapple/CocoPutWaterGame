@@ -22,8 +22,15 @@
     self.launchOptions = notification.userInfo;
     
     // 检查 JSB 回调是否有效
-    if (!self.userAttributeCallback.isFunction() || !self.adInitCallback.isFunction()) {
+    if (!self.userAttributeCallback.isObject() || !self.adInitCallback.isObject()) {
         NSLog(@"[IAACoreAdsBridge] ERROR: JS 回调未设置！");
+        return;
+    }
+    
+    se::Object* userAttrObj = self.userAttributeCallback.toObject();
+    se::Object* adInitObj = self.adInitCallback.toObject();
+    if (!userAttrObj || !userAttrObj->isFunction() || !adInitObj || !adInitObj->isFunction()) {
+        NSLog(@"[IAACoreAdsBridge] ERROR: JS 回调不是函数！");
         return;
     }
     
@@ -34,20 +41,24 @@
         // 调用 TS 回调（通过 JSB）
         DispatchToMainThread(^{
             se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
-            if (!seEngine->isValid()) return;
+            if (!seEngine->isValid() || !self.userAttributeCallback.isObject()) return;
             
-//            se::AutoHandleScope hs(seEngine);
             se::AutoHandleScope hs;
+            se::Object* callbackObj = self.userAttributeCallback.toObject();
+            if (!callbackObj || !callbackObj->isFunction()) return;
+            
             // 准备回调参数：attributed（bool）、infoJson（string）
             const char* infoJson = DictionaryToJSON(info);
-            se::Value args[2];
+            se::ValueArray args;
+            args.resize(2);
             args[0].setBoolean(iaacv_attributed);
             args[1].setString(infoJson ? infoJson : "");
             
             // 执行 TS 回调函数
             se::Value result;
-            if (!self.userAttributeCallback.call(args, 2, &result)) {
+            if (!callbackObj->call(args, nullptr, &result)) {
                 NSLog(@"[IAACoreAdsBridge] 调用用户归因 TS 回调失败");
+                seEngine->clearException();
             }
             
             // 释放 JSON 字符串内存
@@ -58,17 +69,22 @@
         // 调用 TS 回调（通过 JSB）
         DispatchToMainThread(^{
             se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
-            if (!seEngine->isValid()) return;
+            if (!seEngine->isValid() || !self.adInitCallback.isObject()) return;
             
-            se::AutoHandleScope hs(seEngine);
+            se::AutoHandleScope hs;
+            se::Object* callbackObj = self.adInitCallback.toObject();
+            if (!callbackObj || !callbackObj->isFunction()) return;
+            
             // 准备回调参数：initialized（bool）
-            se::Value args[1];
+            se::ValueArray args;
+            args.resize(1);
             args[0].setBoolean(iaa_initialized);
             
             // 执行 TS 回调函数
             se::Value result;
-            if (!self.adInitCallback.call(args, 1, &result)) {
+            if (!callbackObj->call(args, nullptr, &result)) {
                 NSLog(@"[IAACoreAdsBridge] 调用初始化结果 TS 回调失败");
+                seEngine->clearException();
             }
         });
     }];

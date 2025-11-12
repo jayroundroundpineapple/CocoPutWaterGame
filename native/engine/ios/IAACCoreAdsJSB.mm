@@ -37,33 +37,43 @@ static bool js_iaacf_initSDK(se::State& s) {
             // 调用 TS 回调（与 IAACInitManager 中逻辑一致）
             DispatchToMainThread(^{
                 se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
-                if (!seEngine->isValid()) return;
+                if (!seEngine->isValid() || !manager.userAttributeCallback.isObject()) return;
                 
                 se::AutoHandleScope hs;
+                se::Object* callbackObj = manager.userAttributeCallback.toObject();
+                if (!callbackObj || !callbackObj->isFunction()) return;
+                
                 const char* infoJson = DictionaryToJSON(info);
-                se::Value args[2];
+                se::ValueArray args;
+                args.resize(2);
                 args[0].setBoolean(attributed);
                 args[1].setString(infoJson ? infoJson : "");
                 
                 se::Value result;
-                se::ScriptEngine* se = se::ScriptEngine::getInstance();
-                if (!manager.userAttributeCallback.call(args, 2, &result)) {
+                if (!callbackObj->call(args, nullptr, &result)) {
                     NSLog(@"[IAACoreAdsJSB] 调用用户归因 TS 回调失败");
+                    seEngine->clearException();
                 }
+                
                 if (infoJson) free((void*)infoJson);
             });
         } iaa_adInitResult:^(BOOL initialized) {
             DispatchToMainThread(^{
                 se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
-                if (!seEngine->isValid()) return;
+                if (!seEngine->isValid() || !manager.adInitCallback.isObject()) return;
                 
                 se::AutoHandleScope hs;
-                se::Value args[1];
+                se::Object* callbackObj = manager.adInitCallback.toObject();
+                if (!callbackObj || !callbackObj->isFunction()) return;
+                
+                se::ValueArray args;
+                args.resize(1);
                 args[0].setBoolean(initialized);
                 
                 se::Value result;
-                if (!manager.adInitCallback.call(args, 1, &result)) {
+                if (!callbackObj->call(args, nullptr, &result)) {
                     NSLog(@"[IAACoreAdsJSB] 调用初始化结果 TS 回调失败");
+                    seEngine->clearException();
                 }
             });
         }];
@@ -102,21 +112,27 @@ static bool js_iaacf_showAd(se::State& s) {
         // 调用 TS 广告事件回调
         DispatchToMainThread(^{
             se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
-            if (!seEngine->isValid() || !g_adEventCallback.isFunction()) return;
+            if (!seEngine->isValid() || !g_adEventCallback.isObject()) return;
+            
             se::AutoHandleScope hs;
+            se::Object* callbackObj = g_adEventCallback.toObject();
+            if (!callbackObj || !callbackObj->isFunction()) return;
+            
             // 准备参数：adType（int）、adEvent（int）、errorJson（string）
             NSDictionary* errorDict = error ? @{@"message": error.localizedDescription} : nil;
             const char* errorJson = DictionaryToJSON(errorDict);
             
-            se::Value args[3];
+            se::ValueArray args;
+            args.resize(3);
             args[0].setInt32((int)type);
             args[1].setInt32((int)event);
             args[2].setString(errorJson ? errorJson : "");
             
             // 执行 TS 回调
             se::Value result;
-            if (!g_adEventCallback.call(args, 3, &result)) {
+            if (!callbackObj->call(args, nullptr, &result)) {
                 NSLog(@"[IAACoreAdsJSB] 调用广告事件 TS 回调失败");
+                seEngine->clearException();
             }
             
             // 释放内存
@@ -142,15 +158,20 @@ static bool js_iaacf_checkOpenWebAccessable(se::State& s) {
     [IAA_CoreAds iaa_checkOpenWebAccessable:^(BOOL accessable) {
         DispatchToMainThread(^{
             se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
-            if (!seEngine->isValid() || !g_checkWebCallback.isFunction()) return;
+            if (!seEngine->isValid() || !g_checkWebCallback.isObject()) return;
             
             se::AutoHandleScope hs;
-            se::Value args[1];
+            se::Object* callbackObj = g_checkWebCallback.toObject();
+            if (!callbackObj || !callbackObj->isFunction()) return;
+            
+            se::ValueArray args;
+            args.resize(1);
             args[0].setBoolean(accessable);
             
             se::Value result;
-            if (!g_checkWebCallback.call(args, 1, &result)) {
+            if (!callbackObj->call(args, nullptr, &result)) {
                 NSLog(@"[IAACoreAdsJSB] 调用网页权限 TS 回调失败");
+                seEngine->clearException();
             }
         });
     }];
@@ -216,14 +237,20 @@ static bool js_iaacf_showAppstorePage(se::State& s) {
     [IAA_CoreAds iaa_showAppstorePageWithResultCallback:^(BOOL success) {
         DispatchToMainThread(^{
             se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
-            if (!seEngine->isValid() || !g_showAppstoreCallback.isFunction()) return;
+            if (!seEngine->isValid() || !g_showAppstoreCallback.isObject()) return;
+            
             se::AutoHandleScope hs;
-            se::Value args[1];
+            se::Object* callbackObj = g_showAppstoreCallback.toObject();
+            if (!callbackObj || !callbackObj->isFunction()) return;
+            
+            se::ValueArray args;
+            args.resize(1);
             args[0].setBoolean(success);
             
             se::Value result;
-            if (!g_showAppstoreCallback.call(args, 1, &result)) {
+            if (!callbackObj->call(args, nullptr, &result)) {
                 NSLog(@"[IAACoreAdsJSB] 调用 AppStore 展示 TS 回调失败");
+                seEngine->clearException();
             }
         });
     }];
