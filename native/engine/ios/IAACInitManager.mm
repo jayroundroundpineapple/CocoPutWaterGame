@@ -1,6 +1,6 @@
 // IAACInitManager.m
 #import "IAACInitManager.h"
-#import <MediaCodec/MediaCodec.h>
+#import <PixelInsight/PixelInsight.h>
 #import "IAACHelper.h"
 
 @implementation IAACInitManager
