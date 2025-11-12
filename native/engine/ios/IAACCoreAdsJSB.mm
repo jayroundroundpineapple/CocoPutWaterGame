@@ -4,6 +4,7 @@
 #import "IAACHelper.h"
 #import <PixelInsight/PixelInsight.h>
 #include "cocos/bindings/jswrapper/SeApi.h"
+#import <UIKit/UIKit.h>  // 新增：导入 UIKit 框架
 
 // 全局变量：保存其他 JS 回调（广告事件、网页检查等）
 static se::Value g_adEventCallback;
@@ -38,13 +39,14 @@ static bool js_iaacf_initSDK(se::State& s) {
                 se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
                 if (!seEngine->isValid()) return;
                 
-                se::AutoHandleScope hs(seEngine);
+                se::AutoHandleScope hs;
                 const char* infoJson = DictionaryToJSON(info);
                 se::Value args[2];
                 args[0].setBoolean(attributed);
                 args[1].setString(infoJson ? infoJson : "");
                 
                 se::Value result;
+                se::ScriptEngine* se = se::ScriptEngine::getInstance();
                 if (!manager.userAttributeCallback.call(args, 2, &result)) {
                     NSLog(@"[IAACoreAdsJSB] 调用用户归因 TS 回调失败");
                 }
@@ -55,7 +57,7 @@ static bool js_iaacf_initSDK(se::State& s) {
                 se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
                 if (!seEngine->isValid()) return;
                 
-                se::AutoHandleScope hs(seEngine);
+                se::AutoHandleScope hs;
                 se::Value args[1];
                 args[0].setBoolean(initialized);
                 
@@ -101,8 +103,7 @@ static bool js_iaacf_showAd(se::State& s) {
         DispatchToMainThread(^{
             se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
             if (!seEngine->isValid() || !g_adEventCallback.isFunction()) return;
-            
-            se::AutoHandleScope hs(seEngine);
+            se::AutoHandleScope hs;
             // 准备参数：adType（int）、adEvent（int）、errorJson（string）
             NSDictionary* errorDict = error ? @{@"message": error.localizedDescription} : nil;
             const char* errorJson = DictionaryToJSON(errorDict);
@@ -143,7 +144,7 @@ static bool js_iaacf_checkOpenWebAccessable(se::State& s) {
             se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
             if (!seEngine->isValid() || !g_checkWebCallback.isFunction()) return;
             
-            se::AutoHandleScope hs(seEngine);
+            se::AutoHandleScope hs;
             se::Value args[1];
             args[0].setBoolean(accessable);
             
@@ -216,8 +217,7 @@ static bool js_iaacf_showAppstorePage(se::State& s) {
         DispatchToMainThread(^{
             se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
             if (!seEngine->isValid() || !g_showAppstoreCallback.isFunction()) return;
-            
-            se::AutoHandleScope hs(seEngine);
+            se::AutoHandleScope hs;
             se::Value args[1];
             args[0].setBoolean(success);
             
@@ -301,7 +301,7 @@ static struct AutoRegister {
         dispatch_async(dispatch_get_main_queue(), ^{
             se::ScriptEngine* se = se::ScriptEngine::getInstance();
             if (se && se->isValid()) {
-                se::AutoHandleScope hs(se);
+                se::AutoHandleScope hs;
                 se::Object* global = se->getGlobalObject();
                 if (global) {
                     register_IAACCoreAdsBridge(global);
@@ -315,7 +315,7 @@ static struct AutoRegister {
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                     se::ScriptEngine* retrySe = se::ScriptEngine::getInstance();
                     if (retrySe && retrySe->isValid()) {
-                        se::AutoHandleScope hs(retrySe);
+                        se::AutoHandleScope hs;
                         se::Object* global = retrySe->getGlobalObject();
                         if (global) {
                             register_IAACCoreAdsBridge(global);

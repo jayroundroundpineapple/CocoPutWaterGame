@@ -54,9 +54,11 @@ static NSString* SeValueToNSString(const se::Value& val) {
     if (val.isString()) {
         return CreateNSString(val.toString().c_str());
     } else if (val.isObject()) {
+        se::Object* obj = val.toObject();
+        if (obj && obj->isFunction()) {
+            return @"[JS Function]";
+        }
         return @"[JS Object]";
-    } else if (val.isFunction()) {
-        return @"[JS Function]";
     }
     return @"[Unknown JS Value]";
 }

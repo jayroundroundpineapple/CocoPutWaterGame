@@ -2,6 +2,7 @@
 #import "IAACInitManager.h"
 #import <PixelInsight/PixelInsight.h>
 #import "IAACHelper.h"
+#import <UIKit/UIKit.h>
 
 @implementation IAACInitManager
 
@@ -35,7 +36,8 @@
             se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
             if (!seEngine->isValid()) return;
             
-            se::AutoHandleScope hs(seEngine);
+//            se::AutoHandleScope hs(seEngine);
+            se::AutoHandleScope hs;
             // 准备回调参数：attributed（bool）、infoJson（string）
             const char* infoJson = DictionaryToJSON(info);
             se::Value args[2];
