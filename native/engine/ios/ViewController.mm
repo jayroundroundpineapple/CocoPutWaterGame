@@ -40,6 +40,19 @@ namespace {
 
 @implementation ViewController
 
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    NSLog(@"[ViewController] ========== viewDidLoad 开始 ==========");
+    NSLog(@"[ViewController] 当前线程：%@，是否主线程：%d", [NSThread currentThread], [NSThread isMainThread]);
+    NSLog(@"[ViewController] ========== viewDidLoad 完成 ==========");
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    NSLog(@"[ViewController] ========== viewWillAppear 开始 ==========");
+    NSLog(@"[ViewController] 当前线程：%@，是否主线程：%d", [NSThread currentThread], [NSThread isMainThread]);
+    NSLog(@"[ViewController] ========== viewWillAppear 完成 ==========");
+}
 
 - (BOOL) shouldAutorotate {
     return YES;

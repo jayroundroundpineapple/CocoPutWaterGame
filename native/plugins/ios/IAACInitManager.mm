@@ -2,17 +2,13 @@
 #import "IAACInitManager.h"
 #import <PixelInsight/PixelInsight.h>
 #import "IAACHelper.h"
-#import <UIKit/UIKit.h>
 
 @implementation IAACInitManager
 
 + (instancetype)iaacf_shared {
-    NSLog(@"[IAACInitManager] iaacf_shared 被调用，当前线程：%@，是否主线程：%d", 
-          [NSThread currentThread], [NSThread isMainThread]);
     static IAACInitManager *_instance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        NSLog(@"[IAACInitManager] 创建单例实例...");
         _instance = [[IAACInitManager alloc] init];
     });
     return _instance;
@@ -46,7 +42,7 @@
             se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
             if (!seEngine->isValid() || !self.userAttributeCallback.isObject()) return;
             
-            se::AutoHandleScope hs;
+            se::AutoHandleScope hs(seEngine);
             se::Object* callbackObj = self.userAttributeCallback.toObject();
             if (!callbackObj || !callbackObj->isFunction()) return;
             
@@ -74,7 +70,7 @@
             se::ScriptEngine* seEngine = se::ScriptEngine::getInstance();
             if (!seEngine->isValid() || !self.adInitCallback.isObject()) return;
             
-            se::AutoHandleScope hs;
+            se::AutoHandleScope hs(seEngine);
             se::Object* callbackObj = self.adInitCallback.toObject();
             if (!callbackObj || !callbackObj->isFunction()) return;
             

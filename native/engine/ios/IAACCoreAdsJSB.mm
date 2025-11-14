@@ -297,7 +297,16 @@ SE_BIND_FUNC(js_iaacf_sdkVersion)
 
 /** 注册所有 JSB 函数到 TS 全局对象（window） */
 void register_IAACCoreAdsBridge(se::Object* global) {
+    NSLog(@"[IAACoreAdsJSB] ========== register_IAACCoreAdsBridge 开始 ==========");
+    NSLog(@"[IAACoreAdsJSB] 当前线程：%@，是否主线程：%d", [NSThread currentThread], [NSThread isMainThread]);
+    
+    if (!global) {
+        NSLog(@"[IAACoreAdsJSB] ERROR: global 对象为 null！");
+        return;
+    }
+    
     // 注册初始化函数
+    NSLog(@"[IAACoreAdsJSB] 注册 iaacf_initSDK...");
     global->defineFunction("iaacf_initSDK", _SE(js_iaacf_initSDK));
     // 注册显示广告函数
     global->defineFunction("iaacf_showAd", _SE(js_iaacf_showAd));
@@ -316,12 +325,16 @@ void register_IAACCoreAdsBridge(se::Object* global) {
     // 注册应用进入游戏函数
     global->defineFunction("iaacf_applicationDidEnterGame", _SE(js_iaacf_applicationDidEnterGame));
     // 注册获取版本函数
+    NSLog(@"[IAACoreAdsJSB] 注册 iaacf_sdkVersion...");
     global->defineFunction("iaacf_sdkVersion", _SE(js_iaacf_sdkVersion));
     
-    NSLog(@"[IAACoreAdsJSB] 所有 JSB 函数注册完成");
+    NSLog(@"[IAACoreAdsJSB] ========== 所有 JSB 函数注册完成 ==========");
 }
 
-// 自动注册：使用静态构造函数在模块加载时自动注册
+// 注意：不再使用静态构造函数自动注册，改为在 AppDelegate 中显式注册
+// 这样可以避免在后台线程执行导致的线程安全问题
+/*
+// 自动注册：使用静态构造函数在模块加载时自动注册（已禁用，避免线程安全问题）
 static struct AutoRegister {
     AutoRegister() {
         // 延迟注册，确保脚本引擎已初始化
@@ -354,3 +367,4 @@ static struct AutoRegister {
         });
     }
 } s_auto_register;
+*/
