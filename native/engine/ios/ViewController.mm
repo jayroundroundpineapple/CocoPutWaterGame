@@ -80,10 +80,12 @@ namespace {
    float pixelRatio = [delegate.appDelegateBridge getPixelRatio];
 
    //CAMetalLayer is available on ios8.0, ios-simulator13.0.
-   CAMetalLayer *layer = (CAMetalLayer *)self.view.layer;
-   CGSize tsize             = CGSizeMake(static_cast<int>(size.width * pixelRatio),
-                                         static_cast<int>(size.height * pixelRatio));
-   layer.drawableSize = tsize;
+    dispatch_async(dispatch_get_main_queue(),^{
+        CAMetalLayer *layer = (CAMetalLayer *)self.view.layer;
+        CGSize tsize             = CGSizeMake(static_cast<int>(size.width * pixelRatio),
+                                              static_cast<int>(size.height * pixelRatio));
+        layer.drawableSize = tsize;
+    });
 }
 
 @end
