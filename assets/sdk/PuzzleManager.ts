@@ -30,22 +30,22 @@ export class PuzzleManager extends Component {
     // 位置数组
     private positions: Vec3[] = [];
     private currentLevel: number = 1;
-    
+
     // 当前关卡的配置
     private currentConfig: LevelConfig = null;
     // 所有关卡配置
     private levelConfigs: LevelConfig[] = [];
-    
+
     // 完成回调
     public onPuzzleComplete: (level: number) => void = null;
-    
+
     // 是否已完成（防止重复触发）
     private isCompleted: boolean = false;
-    
+
     protected onLoad() {
         this.loadLevelConfigs();
     }
-    
+
     protected start() {
         if (this.currentImage) {
             // 如果没有配置，使用默认配置
@@ -55,7 +55,7 @@ export class PuzzleManager extends Component {
             this.startPuzzle(this.currentImage);
         }
     }
-    
+
     /**
      * 加载关卡配置JSON
      */
@@ -66,7 +66,7 @@ export class PuzzleManager extends Component {
                 this.loadDefaultConfig();
                 return;
             }
-            
+
             const data = jsonAsset.json as { levels: LevelConfig[] };
             if (data && data.levels && Array.isArray(data.levels)) {
                 this.levelConfigs = data.levels;
@@ -77,7 +77,7 @@ export class PuzzleManager extends Component {
             }
         });
     }
-    
+
     /**
      * 加载默认配置（如果JSON加载失败）
      */
@@ -89,7 +89,7 @@ export class PuzzleManager extends Component {
         ];
         console.log('[PuzzleManager] 使用默认关卡配置');
     }
-    
+
     /**
      * 获取当前关卡配置
      */
@@ -97,7 +97,7 @@ export class PuzzleManager extends Component {
         if (this.levelConfigs.length === 0) {
             this.loadDefaultConfig();
         }
-        
+
         const config = this.levelConfigs.find(c => c.level === this.currentLevel);
         if (!config && this.levelConfigs.length > 0) {
             // 如果找不到当前关卡，使用第一关的配置
@@ -105,26 +105,26 @@ export class PuzzleManager extends Component {
         }
         return config || null;
     }
-    
+
     /**
      * 初始化位置（根据rows和cols动态计算）
      */
     private initPositions(rows: number, cols: number) {
         if (!this.puzzleContainer) return;
-        
+
         const uiTransform = this.puzzleContainer.getComponent(UITransform);
         if (!uiTransform) return;
-        
+
         const width = uiTransform.width;
         const height = uiTransform.height;
-        
+
         // 计算每个单元格的尺寸
         const cellWidth = width / cols;
         const cellHeight = height / rows;
-        
+
         // 清空位置数组
         this.positions = [];
-        
+
         // 计算所有位置
         // 索引布局（从左到右，从上到下）：
         // 0  1  2  ... (cols-1)
@@ -139,45 +139,61 @@ export class PuzzleManager extends Component {
                 this.positions[index] = new Vec3(x, y, 0);
             }
         }
-        
+
         console.log(`[PuzzleManager] 初始化位置: ${rows}x${cols}, 共${this.positions.length}个位置`);
     }
-    
+
     /**
      * 开始拼图游戏
      */
     public startPuzzle(spriteFrame: SpriteFrame) {
         this.currentImage = spriteFrame;
         this.isCompleted = false;  // 重置完成标志
-        
+
         // 获取当前关卡配置
         this.currentConfig = this.getCurrentLevelConfig();
         if (!this.currentConfig) {
             console.error('[PuzzleManager] 无法获取关卡配置');
             return;
         }
-        
+
         // 初始化位置
         this.initPositions(this.currentConfig.rows, this.currentConfig.cols);
-        
+
         // 创建拼图块
         this.clearPieces();
         this.createPieces(spriteFrame, this.currentConfig.rows, this.currentConfig.cols);
         this.shufflePieces();
     }
-    
+
     /**
      * 创建拼图块（根据rows和cols动态创建）
      */
     private createPieces(spriteFrame: SpriteFrame, rows: number, cols: number) {
         if (!this.piecePrefab || !this.puzzleContainer || !this.currentConfig) return;
-        
+        // 获取容器大小
+        const containerTransform = this.puzzleContainer.getComponent(UITransform);
+        if (!containerTransform) return;
+        const containerWidth = containerTransform.width;
+        const containerHeight = containerTransform.height;
+
+        // 计算每个拼图块的大小
+        const pieceWidth = containerWidth / cols;
+        const pieceHeight = containerHeight / rows;
+
         const totalPieces = rows * cols;
-        
+
         // 创建所有拼图块
         for (let i = 0; i < totalPieces; i++) {
             const pieceNode = instantiate(this.piecePrefab);
             pieceNode.parent = this.puzzleContainer;
+            // 设置拼图块的大小
+            const pieceTransform = pieceNode.getComponent(UITransform);
+            if (pieceTransform) {
+                pieceTransform.width = pieceWidth;
+                pieceTransform.height = pieceHeight;
+            }
+
             const piece = pieceNode.getComponent(PuzzlePiece);
             if (piece) {
                 piece.init(spriteFrame, i, i, rows, cols);
@@ -187,7 +203,7 @@ export class PuzzleManager extends Component {
                 this.pieces.push(piece);
             }
         }
-        
+
         console.log(`[PuzzleManager] 创建了 ${totalPieces} 个拼图块 (${rows}x${cols})`);
     }
     /**
@@ -195,13 +211,13 @@ export class PuzzleManager extends Component {
      */
     private shufflePieces() {
         if (!this.currentConfig || this.pieces.length === 0) return;
-        
+
         const totalPieces = this.pieces.length;
         const indices: number[] = [];
         for (let i = 0; i < totalPieces; i++) {
             indices.push(i);
         }
-        
+
         this.shuffleArray(indices);
         // 确保不是已经完成的状态
         let attempts = 0;
@@ -230,7 +246,7 @@ export class PuzzleManager extends Component {
             [array[i], array[j]] = [array[j], array[i]];
         }
     }
-    
+
     /**
      * 检查是否已解决
      */
@@ -240,7 +256,7 @@ export class PuzzleManager extends Component {
         }
         return true;
     }
-    
+
     /**
      * 拼图块位置改变回调
      */
@@ -250,14 +266,14 @@ export class PuzzleManager extends Component {
             this.checkPiecePosition(piece);
         }
     }
-    
+
     /**
      * 检查拼图块是否移动到其他位置
      */
     private checkPiecePosition(piece: PuzzlePiece) {
         let nearestIndex = -1;
         let minDistance = Infinity;
-        
+
         for (let i = 0; i < this.positions.length; i++) {
             const distance = Vec3.distance(piece.node.position, this.positions[i]);
             if (distance < minDistance) {
@@ -265,7 +281,7 @@ export class PuzzleManager extends Component {
                 nearestIndex = i;
             }
         }
-        
+
         if (nearestIndex >= 0 && minDistance < 100) {
             const targetPiece = this.pieces.find(p => p.currentIndex === nearestIndex && p !== piece);
             if (targetPiece) {
@@ -279,7 +295,7 @@ export class PuzzleManager extends Component {
                 piece.moveToPosition(this.positions[nearestIndex], nearestIndex);
                 this.scheduleOnce(() => {
                     this.checkComplete();
-                }, 0.35); 
+                }, 0.35);
             } else {
                 this.checkComplete();
             }
@@ -287,18 +303,18 @@ export class PuzzleManager extends Component {
             piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
         }
     }
-    
+
     /**
      * 交换两个拼图块的位置
      */
     private swapPieces(piece1: PuzzlePiece, piece2: PuzzlePiece) {
         const index1 = piece1.currentIndex;
         const index2 = piece2.currentIndex;
-        
+
         piece1.moveToPosition(this.positions[index2], index2);
         piece2.moveToPosition(this.positions[index1], index1);
     }
-    
+
     /**
      * 检查拼图是否完成
      */
@@ -307,9 +323,9 @@ export class PuzzleManager extends Component {
         if (this.isCompleted) {
             return;
         }
-        
+
         let allCorrect = true;
-        
+
         // 检查所有拼图块是否在正确位置
         // 重新计算每个拼图块的位置索引（基于实际位置）
         for (const piece of this.pieces) {
@@ -323,49 +339,49 @@ export class PuzzleManager extends Component {
                     actualIndex = i;
                 }
             }
-            
+
             // 如果位置很近，更新currentIndex
             if (actualIndex >= 0 && minDist < 50) {
                 piece.currentIndex = actualIndex;
                 piece.isInCorrectPosition = (actualIndex === piece.correctIndex);
             }
-            
+
             if (!piece.isInCorrectPosition) {
                 allCorrect = false;
             }
         }
-        
+
         // 添加调试日志
         if (allCorrect) {
             console.log('[PuzzleManager] 拼图完成检测通过！');
-            this.isCompleted = true; 
+            this.isCompleted = true;
             this.handlePuzzleComplete();
         } else {
-            const status = this.pieces.map(p => 
+            const status = this.pieces.map(p =>
                 `Piece${p.correctIndex}: current=${p.currentIndex}, correct=${p.isInCorrectPosition}`
             ).join(', ');
             console.log('[PuzzleManager] 拼图未完成:', status);
         }
     }
-    
+
     /**
      * 拼图完成处理
      */
     private handlePuzzleComplete() {
         console.log(`拼图完成！关卡 ${this.currentLevel}`);
-        
+
         // 调用外部回调
         if (this.onPuzzleComplete) {
             this.onPuzzleComplete(this.currentLevel);
         }
-        
+
         // 播放完成动画
         this.playCompleteAnimation();
         this.scheduleOnce(() => {
             this.nextLevel();
         }, 1);
     }
-    
+
     /**
      * 播放完成动画
      */
@@ -377,7 +393,7 @@ export class PuzzleManager extends Component {
             }, 0.2);
         }
     }
-    
+
     private nextLevel() {
         this.currentLevel++;
         const nextConfig = this.levelConfigs.find(c => c.level === this.currentLevel);
@@ -386,7 +402,7 @@ export class PuzzleManager extends Component {
             // 可以显示完成界面或重新开始
             return;
         }
-        
+
         console.log(`[PuzzleManager] 进入第 ${this.currentLevel} 关: ${nextConfig.rows}x${nextConfig.cols}`);
         console.log('[PuzzleManager] 尝试加载图片:', nextConfig.imagePath);
         resources.load(nextConfig.imagePath, SpriteFrame, (err, spriteFrame) => {
@@ -400,7 +416,7 @@ export class PuzzleManager extends Component {
             this.startPuzzle(spriteFrame);
         });
     }
-    
+
     /**
      * 清除所有拼图块
      */
@@ -410,7 +426,7 @@ export class PuzzleManager extends Component {
         }
         this.pieces = [];
     }
-    
+
     /**
      * 重新开始当前关卡
      */
