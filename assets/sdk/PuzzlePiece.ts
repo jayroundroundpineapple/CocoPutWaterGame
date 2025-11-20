@@ -30,10 +30,12 @@ export class PuzzlePiece extends Component {
     /**
      * 初始化拼图块
      * @param spriteFrame 完整的图片SpriteFrame
-     * @param index 拼图块索引 (0-3)
+     * @param index 拼图块索引
      * @param correctIndex 正确位置索引
+     * @param rows 行数
+     * @param cols 列数
      */
-    public init(spriteFrame: SpriteFrame, index: number, correctIndex: number) {
+    public init(spriteFrame: SpriteFrame, index: number, correctIndex: number, rows: number, cols: number) {
         this.node.name = "节点"+correctIndex.toString();
         this.correctIndex = correctIndex;
         this.currentIndex = index;
@@ -41,11 +43,10 @@ export class PuzzlePiece extends Component {
         
         // 创建裁剪后的SpriteFrame
         if (this.sprite && spriteFrame) {
-            const croppedFrame = this.createCroppedSpriteFrame(spriteFrame, correctIndex);
+            const croppedFrame = this.createCroppedSpriteFrame(spriteFrame, correctIndex, rows, cols);
             if (croppedFrame) {
                 this.sprite.spriteFrame = croppedFrame;
             } else {
-                // 如果裁剪失败，使用原图（临时方案）
                 this.sprite.spriteFrame = spriteFrame;
             }
         }
@@ -59,36 +60,32 @@ export class PuzzlePiece extends Component {
     
     /**
      * 创建裁剪后的SpriteFrame（显示图片的一部分）
-     * 索引布局：
-     * 0 1
-     * 2 3
+     * @param originalFrame 原始SpriteFrame
+     * @param index 拼图块索引（从左到右，从上到下）
+     * @param rows 行数
+     * @param cols 列数
      */
-    private createCroppedSpriteFrame(originalFrame: SpriteFrame, index: number): SpriteFrame | null {
+    private createCroppedSpriteFrame(originalFrame: SpriteFrame, index: number, rows: number, cols: number): SpriteFrame | null {
         if (!originalFrame || !originalFrame.texture) return null;
         const texture = originalFrame.texture; 
         const width = texture.width;
         const height = texture.height;
         
-        // 计算裁剪区域（2x2网格）
-        const row = 2
-        const col = 2
-        let currentcol = index % col;  // 列 (0或1)
-        let currentrow = Math.floor(index / row);  // 行 (0或1)
-        currentrow = row - currentrow - 1;
-        const cellWidth = width / 2;
-        const cellHeight = height / 2;
+        let currentCol = index % cols;  // 列索引 (0 到 cols-1)
+        let currentRow = Math.floor(index / cols);  // 行索引 (0 到 rows-1)
+        currentRow = rows - currentRow - 1;
+
+        const cellWidth = width / cols;
+        const cellHeight = height / rows;
         
-        const x = currentcol * cellWidth;
-        const y = currentrow * cellHeight;
+        const x = currentCol * cellWidth;
+        const y = currentRow * cellHeight;
         
-        // 创建新的SpriteFrame
         const newFrame = new SpriteFrame();
         newFrame.texture = texture;
         
-        // 设置裁剪区域 x左下角坐标 y左下角坐标 width高度 height宽度
-        // 注意：Cocos Creator 3.x 中，SpriteFrame的rect是相对于原始纹理的
-        newFrame.rect = new Rect(x, height - y - cellHeight, cellWidth, cellHeight);
-        
+        // 设置裁剪区域
+        newFrame.rect = new Rect(x, height-y-cellHeight, cellWidth, cellHeight);
         return newFrame;
     }
     

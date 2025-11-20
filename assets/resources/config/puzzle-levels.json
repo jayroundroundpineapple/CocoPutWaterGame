@@ -1,0 +1,23 @@
+{
+    "levels": [
+        {
+            "level": 1,
+            "rows": 2,
+            "cols": 2,
+            "imagePath": "images/puzzle/puzzle1/pic/spriteFrame"
+        },
+        {
+            "level": 2,
+            "rows": 3,
+            "cols": 3,
+            "imagePath": "images/puzzle/puzzle2/pic/spriteFrame"
+        },
+        {
+            "level": 3,
+            "rows": 4,
+            "cols": 4,
+            "imagePath": "images/puzzle/puzzle3/pic/spriteFrame"
+        }
+    ]
+}
+
