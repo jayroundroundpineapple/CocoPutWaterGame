@@ -34,6 +34,7 @@ export class PuzzlePiece extends Component {
      * @param correctIndex 正确位置索引
      */
     public init(spriteFrame: SpriteFrame, index: number, correctIndex: number) {
+        this.node.name = "节点"+correctIndex.toString();
         this.correctIndex = correctIndex;
         this.currentIndex = index;
         this.isInCorrectPosition = (index === correctIndex);
