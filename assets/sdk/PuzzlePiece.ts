@@ -70,20 +70,22 @@ export class PuzzlePiece extends Component {
         const height = texture.height;
         
         // 计算裁剪区域（2x2网格）
-        const col = index % 2;  // 列 (0或1)
-        const row = Math.floor(index / 2);  // 行 (0或1)
-        
+        const row = 2
+        const col = 2
+        let currentcol = index % col;  // 列 (0或1)
+        let currentrow = Math.floor(index / row);  // 行 (0或1)
+        currentrow = row - currentrow - 1;
         const cellWidth = width / 2;
         const cellHeight = height / 2;
         
-        const x = col * cellWidth;
-        const y = row * cellHeight;
+        const x = currentcol * cellWidth;
+        const y = currentrow * cellHeight;
         
         // 创建新的SpriteFrame
         const newFrame = new SpriteFrame();
         newFrame.texture = texture;
         
-        // 设置裁剪区域（rect属性）
+        // 设置裁剪区域 x左下角坐标 y左下角坐标 width高度 height宽度
         // 注意：Cocos Creator 3.x 中，SpriteFrame的rect是相对于原始纹理的
         newFrame.rect = new Rect(x, height - y - cellHeight, cellWidth, cellHeight);
         

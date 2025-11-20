@@ -59,7 +59,7 @@ static NSString* SeValueToNSString(const se::Value& val) {
             return @"[JS Function]";
         }
         return @"[JS Object]";
-    }
+   }
     return @"[Unknown JS Value]";
 }
 

@@ -114,17 +114,17 @@ export class PuzzleManager extends Component {
             attempts++;
         }
         // 将拼图块移动到随机位置
-        // for (let i = 0; i < this.pieces.length; i++) {
-        //     const targetIndex = indices[i];
-        //     this.pieces[i].setPosition(this.positions[targetIndex], targetIndex);
-        //     console.log("节点名字：",this.pieces[i].node.name,"正确位置：",this.pieces[i].correctIndex,"当前位置：",this.pieces[i].currentIndex);
-        // }
-        let arr = [0,1,2,3];
         for (let i = 0; i < this.pieces.length; i++) {
-            const targetIndex = arr[i];
+            const targetIndex = indices[i];
             this.pieces[i].setPosition(this.positions[targetIndex], targetIndex);
             console.log("节点名字：",this.pieces[i].node.name,"正确位置：",this.pieces[i].correctIndex,"当前位置：",this.pieces[i].currentIndex);
         }
+        // let arr = [0,1,2,3];
+        // for (let i = 0; i < this.pieces.length; i++) {
+        //     const targetIndex = arr[i];
+        //     this.pieces[i].setPosition(this.positions[targetIndex], targetIndex);
+        //     console.log("节点名字：",this.pieces[i].node.name,"正确位置：",this.pieces[i].correctIndex,"当前位置：",this.pieces[i].currentIndex);
+        // }
     }
     /**
      * 打乱数组
