@@ -172,31 +172,12 @@ export class PuzzleManager extends Component {
     private createPieces(spriteFrame: SpriteFrame, rows: number, cols: number) {
         if (!this.piecePrefab || !this.puzzleContainer || !this.currentConfig) return;
         
-        // 获取容器大小
-        const containerTransform = this.puzzleContainer.getComponent(UITransform);
-        if (!containerTransform) return;
-        
-        const containerWidth = containerTransform.width;
-        const containerHeight = containerTransform.height;
-        
-        // 计算每个拼图块的大小
-        const pieceWidth = containerWidth / cols;
-        const pieceHeight = containerHeight / rows;
-        
         const totalPieces = rows * cols;
         
         // 创建所有拼图块
         for (let i = 0; i < totalPieces; i++) {
             const pieceNode = instantiate(this.piecePrefab);
             pieceNode.parent = this.puzzleContainer;
-            
-            // 设置拼图块的大小
-            const pieceTransform = pieceNode.getComponent(UITransform);
-            if (pieceTransform) {
-                pieceTransform.width = pieceWidth;
-                pieceTransform.height = pieceHeight;
-            }
-            
             const piece = pieceNode.getComponent(PuzzlePiece);
             if (piece) {
                 piece.init(spriteFrame, i, i, rows, cols);
@@ -207,7 +188,7 @@ export class PuzzleManager extends Component {
             }
         }
         
-        console.log(`[PuzzleManager] 创建了 ${totalPieces} 个拼图块 (${rows}x${cols}), 每个大小: ${pieceWidth}x${pieceHeight}`);
+        console.log(`[PuzzleManager] 创建了 ${totalPieces} 个拼图块 (${rows}x${cols})`);
     }
     /**
      * 打乱拼图块位置
