@@ -1333,7 +1333,7 @@
       "__expectedType__": "cc.Prefab"
     },
     "currentImage": {
-      "__uuid__": "bc1134a0-c25f-48be-8a96-4e295195428d@f9941",
+      "__uuid__": "feec1e6f-6224-4fd2-afc5-0ca42806bb48@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_id": "10IYxzl/NFAZLxAU63ksHm"
@@ -2435,7 +2435,7 @@
       "__id__": 31
     },
     "puzzleImage": {
-      "__uuid__": "bc1134a0-c25f-48be-8a96-4e295195428d@f9941",
+      "__uuid__": "feec1e6f-6224-4fd2-afc5-0ca42806bb48@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_id": "8f1aM4EMRM/ZKgx7Fz1Skq"

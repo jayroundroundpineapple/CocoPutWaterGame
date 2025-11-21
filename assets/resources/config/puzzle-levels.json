@@ -4,19 +4,19 @@
             "level": 1,
             "rows": 2,
             "cols": 2,
-            "imagePath": "images/puzzle/puzzle1/pic/spriteFrame"
+            "imagePath": "images/puzzle/pic1/spriteFrame"
         },
         {
             "level": 2,
             "rows": 3,
             "cols": 3,
-            "imagePath": "images/puzzle/puzzle2/pic/spriteFrame"
+            "imagePath": "images/puzzle/pic2/spriteFrame"
         },
         {
             "level": 3,
             "rows": 4,
             "cols": 4,
-            "imagePath": "images/puzzle/puzzle3/pic/spriteFrame"
+            "imagePath": "images/puzzle/pic3/spriteFrame"
         }
     ]
 }
