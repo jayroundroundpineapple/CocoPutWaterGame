@@ -8,15 +8,21 @@
         },
         {
             "level": 2,
-            "rows": 3,
-            "cols": 3,
+            "rows": 2,
+            "cols": 2,
             "imagePath": "images/puzzle/pic2/spriteFrame"
         },
         {
             "level": 3,
-            "rows": 4,
-            "cols": 4,
+            "rows": 2,
+            "cols": 2,
             "imagePath": "images/puzzle/pic3/spriteFrame"
+        },
+        {
+            "level": 4,
+            "rows": 2,
+            "cols": 2,
+            "imagePath": "images/puzzle/pic4/spriteFrame"
         }
     ]
 }
