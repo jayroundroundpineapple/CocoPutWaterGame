@@ -149,21 +149,59 @@ export class PuzzleManager extends Component {
     public startPuzzle(spriteFrame: SpriteFrame) {
         this.currentImage = spriteFrame;
         this.isCompleted = false;  // 重置完成标志
-
+        
         // 获取当前关卡配置
         this.currentConfig = this.getCurrentLevelConfig();
         if (!this.currentConfig) {
             console.error('[PuzzleManager] 无法获取关卡配置');
             return;
         }
-
+        
         // 初始化位置
         this.initPositions(this.currentConfig.rows, this.currentConfig.cols);
-
+        
         // 创建拼图块
         this.clearPieces();
         this.createPieces(spriteFrame, this.currentConfig.rows, this.currentConfig.cols);
         this.shufflePieces();
+    }
+
+    /**
+     * 开始指定关卡
+     * @param level 关卡编号（从1开始）
+     */
+    public startLevel(level: number): void {
+        console.log(`[PuzzleManager] 开始关卡 ${level}`);
+        
+        // 设置当前关卡
+        this.currentLevel = level;
+        this.isCompleted = false;  // 重置完成标志
+        
+        // 获取关卡配置
+        if (this.levelConfigs.length === 0) {
+            this.loadDefaultConfig();
+        }
+        
+        const config = this.levelConfigs.find(c => c.level === level);
+        if (!config) {
+            console.error(`[PuzzleManager] 找不到关卡 ${level} 的配置`);
+            return;
+        }
+        
+        this.currentConfig = config;
+        
+        // 加载关卡图片
+        console.log(`[PuzzleManager] 加载关卡 ${level} 图片: ${config.imagePath}`);
+        resources.load(config.imagePath, SpriteFrame, (err, spriteFrame) => {
+            if (err) {
+                console.error(`[PuzzleManager] 加载关卡 ${level} 图片失败:`, err);
+                console.error(`[PuzzleManager] 路径: ${config.imagePath}`);
+                return;
+            }
+            
+            console.log(`[PuzzleManager] 关卡 ${level} 图片加载成功`);
+            this.startPuzzle(spriteFrame);
+        });
     }
 
     /**

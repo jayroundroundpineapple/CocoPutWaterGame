@@ -61,6 +61,35 @@ export class GameUI extends Component {
             this.levelUnlockUI.onStartGame = () => {
                 this.startPuzzleGame();
             };
+            
+            // 设置进入关卡回调（点击卡牌时触发）
+            this.levelUnlockUI.onEnterLevel = (level: number) => {
+                this.enterLevel(level);
+            };
+        }
+    }
+
+    /**
+     * 进入指定关卡
+     */
+    private enterLevel(level: number): void {
+        console.log(`[GameUI] 进入关卡 ${level}`);
+        
+        // 隐藏关卡解锁UI
+        if (this.levelUnlockUI && this.levelUnlockUI.node) {
+            this.levelUnlockUI.node.active = false;
+        }
+        
+        // 显示拼图游戏UI
+        if (this.puzzleGameUI) {
+            this.puzzleGameUI.active = true;
+        }
+        
+        // 开始指定关卡的拼图
+        if (this.puzzleManager) {
+            this.puzzleManager.startLevel(level);
+        } else {
+            console.error('[GameUI] PuzzleManager 未设置');
         }
     }
 

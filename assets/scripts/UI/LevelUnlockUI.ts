@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, SpriteFrame, Sprite, UITransform, Rect, resources, Prefab, instantiate, tween, Vec3, sys } from 'cc';
+import { CardItem } from './CardItem';
 const { ccclass, property } = _decorator;
 
 /**
@@ -30,6 +31,9 @@ export class LevelUnlockUI extends Component {
 
     // 开始游戏回调
     public onStartGame: () => void = null;
+
+    // 进入关卡回调（点击卡牌时触发）
+    public onEnterLevel: (level: number) => void = null;
 
     // 小块节点数组
     private pieceNodes: Node[] = [];
@@ -161,10 +165,37 @@ export class LevelUnlockUI extends Component {
                 pieceWidth, pieceHeight
             );
             this.cardNodes.push(cardNode);
-            if (this.unlockStates[i]) {
-                cardNode.active = false;  
+            
+            // 设置卡牌初始状态
+            const level = i + 1;  // 关卡编号从1开始
+            const isUnlocked = this.unlockStates[i];
+            
+            // 计算是否可以玩：第一关默认可以玩，或者上一关已解锁
+            let canPlay = false;
+            if (level === 1) {
+                canPlay = true;  // 第一关默认可以玩
             } else {
-                cardNode.active = true;  
+                // 上一关已解锁，当前关就可以玩
+                const prevLevelIndex = level - 2;  // 上一关的索引（level-1 是当前关索引，level-2 是上一关索引）
+                canPlay = prevLevelIndex >= 0 && this.unlockStates[prevLevelIndex] === true;
+            }
+            
+            // 初始化 CardItem 组件
+            const cardItem = cardNode.getComponent(CardItem);
+            if (cardItem) {
+                cardItem.init(level, isUnlocked, canPlay);
+                // 设置点击回调
+                cardItem.onClick = (levelNum: number) => {
+                    this.onCardItemClick(levelNum);
+                };
+            }
+            
+            // 根据解锁状态显示/隐藏卡牌
+            // 已解锁的关卡隐藏卡牌，未解锁的关卡显示卡牌
+            if (isUnlocked) {
+                cardNode.active = false;  // 已解锁，隐藏卡牌
+            } else {
+                cardNode.active = true;   // 未解锁，显示卡牌
             }
         }
     }
@@ -242,7 +273,7 @@ export class LevelUnlockUI extends Component {
 
         const newFrame = new SpriteFrame();
         newFrame.texture = texture;
-        // newFrame.rect = new Rect(x, height - y - cellHeight, cellWidth, cellHeight);
+        newFrame.rect = new Rect(x, height - y - cellHeight, cellWidth, cellHeight);
         return newFrame;
     }
 
@@ -267,6 +298,7 @@ export class LevelUnlockUI extends Component {
             }
         }
         cardNode.parent = this.container;
+        
         // 设置大小和位置（与小块完全重叠）
         const uiTransform = cardNode.getComponent(UITransform) || cardNode.addComponent(UITransform);
         uiTransform.width = pieceWidth;
@@ -275,9 +307,32 @@ export class LevelUnlockUI extends Component {
         const x = (col + 0.5) * pieceWidth - this.container.getComponent(UITransform).width / 2;
         const y = this.container.getComponent(UITransform).height / 2 - (row + 0.5) * pieceHeight;
         cardNode.setPosition(x, y, 0);
+        
         // 确保扑克牌在小块之上
         cardNode.setSiblingIndex(20);
+        
+        // 如果预制体没有 CardItem 组件，自动添加（可选）
+        // 注意：如果预制体中已经有 CardItem 组件，这里不会重复添加
+        if (!cardNode.getComponent(CardItem)) {
+            const cardItem = cardNode.addComponent(CardItem);
+            // CardItem 的初始化会在 createUnlockUI 中调用
+        }
+        
         return cardNode;
+    }
+
+    /**
+     * 卡牌点击事件处理
+     */
+    private onCardItemClick(level: number): void {
+        console.log(`[LevelUnlockUI] 点击关卡 ${level} 的卡牌`);
+        
+        // 触发进入关卡回调
+        if (this.onEnterLevel) {
+            this.onEnterLevel(level);
+        } else {
+            console.warn('[LevelUnlockUI] 未设置 onEnterLevel 回调');
+        }
     }
 
     /**
@@ -299,9 +354,16 @@ export class LevelUnlockUI extends Component {
         // 更新解锁状态
         this.unlockStates[index] = true;
         this.saveUnlockStates();
-        // 移除扑克牌（播放动画）
+        
+        // 更新 CardItem 组件的解锁状态
         const cardNode = this.cardNodes[index];
         if (cardNode && cardNode.isValid) {
+            const cardItem = cardNode.getComponent(CardItem);
+            if (cardItem) {
+                cardItem.setUnlocked(true);
+            }
+            
+            // 移除扑克牌（播放动画）
             if (withAnimation) {
                 // 播放翻转或淡出动画
                 tween(cardNode)
@@ -313,6 +375,20 @@ export class LevelUnlockUI extends Component {
                     .start();
             } else {
                 cardNode.active = false;
+            }
+        }
+        
+        // 解锁下一关（如果存在）
+        const nextLevelIndex = index + 1;
+        if (nextLevelIndex < this.totalLevels) {
+            const nextCardNode = this.cardNodes[nextLevelIndex];
+            if (nextCardNode && nextCardNode.isValid) {
+                const nextCardItem = nextCardNode.getComponent(CardItem);
+                if (nextCardItem) {
+                    // 下一关现在可以玩了
+                    nextCardItem.setCanPlay(true);
+                    console.log(`[LevelUnlockUI] 关卡 ${level + 1} 现在可以玩了`);
+                }
             }
         }
         console.log(`[LevelUnlockUI] 关卡 ${level} 已解锁`);
