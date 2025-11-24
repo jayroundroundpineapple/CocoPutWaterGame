@@ -34,9 +34,7 @@ export class SettingUI extends Component {
     public clickBackgroundToClose: boolean = true;
 
     protected onLoad() {
-        this.node.active = false;
         this.audioManager = AudioManager.getInstance();
-        // 如果没有设置背景遮罩，自动创建一个
         if (!this.backgroundMask) {
             this.createBackgroundMask();
         } else {
