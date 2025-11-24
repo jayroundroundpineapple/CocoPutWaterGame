@@ -11,12 +11,10 @@ export class CardItem extends Component {
     private levelLabel: Label = null;  // 关卡数字标签
 
     @property(Sprite)
-    private cardSprite: Sprite = null;  // 卡牌图片（可选，用于设置透明度等）
+    private cardSprite: Sprite = null; 
 
-    // 关卡编号（从1开始）
     private levelNumber: number = 0;
 
-    // 是否已解锁
     private isUnlocked: boolean = false;
 
     // 是否可以玩（第一关默认可以玩，或者上一关已解锁）

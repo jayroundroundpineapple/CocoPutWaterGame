@@ -4,6 +4,7 @@ import { AdType } from './ad-enums';
 import { PuzzleManager } from './PuzzleManager';
 import { SettingUI } from '../UI/SettingUI';
 import { LevelUnlockUI } from '../UI/LevelUnlockUI';
+import { ChapterUI } from '../UI/ChapterUI';
 import { AudioManager } from '../utils/AudioManager';
 const { ccclass, property } = _decorator;
 
@@ -19,6 +20,8 @@ export class GameUI extends Component {
     private settingUI: SettingUI = null; 
     @property(PuzzleManager)
     private puzzleManager: PuzzleManager = null;  //拼图管理器
+    @property(ChapterUI)
+    private chapterUI: ChapterUI = null;  // 章节选择UI
     @property(LevelUnlockUI)
     private levelUnlockUI: LevelUnlockUI = null;  // 关卡解锁UI
     @property(Node)
@@ -36,10 +39,15 @@ export class GameUI extends Component {
     
     start() {
         this.puzzleGameUI.active = false;
+        // 初始状态：显示章节界面，隐藏关卡解锁界面
+        if (this.levelUnlockUI && this.levelUnlockUI.node) {
+            this.levelUnlockUI.node.active = false;
+        }
         this.initButton.on(Node.EventType.TOUCH_END, this.onInitButtonClick, this);
         this.showrewardBtn.on(Node.EventType.TOUCH_END, this.onShowRewardButtonClick, this);
         this.initPuzzle();
         this.initSettingUI();
+        this.initChapterUI();
         this.initLevelUnlockUI();
         this.initExitButton();
         this.initAudio();
@@ -85,12 +93,22 @@ export class GameUI extends Component {
     }
 
     /**
+     * 初始化章节UI
+     */
+    private initChapterUI() {
+        if (this.chapterUI) {
+            // 设置进入章节回调
+            this.chapterUI.onEnterChapter = (chapter: number, startLevel: number, endLevel: number) => {
+                this.enterChapter(chapter, startLevel, endLevel);
+            };
+        }
+    }
+    
+    /**
      * 初始化关卡解锁UI
      */
     private initLevelUnlockUI() {
         if (this.levelUnlockUI) {
-            // 初始化关卡解锁UI（50关，使用 10x5 网格布局）
-            this.levelUnlockUI.init(25, 5, 5);
             // 设置开始游戏回调
             this.levelUnlockUI.onStartGame = () => {
                 this.startPuzzleGame();
@@ -100,6 +118,49 @@ export class GameUI extends Component {
             this.levelUnlockUI.onEnterLevel = (level: number) => {
                 this.enterLevel(level);
             };
+            
+            // 设置返回章节界面回调
+            this.levelUnlockUI.onBackToChapter = () => {
+                this.backToChapter();
+            };
+        }
+    }
+    
+    /**
+     * 进入指定章节
+     */
+    private enterChapter(chapter: number, startLevel: number, endLevel: number): void {
+        console.log(`[GameUI] 进入章节 ${chapter}，关卡范围：${startLevel}-${endLevel}`);
+        
+        // 隐藏章节界面
+        if (this.chapterUI && this.chapterUI.node) {
+            this.chapterUI.hide();
+        }
+        
+        // 显示关卡解锁UI
+        if (this.levelUnlockUI && this.levelUnlockUI.node) {
+            // 根据章节计算网格布局（5x5）
+            const gridRows = 5;
+            const gridCols = 5;
+            this.levelUnlockUI.init(chapter, startLevel, endLevel, gridRows, gridCols);
+            this.levelUnlockUI.node.active = true;
+        }
+    }
+    
+    /**
+     * 返回章节界面
+     */
+    private backToChapter(): void {
+        console.log('[GameUI] 返回章节界面');
+        
+        // 隐藏关卡解锁UI
+        if (this.levelUnlockUI && this.levelUnlockUI.node) {
+            this.levelUnlockUI.node.active = false;
+        }
+        
+        // 显示章节界面
+        if (this.chapterUI && this.chapterUI.node) {
+            this.chapterUI.show();
         }
     }
 
@@ -264,6 +325,19 @@ export class GameUI extends Component {
         // 解锁对应关卡
         if (this.levelUnlockUI) {
             this.levelUnlockUI.unlockLevel(level, true);
+            
+            // 检查章节是否全部完成
+            if (this.levelUnlockUI.isChapterCompleted()) {
+                const currentChapter = this.levelUnlockUI.getChapter();
+                console.log(`[GameUI] 章节 ${currentChapter} 全部完成！`);
+                
+                // 解锁下一章节
+                if (this.chapterUI && currentChapter < 2) {
+                    const nextChapter = currentChapter + 1;
+                    this.chapterUI.unlockChapter(nextChapter);
+                    console.log(`[GameUI] 章节 ${nextChapter} 已解锁！`);
+                }
+            }
         }
         // 可以选择返回关卡解锁界面，或者继续下一关
         // this.backToLevelUnlock();

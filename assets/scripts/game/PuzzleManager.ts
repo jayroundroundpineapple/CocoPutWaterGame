@@ -56,59 +56,98 @@ export class PuzzleManager extends Component {
         }
     }
 
+    // 加载重试次数
+    private loadRetryCount: number = 0;
+    private readonly MAX_RETRY_COUNT: number = 3;
+
     /**
      * 加载关卡配置JSON
      */
     private loadLevelConfigs() {
         resources.load('config/puzzle-levels', JsonAsset, (err, jsonAsset) => {
             if (err) {
-                console.error('加载关卡配置失败:', err);
-                this.loadDefaultConfig();
+                console.error('[PuzzleManager] 加载关卡配置失败:', err);
+                // 重试加载
+                if (this.loadRetryCount < this.MAX_RETRY_COUNT) {
+                    this.loadRetryCount++;
+                    console.log(`[PuzzleManager] 重试加载关卡配置 (${this.loadRetryCount}/${this.MAX_RETRY_COUNT})`);
+                    this.scheduleOnce(() => {
+                        this.loadLevelConfigs();
+                    }, 0.5);  // 延迟0.5秒后重试
+                } else {
+                    console.error('[PuzzleManager] 加载关卡配置失败，已达到最大重试次数');
+                    this.loadDefaultConfig();
+                }
                 return;
             }
 
             const data = jsonAsset.json as { levels: LevelConfig[] };
             if (data && data.levels && Array.isArray(data.levels)) {
                 this.levelConfigs = data.levels;
+                this.loadRetryCount = 0;  // 重置重试计数
                 console.log('[PuzzleManager] 加载关卡配置成功，共', this.levelConfigs.length, '关');
             } else {
                 console.error('[PuzzleManager] 关卡配置格式错误');
-                this.loadDefaultConfig();
+                // 如果格式错误，也尝试重试
+                if (this.loadRetryCount < this.MAX_RETRY_COUNT) {
+                    this.loadRetryCount++;
+                    this.scheduleOnce(() => {
+                        this.loadLevelConfigs();
+                    }, 0.5);
+                } else {
+                    this.loadDefaultConfig();
+                }
             }
         });
     }
 
     /**
-     * 加载默认配置（如果JSON加载失败）
+     * 加载默认配置（从JSON文件读取，如果多次重试都失败则使用空配置）
      */
     private loadDefaultConfig() {
-        this.levelConfigs = [
-            { level: 1, rows: 2, cols: 2, imagePath: 'images/puzzle/puzzle1/pic/spriteFrame' },
-            { level: 2, rows: 3, cols: 3, imagePath: 'images/puzzle/puzzle2/pic/spriteFrame' },
-            { level: 3, rows: 4, cols: 4, imagePath: 'images/puzzle/puzzle3/pic/spriteFrame' },
-        ];
-        console.log('[PuzzleManager] 使用默认关卡配置');
+        // 最后一次尝试从JSON文件加载
+        console.log('[PuzzleManager] 尝试最后一次加载JSON配置...');
+        resources.load('config/puzzle-levels', JsonAsset, (err, jsonAsset) => {
+            if (err) {
+                console.error('[PuzzleManager] 最终加载失败，使用空配置:', err);
+                this.levelConfigs = [];
+                console.warn('[PuzzleManager] 警告：关卡配置为空，游戏可能无法正常运行');
+                return;
+            }
+
+            const data = jsonAsset.json as { levels: LevelConfig[] };
+            if (data && data.levels && Array.isArray(data.levels) && data.levels.length > 0) {
+                this.levelConfigs = data.levels;
+                console.log('[PuzzleManager] 最终加载成功，共', this.levelConfigs.length, '关');
+            } else {
+                console.error('[PuzzleManager] JSON格式错误或为空，使用空配置');
+                this.levelConfigs = [];
+            }
+        });
     }
 
     /**
      * 获取当前关卡配置
      */
     private getCurrentLevelConfig(): LevelConfig | null {
+        // 如果配置为空，尝试重新加载
         if (this.levelConfigs.length === 0) {
-            this.loadDefaultConfig();
+            console.warn('[PuzzleManager] 关卡配置为空，尝试重新加载...');
+            this.loadRetryCount = 0;  // 重置重试计数
+            this.loadLevelConfigs();
+            // 等待加载完成（这里返回null，调用方需要处理）
+            return null;
         }
 
         const config = this.levelConfigs.find(c => c.level === this.currentLevel);
         if (!config && this.levelConfigs.length > 0) {
             // 如果找不到当前关卡，使用第一关的配置
+            console.warn(`[PuzzleManager] 找不到关卡 ${this.currentLevel} 的配置，使用第一关配置`);
             return this.levelConfigs[0];
         }
         return config || null;
     }
 
-    /**
-     * 初始化位置（根据rows和cols动态计算）
-     */
     private initPositions(rows: number, cols: number) {
         if (!this.puzzleContainer) return;
 
@@ -177,14 +216,33 @@ export class PuzzleManager extends Component {
         this.currentLevel = level;
         this.isCompleted = false;  // 重置完成标志
         
-        // 获取关卡配置
+        // 如果配置为空，尝试重新加载
         if (this.levelConfigs.length === 0) {
-            this.loadDefaultConfig();
+            console.warn('[PuzzleManager] 关卡配置为空，尝试重新加载...');
+            this.loadRetryCount = 0;  // 重置重试计数
+            this.loadLevelConfigs();
+            
+            // 延迟执行，等待配置加载完成
+            this.scheduleOnce(() => {
+                this.tryStartLevel(level);
+            }, 0.5);
+            return;
         }
         
+        this.tryStartLevel(level);
+    }
+    
+    /**
+     * 尝试开始关卡（内部方法）
+     */
+    private tryStartLevel(level: number): void {
         const config = this.levelConfigs.find(c => c.level === level);
         if (!config) {
             console.error(`[PuzzleManager] 找不到关卡 ${level} 的配置`);
+            console.error(`[PuzzleManager] 当前配置数量: ${this.levelConfigs.length}`);
+            if (this.levelConfigs.length > 0) {
+                console.error(`[PuzzleManager] 可用关卡: ${this.levelConfigs.map(c => c.level).join(', ')}`);
+            }
             return;
         }
         
@@ -196,6 +254,7 @@ export class PuzzleManager extends Component {
             if (err) {
                 console.error(`[PuzzleManager] 加载关卡 ${level} 图片失败:`, err);
                 console.error(`[PuzzleManager] 路径: ${config.imagePath}`);
+                console.error(`[PuzzleManager] 提示：请确保资源路径正确，且资源已正确导入到 resources 目录`);
                 return;
             }
             
@@ -268,12 +327,6 @@ export class PuzzleManager extends Component {
             const targetIndex = indices[i];
             this.pieces[i].setPosition(this.positions[targetIndex], targetIndex);
         }
-        // let arr = [0,1,2,3];
-        // for (let i = 0; i < this.pieces.length; i++) {
-        //     const targetIndex = arr[i];
-        //     this.pieces[i].setPosition(this.positions[targetIndex], targetIndex);
-        //     console.log("节点名字：",this.pieces[i].node.name,"正确位置：",this.pieces[i].correctIndex,"当前位置：",this.pieces[i].currentIndex);
-        // }
     }
     /**
      * 打乱数组
