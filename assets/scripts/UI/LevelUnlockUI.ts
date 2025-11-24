@@ -25,9 +25,9 @@ export class LevelUnlockUI extends Component {
     private startGameBtn: Node = null; 
 
     // 关卡配置
-    private totalLevels: number = 4;  // 总关卡数
-    private gridRows: number = 2;  // 网格行数
-    private gridCols: number = 2;  // 网格列数
+    private totalLevels: number ;  // 总关卡数
+    private gridRows: number;  // 网格行数
+    private gridCols: number;  // 网格列数
 
     // 开始游戏回调
     public onStartGame: () => void = null;
@@ -291,7 +291,7 @@ export class LevelUnlockUI extends Component {
         cardNode.setPosition(x, y, 0);
         
         // 确保扑克牌在小块之上
-        cardNode.setSiblingIndex(20);
+        cardNode.setSiblingIndex(100);
         
         // 如果预制体没有 CardItem 组件，自动添加（可选）
         // 注意：如果预制体中已经有 CardItem 组件，这里不会重复添加

@@ -89,9 +89,8 @@ export class GameUI extends Component {
      */
     private initLevelUnlockUI() {
         if (this.levelUnlockUI) {
-            // 初始化关卡解锁UI
-            this.levelUnlockUI.init(4, 2, 2);
-            
+            // 初始化关卡解锁UI（50关，使用 10x5 网格布局）
+            this.levelUnlockUI.init(25, 5, 5);
             // 设置开始游戏回调
             this.levelUnlockUI.onStartGame = () => {
                 this.startPuzzleGame();
