@@ -10,7 +10,7 @@ interface ChapterConfig {
     startLevel: number;  // 起始关卡
     endLevel: number;  // 结束关卡
     imagePath: string;  // 章节解锁背景图路径
-    unlockImage: SpriteFrame;  // 章节解锁背景图（在编辑器中设置）
+    unlockImage: SpriteFrame;
     describe:string
 }
 
@@ -66,7 +66,7 @@ export class ChapterUI extends Component {
                 chapter: 1,
                 startLevel: 1,
                 endLevel: 25,
-                imagePath: '',
+                imagePath: 'chapter/chapter1/spriteFrame',
                 unlockImage: this.chapter1Image,
                 describe: 'Landmarks'
             },
@@ -74,7 +74,7 @@ export class ChapterUI extends Component {
                 chapter: 2,
                 startLevel: 26,
                 endLevel: 50,
-                imagePath: '',
+                imagePath: 'chapter/chapter2/spriteFrame',
                 unlockImage: this.chapter2Image,
                 describe: 'Cute Pets'
             }
@@ -185,6 +185,7 @@ export class ChapterUI extends Component {
         const chapterItem = chapterNode.getComponent(ChapterItem);
         if (chapterItem) {
             const isUnlocked = this.chapterUnlockStates[index];
+            chapterItem.setSpriteFrame(config.unlockImage);
             chapterItem.init(config.chapter, config.startLevel, config.endLevel,config.describe, isUnlocked);
             // 设置点击回调
             chapterItem.onClick = (chapter: number) => {

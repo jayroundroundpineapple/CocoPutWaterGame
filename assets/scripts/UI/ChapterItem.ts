@@ -53,7 +53,12 @@ export class ChapterItem extends Component {
         this.isUnlocked = isUnlocked;
         this.updateUI();
     }
-
+    public setSpriteFrame(spriteFrame: SpriteFrame): void {
+        const sprite = this.chapterBg.getComponent(Sprite);
+        if (sprite) {
+            sprite.spriteFrame = spriteFrame;
+        }
+    }
     /**
      * 更新UI显示
      */
