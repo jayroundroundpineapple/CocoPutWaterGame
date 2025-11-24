@@ -15,7 +15,7 @@ export class GameUI extends Component {
     @property(Node)
     private settingBtn: Node = null;
     @property(SettingUI)
-    private settingUI: SettingUI = null;  // 设置界面组件
+    private settingUI: SettingUI = null; 
     @property(PuzzleManager)
     private puzzleManager: PuzzleManager = null;  //拼图管理器
     @property(LevelUnlockUI)
@@ -155,7 +155,6 @@ export class GameUI extends Component {
     public closeSetting(): void {
         if (this.settingUI) {
             this.settingUI.hide();
-            // 注意：按钮状态会在 onClose 回调中恢复，这里不需要重复设置
         }
     }
     public toggleSetting(): void {
@@ -223,7 +222,6 @@ export class GameUI extends Component {
         if (this.levelUnlockUI) {
             this.levelUnlockUI.unlockLevel(level, true);
         }
-        
         // 可以选择返回关卡解锁界面，或者继续下一关
         // this.backToLevelUnlock();
     }

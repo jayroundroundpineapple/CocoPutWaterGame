@@ -16,13 +16,13 @@ export class LevelUnlockUI extends Component {
     private backgroundImage: SpriteFrame = null;  // 完整的通关背景图
 
     @property(SpriteFrame)
-    private cardSprite: SpriteFrame = null;  // 扑克牌图片（用于覆盖）
+    private cardSprite: SpriteFrame = null;  
 
     @property(Prefab)
-    private cardPrefab: Prefab = null;  // 扑克牌预制体（可选）
+    private cardPrefab: Prefab = null;  
 
     @property(Node)
-    private startGameBtn: Node = null;  // 开始游戏按钮
+    private startGameBtn: Node = null; 
 
     // 关卡配置
     private totalLevels: number = 4;  // 总关卡数
@@ -90,12 +90,10 @@ export class LevelUnlockUI extends Component {
      * 加载解锁状态
      */
     private loadUnlockStates(): void {
-        // 从本地存储加载解锁状态
         const saved = sys.localStorage.getItem(this.STORAGE_KEY);
         if (saved) {
             try {
                 this.unlockStates = JSON.parse(saved);
-                // 确保数组长度正确
                 if (this.unlockStates.length !== this.totalLevels) {
                     this.unlockStates = new Array(this.totalLevels).fill(false);
                 }
@@ -104,7 +102,6 @@ export class LevelUnlockUI extends Component {
                 this.unlockStates = new Array(this.totalLevels).fill(false);
             }
         } else {
-            // 初始状态：全部未解锁
             this.unlockStates = new Array(this.totalLevels).fill(false);
         }
     }
@@ -128,7 +125,6 @@ export class LevelUnlockUI extends Component {
             console.error('[LevelUnlockUI] 容器或背景图未设置');
             return;
         }
-        // 清空容器
         this.container.removeAllChildren();
         this.pieceNodes = [];
         this.cardNodes = [];
@@ -143,33 +139,24 @@ export class LevelUnlockUI extends Component {
         // 计算每个小块的尺寸
         const pieceWidth = containerWidth / this.gridCols;
         const pieceHeight = containerHeight / this.gridRows;
-        // 获取背景图尺寸
-        const bgTexture = this.backgroundImage.texture;
-        const bgWidth = bgTexture.width;
-        const bgHeight = bgTexture.height;
-        // 创建所有小块
         for (let i = 0; i < this.totalLevels; i++) {
             const row = Math.floor(i / this.gridCols);
             const col = i % this.gridCols;
             let pieceNode = instantiate(this.piecePrefab);
-            // 创建小块节点
             this.createPieceNode(
                 pieceNode, i, row, col,
                 pieceWidth, pieceHeight,
             );
             this.pieceNodes.push(pieceNode);
-
             // 创建扑克牌节点（覆盖在小块上）
             const cardNode = this.createCardNode(
                 i, row, col,
                 pieceWidth, pieceHeight
             );
             this.cardNodes.push(cardNode);
-            
             // 设置卡牌初始状态
             const level = i + 1;  // 关卡编号从1开始
             const isUnlocked = this.unlockStates[i];
-            
             // 计算是否可以玩：第一关默认可以玩，或者上一关已解锁
             let canPlay = false;
             if (level === 1) {
@@ -189,13 +176,11 @@ export class LevelUnlockUI extends Component {
                     this.onCardItemClick(levelNum);
                 };
             }
-            
-            // 根据解锁状态显示/隐藏卡牌
             // 已解锁的关卡隐藏卡牌，未解锁的关卡显示卡牌
             if (isUnlocked) {
-                cardNode.active = false;  // 已解锁，隐藏卡牌
+                cardNode.active = false; 
             } else {
-                cardNode.active = true;   // 未解锁，显示卡牌
+                cardNode.active = true; 
             }
         }
     }
@@ -221,9 +206,7 @@ export class LevelUnlockUI extends Component {
         const x = (col + 0.5) * pieceWidth - this.container.getComponent(UITransform).width / 2;
         const y = this.container.getComponent(UITransform).height / 2 - (row + 0.5) * pieceHeight;
         pieceNode.setPosition(x, y, 0);
-        // 添加 Sprite 组件
         const sprite = pieceNode.getComponent(Sprite);
-        // 创建裁剪后的 SpriteFrame
         const croppedFrame = this.createCroppedSpriteFrame(
             this.backgroundImage,
             row, col
@@ -232,7 +215,6 @@ export class LevelUnlockUI extends Component {
         if (croppedFrame && croppedFrame.texture) {
             console.log(`[LevelUnlockUI] 小块 ${index} 创建成功:`, croppedFrame.rect);
             sprite.spriteFrame = croppedFrame;
-            // sprite.markForUpdateRenderData();
         } else {
             console.error(`[LevelUnlockUI] 创建小块 ${index} 的 SpriteFrame 失败`);
             // 如果创建失败，使用完整背景图作为占位符
