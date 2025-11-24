@@ -22,8 +22,283 @@
             "level": 4,
             "rows": 2,
             "cols": 2,
-            "imagePath": "images/puzzle/pic3/spriteFrame"
+            "imagePath": "images/puzzle/pic4/spriteFrame"
+        },
+        {
+            "level": 5,
+            "rows": 2,
+            "cols": 2,
+            "imagePath": "images/puzzle/pic5/spriteFrame"
+        },
+        {
+            "level": 6,
+            "rows": 2,
+            "cols": 2,
+            "imagePath": "images/puzzle/pic6/spriteFrame"
+        },
+        {
+            "level": 7,
+            "rows": 2,
+            "cols": 2,
+            "imagePath": "images/puzzle/pic7/spriteFrame"
+        },
+        {
+            "level": 8,
+            "rows": 2,
+            "cols": 2,
+            "imagePath": "images/puzzle/pic8/spriteFrame"
+        },
+        {
+            "level": 9,
+            "rows": 2,
+            "cols": 2,
+            "imagePath": "images/puzzle/pic9/spriteFrame"
+        },
+        {
+            "level": 10,
+            "rows": 2,
+            "cols": 2,
+            "imagePath": "images/puzzle/pic10/spriteFrame"
+        },
+        {
+            "level": 11,
+            "rows": 3,
+            "cols": 3,
+            "imagePath": "images/puzzle/pic11/spriteFrame"
+        },
+        {
+            "level": 12,
+            "rows": 3,
+            "cols": 3,
+            "imagePath": "images/puzzle/pic12/spriteFrame"
+        },
+        {
+            "level": 13,
+            "rows": 3,
+            "cols": 3,
+            "imagePath": "images/puzzle/pic13/spriteFrame"
+        },
+        {
+            "level": 14,
+            "rows": 3,
+            "cols": 3,
+            "imagePath": "images/puzzle/pic14/spriteFrame"
+        },
+        {
+            "level": 15,
+            "rows": 3,
+            "cols": 3,
+            "imagePath": "images/puzzle/pic15/spriteFrame"
+        },
+        {
+            "level": 16,
+            "rows": 3,
+            "cols": 3,
+            "imagePath": "images/puzzle/pic16/spriteFrame"
+        },
+        {
+            "level": 17,
+            "rows": 3,
+            "cols": 3,
+            "imagePath": "images/puzzle/pic17/spriteFrame"
+        },
+        {
+            "level": 18,
+            "rows": 3,
+            "cols": 3,
+            "imagePath": "images/puzzle/pic18/spriteFrame"
+        },
+        {
+            "level": 19,
+            "rows": 3,
+            "cols": 3,
+            "imagePath": "images/puzzle/pic19/spriteFrame"
+        },
+        {
+            "level": 20,
+            "rows": 3,
+            "cols": 3,
+            "imagePath": "images/puzzle/pic20/spriteFrame"
+        },
+        {
+            "level": 21,
+            "rows": 4,
+            "cols": 4,
+            "imagePath": "images/puzzle/pic21/spriteFrame"
+        },
+        {
+            "level": 22,
+            "rows": 4,
+            "cols": 4,
+            "imagePath": "images/puzzle/pic22/spriteFrame"
+        },
+        {
+            "level": 23,
+            "rows": 4,
+            "cols": 4,
+            "imagePath": "images/puzzle/pic23/spriteFrame"
+        },
+        {
+            "level": 24,
+            "rows": 4,
+            "cols": 4,
+            "imagePath": "images/puzzle/pic24/spriteFrame"
+        },
+        {
+            "level": 25,
+            "rows": 4,
+            "cols": 4,
+            "imagePath": "images/puzzle/pic25/spriteFrame"
+        },
+        {
+            "level": 26,
+            "rows": 4,
+            "cols": 4,
+            "imagePath": "images/puzzle/pic26/spriteFrame"
+        },
+        {
+            "level": 27,
+            "rows": 4,
+            "cols": 4,
+            "imagePath": "images/puzzle/pic27/spriteFrame"
+        },
+        {
+            "level": 28,
+            "rows": 4,
+            "cols": 4,
+            "imagePath": "images/puzzle/pic28/spriteFrame"
+        },
+        {
+            "level": 29,
+            "rows": 4,
+            "cols": 4,
+            "imagePath": "images/puzzle/pic29/spriteFrame"
+        },
+        {
+            "level": 30,
+            "rows": 4,
+            "cols": 4,
+            "imagePath": "images/puzzle/pic30/spriteFrame"
+        },
+        {
+            "level": 31,
+            "rows": 5,
+            "cols": 5,
+            "imagePath": "images/puzzle/pic31/spriteFrame"
+        },
+        {
+            "level": 32,
+            "rows": 5,
+            "cols": 5,
+            "imagePath": "images/puzzle/pic32/spriteFrame"
+        },
+        {
+            "level": 33,
+            "rows": 5,
+            "cols": 5,
+            "imagePath": "images/puzzle/pic33/spriteFrame"
+        },
+        {
+            "level": 34,
+            "rows": 5,
+            "cols": 5,
+            "imagePath": "images/puzzle/pic34/spriteFrame"
+        },
+        {
+            "level": 35,
+            "rows": 5,
+            "cols": 5,
+            "imagePath": "images/puzzle/pic35/spriteFrame"
+        },
+        {
+            "level": 36,
+            "rows": 5,
+            "cols": 5,
+            "imagePath": "images/puzzle/pic36/spriteFrame"
+        },
+        {
+            "level": 37,
+            "rows": 5,
+            "cols": 5,
+            "imagePath": "images/puzzle/pic37/spriteFrame"
+        },
+        {
+            "level": 38,
+            "rows": 5,
+            "cols": 5,
+            "imagePath": "images/puzzle/pic38/spriteFrame"
+        },
+        {
+            "level": 39,
+            "rows": 5,
+            "cols": 5,
+            "imagePath": "images/puzzle/pic39/spriteFrame"
+        },
+        {
+            "level": 40,
+            "rows": 5,
+            "cols": 5,
+            "imagePath": "images/puzzle/pic40/spriteFrame"
+        },
+        {
+            "level": 41,
+            "rows": 6,
+            "cols": 6,
+            "imagePath": "images/puzzle/pic41/spriteFrame"
+        },
+        {
+            "level": 42,
+            "rows": 6,
+            "cols": 6,
+            "imagePath": "images/puzzle/pic42/spriteFrame"
+        },
+        {
+            "level": 43,
+            "rows": 6,
+            "cols": 6,
+            "imagePath": "images/puzzle/pic43/spriteFrame"
+        },
+        {
+            "level": 44,
+            "rows": 6,
+            "cols": 6,
+            "imagePath": "images/puzzle/pic44/spriteFrame"
+        },
+        {
+            "level": 45,
+            "rows": 6,
+            "cols": 6,
+            "imagePath": "images/puzzle/pic45/spriteFrame"
+        },
+        {
+            "level": 46,
+            "rows": 6,
+            "cols": 6,
+            "imagePath": "images/puzzle/pic46/spriteFrame"
+        },
+        {
+            "level": 47,
+            "rows": 6,
+            "cols": 6,
+            "imagePath": "images/puzzle/pic47/spriteFrame"
+        },
+        {
+            "level": 48,
+            "rows": 6,
+            "cols": 6,
+            "imagePath": "images/puzzle/pic48/spriteFrame"
+        },
+        {
+            "level": 49,
+            "rows": 6,
+            "cols": 6,
+            "imagePath": "images/puzzle/pic49/spriteFrame"
+        },
+        {
+            "level": 50,
+            "rows": 6,
+            "cols": 6,
+            "imagePath": "images/puzzle/pic50/spriteFrame"
         }
     ]
 }
-
