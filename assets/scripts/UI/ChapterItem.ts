@@ -26,6 +26,7 @@ export class ChapterItem extends Component {
     private chapter: number = 0;  // 章节编号
     private startLevel: number = 0;  // 起始关卡
     private endLevel: number = 0;  // 结束关卡
+    private describe: string = '';  // 描述
     private isUnlocked: boolean = false;  // 是否解锁
 
     // 点击回调
@@ -41,12 +42,14 @@ export class ChapterItem extends Component {
      * @param chapter 章节编号（从1开始）
      * @param startLevel 起始关卡（全局关卡编号）
      * @param endLevel 结束关卡（全局关卡编号）
+     * @param describe 描述
      * @param isUnlocked 是否解锁
      */
-    public init(chapter: number, startLevel: number, endLevel: number, isUnlocked: boolean): void {
+    public init(chapter: number, startLevel: number, endLevel: number,describe:string, isUnlocked: boolean): void {
         this.chapter = chapter;
         this.startLevel = startLevel;
         this.endLevel = endLevel;
+        this.describe = describe;
         this.isUnlocked = isUnlocked;
         this.updateUI();
     }
@@ -61,7 +64,7 @@ export class ChapterItem extends Component {
         }
 
         if (this.describeLabel) {
-            this.describeLabel.string = `关卡 ${this.startLevel}-${this.endLevel}`;
+            this.describeLabel.string = `${this.describe}`;
         }
 
         this.unLockImage.active = this.isUnlocked;

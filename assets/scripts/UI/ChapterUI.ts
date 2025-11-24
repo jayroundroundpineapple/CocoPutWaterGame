@@ -68,7 +68,7 @@ export class ChapterUI extends Component {
                 endLevel: 25,
                 imagePath: '',
                 unlockImage: this.chapter1Image,
-                describe: 'Chapter1'
+                describe: 'Landmarks'
             },
             {
                 chapter: 2,
@@ -76,7 +76,7 @@ export class ChapterUI extends Component {
                 endLevel: 50,
                 imagePath: '',
                 unlockImage: this.chapter2Image,
-                describe: 'chapter2'
+                describe: 'Cute Pets'
             }
         ];
     }
@@ -185,7 +185,7 @@ export class ChapterUI extends Component {
         const chapterItem = chapterNode.getComponent(ChapterItem);
         if (chapterItem) {
             const isUnlocked = this.chapterUnlockStates[index];
-            chapterItem.init(config.chapter, config.startLevel, config.endLevel, isUnlocked);
+            chapterItem.init(config.chapter, config.startLevel, config.endLevel,config.describe, isUnlocked);
             // 设置点击回调
             chapterItem.onClick = (chapter: number) => {
                 this.onChapterClick(chapter, index);

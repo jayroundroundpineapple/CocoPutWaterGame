@@ -1408,7 +1408,7 @@
       "__expectedType__": "cc.SpriteFrame"
     },
     "chapter2Image": {
-      "__uuid__": "1383e872-e8eb-41e9-8528-2ecd3f161df8@f9941",
+      "__uuid__": "4c7e7482-7db7-4c49-b5ea-edc1f236f4b0@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_id": "a39mDixXNOkJ0Fvzm/RjMe"
@@ -2305,7 +2305,7 @@
       "__expectedType__": "cc.Prefab"
     },
     "currentImage": {
-      "__uuid__": "feec1e6f-6224-4fd2-afc5-0ca42806bb48@f9941",
+      "__uuid__": "5e78cce7-223e-45ce-8ee2-942024733cc4@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_id": "10IYxzl/NFAZLxAU63ksHm"
@@ -4479,7 +4479,7 @@
       "__id__": 63
     },
     "puzzleImage": {
-      "__uuid__": "feec1e6f-6224-4fd2-afc5-0ca42806bb48@f9941",
+      "__uuid__": "5e78cce7-223e-45ce-8ee2-942024733cc4@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_id": "8f1aM4EMRM/ZKgx7Fz1Skq"
