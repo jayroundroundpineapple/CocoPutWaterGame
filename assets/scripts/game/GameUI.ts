@@ -51,6 +51,61 @@ export class GameUI extends Component {
         this.initLevelUnlockUI();
         this.initExitButton();
         this.initAudio();
+        this.initPreload();
+    }
+    
+    /**
+     * 初始化预加载
+     */
+    private initPreload(): void {
+        if (!this.puzzleManager) {
+            console.warn('[GameUI] PuzzleManager 未设置，无法预加载资源');
+            return;
+        }
+        
+        // 等待配置加载完成后再预加载图片
+        this.scheduleOnce(() => {
+            this.startPreload();
+        }, 0.5);
+    }
+    
+    /**
+     * 开始预加载所有关卡图片
+     */
+    private startPreload(): void {
+        if (!this.puzzleManager) {
+            return;
+        }
+        
+        console.log('[GameUI] 开始预加载所有关卡图片资源...');
+        
+        // 设置预加载进度回调
+        this.puzzleManager.onPreloadProgress = (loaded: number, total: number) => {
+            const progress = Math.floor((loaded / total) * 100);
+            if (loaded % 10 === 0 || loaded === total) {
+                console.log(`[GameUI] 预加载进度: ${loaded}/${total} (${progress}%)`);
+            }
+        };
+        
+        // 设置预加载完成回调
+        this.puzzleManager.onPreloadComplete = () => {
+            console.log('[GameUI] ✅ 所有关卡图片预加载完成！游戏可以流畅运行了');
+        };
+        
+        // 开始预加载
+        this.puzzleManager.preloadAllImages(
+            (loaded: number, total: number) => {
+                // 进度回调
+                const progress = Math.floor((loaded / total) * 100);
+                if (loaded % 10 === 0 || loaded === total) {
+                    console.log(`[GameUI] 预加载进度: ${loaded}/${total} (${progress}%)`);
+                }
+            },
+            () => {
+                // 完成回调
+                console.log('[GameUI] ✅ 所有关卡图片预加载完成！游戏可以流畅运行了');
+            }
+        );
     }
     
     /**

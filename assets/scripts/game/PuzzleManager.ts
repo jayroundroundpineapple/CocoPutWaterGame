@@ -42,6 +42,15 @@ export class PuzzleManager extends Component {
     // 是否已完成（防止重复触发）
     private isCompleted: boolean = false;
 
+    // 图片资源缓存
+    private imageCache: Map<number, SpriteFrame> = new Map();
+    
+    // 预加载进度回调
+    public onPreloadProgress: (loaded: number, total: number) => void = null;
+    
+    // 预加载完成回调
+    public onPreloadComplete: () => void = null;
+
     protected onLoad() {
         this.loadLevelConfigs();
     }
@@ -86,6 +95,9 @@ export class PuzzleManager extends Component {
                 this.levelConfigs = data.levels;
                 this.loadRetryCount = 0;  // 重置重试计数
                 console.log('[PuzzleManager] 加载关卡配置成功，共', this.levelConfigs.length, '关');
+                
+                // 配置加载成功后，触发预加载完成回调（如果配置加载是预加载的一部分）
+                // 实际的图片预加载由 preloadAllImages 方法处理
             } else {
                 console.error('[PuzzleManager] 关卡配置格式错误');
                 // 如果格式错误，也尝试重试
@@ -248,7 +260,15 @@ export class PuzzleManager extends Component {
         
         this.currentConfig = config;
         
-        // 加载关卡图片
+        // 先从缓存获取图片
+        const cachedImage = this.getCachedImage(level);
+        if (cachedImage) {
+            console.log(`[PuzzleManager] 从缓存获取关卡 ${level} 图片`);
+            this.startPuzzle(cachedImage);
+            return;
+        }
+        
+        // 如果缓存中没有，则加载图片
         console.log(`[PuzzleManager] 加载关卡 ${level} 图片: ${config.imagePath}`);
         resources.load(config.imagePath, SpriteFrame, (err, spriteFrame) => {
             if (err) {
@@ -258,6 +278,8 @@ export class PuzzleManager extends Component {
                 return;
             }
             
+            // 缓存图片
+            this.imageCache.set(level, spriteFrame);
             console.log(`[PuzzleManager] 关卡 ${level} 图片加载成功`);
             this.startPuzzle(spriteFrame);
         });
@@ -525,6 +547,94 @@ export class PuzzleManager extends Component {
         if (this.currentImage) {
             this.startPuzzle(this.currentImage);
         }
+    }
+
+    /**
+     * 预加载所有关卡图片
+     * @param onProgress 进度回调 (loaded, total)
+     * @param onComplete 完成回调
+     */
+    public preloadAllImages(onProgress?: (loaded: number, total: number) => void, onComplete?: () => void): void {
+        if (this.levelConfigs.length === 0) {
+            console.warn('[PuzzleManager] 关卡配置为空，无法预加载图片');
+            // 如果配置未加载，先加载配置，然后再预加载图片
+            this.loadLevelConfigs();
+            this.scheduleOnce(() => {
+                this.preloadAllImages(onProgress, onComplete);
+            }, 0.5);
+            return;
+        }
+
+        const total = this.levelConfigs.length;
+        let loaded = 0;
+        let failed = 0;
+
+        console.log(`[PuzzleManager] 开始预加载 ${total} 个关卡的图片资源...`);
+
+        // 清空缓存
+        this.imageCache.clear();
+
+        // 遍历所有关卡配置，预加载图片
+        for (const config of this.levelConfigs) {
+            resources.load(config.imagePath, SpriteFrame, (err, spriteFrame) => {
+                if (err) {
+                    console.error(`[PuzzleManager] 预加载关卡 ${config.level} 图片失败:`, err);
+                    console.error(`[PuzzleManager] 路径: ${config.imagePath}`);
+                    failed++;
+                } else {
+                    // 缓存图片资源
+                    this.imageCache.set(config.level, spriteFrame);
+                    console.log(`[PuzzleManager] 预加载关卡 ${config.level} 图片成功`);
+                }
+
+                loaded++;
+                
+                // 更新进度
+                if (onProgress) {
+                    onProgress(loaded, total);
+                }
+                if (this.onPreloadProgress) {
+                    this.onPreloadProgress(loaded, total);
+                }
+
+                // 所有资源加载完成
+                if (loaded === total) {
+                    console.log(`[PuzzleManager] 预加载完成！成功: ${total - failed}, 失败: ${failed}`);
+                    if (onComplete) {
+                        onComplete();
+                    }
+                    if (this.onPreloadComplete) {
+                        this.onPreloadComplete();
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * 从缓存获取关卡图片
+     * @param level 关卡编号
+     */
+    private getCachedImage(level: number): SpriteFrame | null {
+        return this.imageCache.get(level) || null;
+    }
+
+    /**
+     * 检查关卡图片是否已预加载
+     * @param level 关卡编号
+     */
+    public isImagePreloaded(level: number): boolean {
+        return this.imageCache.has(level);
+    }
+
+    /**
+     * 获取预加载进度
+     */
+    public getPreloadProgress(): { loaded: number; total: number } {
+        return {
+            loaded: this.imageCache.size,
+            total: this.levelConfigs.length
+        };
     }
 }
 
