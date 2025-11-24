@@ -2524,7 +2524,7 @@
         "__id__": 65
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 74
@@ -3004,7 +3004,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 750,
-      "height": 1333.9999999999998
+      "height": 1334
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -3026,6 +3026,12 @@
     "closeBtn": {
       "__id__": 66
     },
+    "soundBtn": null,
+    "musicBtn": null,
+    "soundOnSprite": null,
+    "soundOffSprite": null,
+    "musicOnSprite": null,
+    "musicOffSprite": null,
     "backgroundMask": {
       "__id__": 63
     },
@@ -3041,12 +3047,12 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "_alignFlags": 45,
+    "_alignFlags": 0,
     "_target": null,
     "_left": 0,
     "_right": 0,
-    "_top": 0,
-    "_bottom": 0,
+    "_top": -1.1368683772161603e-13,
+    "_bottom": -1.1368683772161603e-13,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
     "_isAbsLeft": true,

@@ -10,13 +10,24 @@ const { ccclass, property } = _decorator;
 export class SettingUI extends Component {
     @property(Node)
     private closeBtn: Node = null;  // 关闭按钮
-
+    @property(Node)
+    private soundBtn: Node = null;  // 声音按钮
+    @property(Node)
+    private musicBtn: Node = null;  // 音乐按钮
+    @property(SpriteFrame)
+    private soundOnSprite: SpriteFrame = null;  // 声音开启图片
+    @property(SpriteFrame)
+    private soundOffSprite: SpriteFrame = null;  // 声音关闭图片
+    @property(SpriteFrame)
+    private musicOnSprite: SpriteFrame = null;  // 音乐开启图片
+    @property(SpriteFrame)
+    private musicOffSprite: SpriteFrame = null;  // 音乐关闭图片
     @property(Node)
     private backgroundMask: Node = null;  // 背景遮罩层（可选，如果未设置会自动创建）
 
-    // 是否正在显示
     private isShowing: boolean = false;
-
+    private soundOn:boolean = true;
+    private musicOn:boolean = true;
     // 关闭回调
     public onClose: () => void = null;
 
@@ -33,6 +44,26 @@ export class SettingUI extends Component {
         } else {
             // 如果已经设置了背景遮罩，确保它能够拦截触摸事件
             this.setupBackgroundMask(this.backgroundMask);
+        }
+    }
+    Start() {
+        this.soundBtn.on(Node.EventType.TOUCH_END, this.onSoundBtnClick, this);
+        this.musicBtn.on(Node.EventType.TOUCH_END, this.onMusicBtnClick, this);
+    }
+    onSoundBtnClick(){
+        this.soundOn = !this.soundOn;
+        if(this.soundOn){
+            this.soundBtn.getComponent(Sprite).spriteFrame = this.soundOnSprite;
+        }else{
+            this.soundBtn.getComponent(Sprite).spriteFrame = this.soundOffSprite;
+        }
+    }
+    onMusicBtnClick(){
+        this.musicOn = !this.musicOn;
+        if(this.musicOn){
+            this.musicBtn.getComponent(Sprite).spriteFrame = this.musicOnSprite;
+        }else{
+            this.musicBtn.getComponent(Sprite).spriteFrame = this.musicOffSprite;
         }
     }
 
@@ -161,8 +192,12 @@ export class SettingUI extends Component {
         if (this.closeBtn) {
             this.closeBtn.off(Node.EventType.TOUCH_END, this.onCloseBtnClick, this);
         }
-        
-        // 清理背景遮罩事件监听
+        if(this.soundBtn){
+            this.soundBtn.off(Node.EventType.TOUCH_END, this.onSoundBtnClick, this);
+        }
+        if(this.musicBtn){
+            this.musicBtn.off(Node.EventType.TOUCH_END, this.onMusicBtnClick, this);
+        }
         if (this.backgroundMask) {
             this.backgroundMask.off(Node.EventType.TOUCH_START, this.onBackgroundTouch, this);
             this.backgroundMask.off(Node.EventType.TOUCH_END, this.onBackgroundTouch, this);
