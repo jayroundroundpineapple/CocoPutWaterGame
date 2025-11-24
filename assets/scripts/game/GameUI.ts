@@ -1,9 +1,10 @@
-import { _decorator, Button, Component, Node, SpriteFrame } from 'cc';
+import { _decorator, Button, Component, Node, SpriteFrame, AudioSource } from 'cc';
 import { AdManager } from './adManager';
 import { AdType } from './ad-enums';
 import { PuzzleManager } from './PuzzleManager';
 import { SettingUI } from '../UI/SettingUI';
 import { LevelUnlockUI } from '../UI/LevelUnlockUI';
+import { AudioManager } from '../utils/AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameUI')
@@ -26,6 +27,13 @@ export class GameUI extends Component {
     private exitGameBtn: Node = null;  
     @property(SpriteFrame)
     private puzzleImage: SpriteFrame = null;  // 拼图图片
+    
+    
+    
+    private bgmNode:Node = null; // 背景音乐节点
+    private sfxNode:Node = null; // 音效节点
+    private audioManager: AudioManager = null;
+    
     start() {
         this.puzzleGameUI.active = false;
         this.initButton.on(Node.EventType.TOUCH_END, this.onInitButtonClick, this);
@@ -34,6 +42,33 @@ export class GameUI extends Component {
         this.initSettingUI();
         this.initLevelUnlockUI();
         this.initExitButton();
+        this.initAudio();
+    }
+    
+    /**
+     * 初始化音频系统
+     */
+    private initAudio(): void {
+        // 获取音频管理器实例
+        this.audioManager = AudioManager.getInstance();
+        
+        // 创建音频节点（如果未设置）
+        if (!this.bgmNode) {
+            this.bgmNode = new Node('BGMNode');
+            this.bgmNode.parent = this.node;
+            this.bgmNode.addComponent(AudioSource);
+        }
+        
+        if (!this.sfxNode) {
+            this.sfxNode = new Node('SFXNode');
+            this.sfxNode.parent = this.node;
+            this.sfxNode.addComponent(AudioSource);
+        }
+        
+        // 初始化音频管理器（会自动播放背景音乐）
+        this.audioManager.init(this.bgmNode, this.sfxNode);
+        
+        console.log('[GameUI] 音频系统初始化完成，背景音乐已开始播放');
     }
     
     /**
@@ -139,6 +174,11 @@ export class GameUI extends Component {
     }
     public openSetting(): void {
         if (this.settingUI) {
+            // 播放点击音效
+            if (this.audioManager) {
+                this.audioManager.playClickSound();
+            }
+            
             this.settingUI.show();
             // 禁用设置按钮，防止重复打开
             if (this.settingBtn) {
@@ -192,6 +232,10 @@ export class GameUI extends Component {
      */
     private onExitGameBtnClick(): void {
         console.log('[GameUI] 点击退出游戏按钮');
+        // 播放点击音效
+        if (this.audioManager) {
+            this.audioManager.playClickSound();
+        }
         this.backToLevelUnlock();
     }
 

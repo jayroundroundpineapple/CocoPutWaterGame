@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, director, UITransform, Color, Sprite, SpriteFrame, view, EventTouch } from 'cc';
 import { Utils } from '../utils/Utils';
+import { AudioManager } from '../utils/AudioManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -9,35 +10,32 @@ const { ccclass, property } = _decorator;
 @ccclass('SettingUI')
 export class SettingUI extends Component {
     @property(Node)
-    private closeBtn: Node = null;  // 关闭按钮
+    private closeBtn: Node = null;  
     @property(Node)
-    private soundBtn: Node = null;  // 声音按钮
+    private soundBtn: Node = null; 
     @property(Node)
-    private musicBtn: Node = null;  // 音乐按钮
+    private bgmBtn: Node = null;  
     @property(SpriteFrame)
-    private soundOnSprite: SpriteFrame = null;  // 声音开启图片
+    private soundOnSprite: SpriteFrame = null;  
     @property(SpriteFrame)
-    private soundOffSprite: SpriteFrame = null;  // 声音关闭图片
+    private soundOffSprite: SpriteFrame = null;  
     @property(SpriteFrame)
-    private musicOnSprite: SpriteFrame = null;  // 音乐开启图片
+    private musicOnSprite: SpriteFrame = null;  
     @property(SpriteFrame)
-    private musicOffSprite: SpriteFrame = null;  // 音乐关闭图片
+    private musicOffSprite: SpriteFrame = null;  
     @property(Node)
-    private backgroundMask: Node = null;  // 背景遮罩层（可选，如果未设置会自动创建）
+    private backgroundMask: Node = null;  // 背景遮罩层
 
     private isShowing: boolean = false;
-    private soundOn:boolean = true;
-    private musicOn:boolean = true;
+    private audioManager: AudioManager = null;
+    
     // 关闭回调
     public onClose: () => void = null;
-
-    // 是否点击背景关闭
     public clickBackgroundToClose: boolean = true;
 
     protected onLoad() {
-        // 初始状态：隐藏
         this.node.active = false;
-        
+        this.audioManager = AudioManager.getInstance();
         // 如果没有设置背景遮罩，自动创建一个
         if (!this.backgroundMask) {
             this.createBackgroundMask();
@@ -46,27 +44,85 @@ export class SettingUI extends Component {
             this.setupBackgroundMask(this.backgroundMask);
         }
     }
-    Start() {
-        this.soundBtn.on(Node.EventType.TOUCH_END, this.onSoundBtnClick, this);
-        this.musicBtn.on(Node.EventType.TOUCH_END, this.onMusicBtnClick, this);
+    
+    protected start() {
+        if (this.closeBtn) {
+            this.closeBtn.on(Node.EventType.TOUCH_END, this.onCloseBtnClick, this);
+        } else {
+            console.warn('[SettingUI] 未设置关闭按钮');
+        }
+        if (this.soundBtn) {
+            this.soundBtn.on(Node.EventType.TOUCH_END, this.onSoundBtnClick, this);
+        }
+        if (this.bgmBtn) {
+            this.bgmBtn.on(Node.EventType.TOUCH_END, this.onbgmBtnClick, this);
+        }
+        this.updateButtonStates();
     }
-    onSoundBtnClick(){
-        this.soundOn = !this.soundOn;
-        if(this.soundOn){
-            this.soundBtn.getComponent(Sprite).spriteFrame = this.soundOnSprite;
-        }else{
-            this.soundBtn.getComponent(Sprite).spriteFrame = this.soundOffSprite;
+    
+    /**
+     * 更新按钮状态（根据音频管理器）
+     */
+    private updateButtonStates(): void {
+        if (!this.audioManager) {
+            return;
+        }
+        if (this.soundBtn) {
+            const sprite = this.soundBtn.getComponent(Sprite);
+            if (sprite) {
+                sprite.spriteFrame = this.audioManager.isSoundEnabled() 
+                    ? this.soundOnSprite 
+                    : this.soundOffSprite;
+            }
+        }
+        if (this.bgmBtn) {
+            const sprite = this.bgmBtn.getComponent(Sprite);
+            if (sprite) {
+                sprite.spriteFrame = this.audioManager.isMusicEnabled() 
+                    ? this.musicOnSprite 
+                    : this.musicOffSprite;
+            }
         }
     }
-    onMusicBtnClick(){
-        this.musicOn = !this.musicOn;
-        if(this.musicOn){
-            this.musicBtn.getComponent(Sprite).spriteFrame = this.musicOnSprite;
-        }else{
-            this.musicBtn.getComponent(Sprite).spriteFrame = this.musicOffSprite;
+    
+    /**
+     * 音效按钮点击事件
+     */
+    private onSoundBtnClick(): void {
+        if (!this.audioManager) {
+            return;
+        }
+        this.audioManager.playClickSound();
+        const newState = !this.audioManager.isSoundEnabled();
+        this.audioManager.setSoundEnabled(newState);
+        if (this.soundBtn) {
+            const sprite = this.soundBtn.getComponent(Sprite);
+            if (sprite) {
+                sprite.spriteFrame = newState ? this.soundOnSprite : this.soundOffSprite;
+            }
         }
     }
-
+    
+    /**
+     * 音乐按钮点击事件
+     */
+    private onbgmBtnClick(): void {
+        if (!this.audioManager) {
+            return;
+        }
+        // 播放点击音效
+        this.audioManager.playClickSound();
+        // 切换音乐开关
+        const newState = !this.audioManager.isMusicEnabled();
+        this.audioManager.setMusicEnabled(newState);
+        // 更新按钮图标
+        if (this.bgmBtn) {
+            const sprite = this.bgmBtn.getComponent(Sprite);
+            if (sprite) {
+                sprite.spriteFrame = newState ? this.musicOnSprite : this.musicOffSprite;
+            }
+        }
+    }
     /**
      * 创建背景遮罩层
      */
@@ -74,10 +130,8 @@ export class SettingUI extends Component {
         // 创建背景遮罩节点
         const maskNode = new Node('BackgroundMask');
         maskNode.parent = this.node;
-        
         // 设置为第一个子节点（在最底层）
         maskNode.setSiblingIndex(0);
-        
         // 添加 UITransform 组件，设置为全屏
         const uiTransform = maskNode.addComponent(UITransform);
         const visibleSize = view.getVisibleSize();
@@ -86,7 +140,6 @@ export class SettingUI extends Component {
         
         // 设置位置为屏幕中心
         maskNode.setPosition(0, 0, 0);
-        
         // 添加 Sprite 组件用于显示半透明背景（可选）
         const sprite = maskNode.addComponent(Sprite);
         // 如果没有设置 SpriteFrame，可以创建一个纯色背景
@@ -118,14 +171,6 @@ export class SettingUI extends Component {
         event.propagationStopped = true;
     }
 
-    protected start() {
-        // 绑定关闭按钮事件
-        if (this.closeBtn) {
-            this.closeBtn.on(Node.EventType.TOUCH_END, this.onCloseBtnClick, this);
-        } else {
-            console.warn('[SettingUI] 未设置关闭按钮');
-        }
-    }
 
     /**
      * 显示设置界面
@@ -177,6 +222,10 @@ export class SettingUI extends Component {
      * 关闭按钮点击事件
      */
     private onCloseBtnClick(): void {
+        // 播放点击音效
+        if (this.audioManager) {
+            this.audioManager.playClickSound();
+        }
         this.hide();
     }
 
@@ -195,8 +244,8 @@ export class SettingUI extends Component {
         if(this.soundBtn){
             this.soundBtn.off(Node.EventType.TOUCH_END, this.onSoundBtnClick, this);
         }
-        if(this.musicBtn){
-            this.musicBtn.off(Node.EventType.TOUCH_END, this.onMusicBtnClick, this);
+        if(this.bgmBtn){
+            this.bgmBtn.off(Node.EventType.TOUCH_END, this.onbgmBtnClick, this);
         }
         if (this.backgroundMask) {
             this.backgroundMask.off(Node.EventType.TOUCH_START, this.onBackgroundTouch, this);
