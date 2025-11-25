@@ -518,7 +518,6 @@ export class PuzzleManager extends Component {
             this.startPuzzle(spriteFrame);
         });
     }
-
     /**
      * 播放完成动画
      */

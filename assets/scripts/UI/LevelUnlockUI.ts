@@ -68,6 +68,8 @@ export class LevelUnlockUI extends Component {
         // 绑定返回按钮事件
         if (this.backBtn) {
             this.backBtn.on(Node.EventType.TOUCH_END, this.onBackBtnClick, this);
+            // 初始状态：返回按钮隐藏（章节未完成时）
+            this.backBtn.active = false;
         }
     }
     
@@ -102,6 +104,34 @@ export class LevelUnlockUI extends Component {
 
         // 创建UI
         this.createUnlockUI();
+        
+        // 检查章节是否已完成，更新按钮状态
+        this.updateButtonsState();
+    }
+    
+    /**
+     * 更新按钮状态（根据章节完成情况）
+     */
+    private updateButtonsState(): void {
+        const allCompleted = this.unlockStates.every(state => state === true);
+        
+        if (allCompleted) {
+            // 章节已完成：隐藏开始游戏按钮，显示返回按钮
+            if (this.startGameBtn) {
+                this.startGameBtn.active = false;
+            }
+            if (this.backBtn) {
+                this.backBtn.active = true;
+            }
+        } else {
+            // 章节未完成：显示开始游戏按钮，隐藏返回按钮
+            if (this.startGameBtn) {
+                this.startGameBtn.active = true;
+            }
+            if (this.backBtn) {
+                this.backBtn.active = false;
+            }
+        }
     }
 
     /**
@@ -319,7 +349,6 @@ export class LevelUnlockUI extends Component {
         );
         
         if (croppedFrame && croppedFrame.texture) {
-            console.log(`[LevelUnlockUI] 小块 ${index} 创建成功:`, croppedFrame.rect);
             sprite.spriteFrame = croppedFrame;
         } else {
             console.error(`[LevelUnlockUI] 创建小块 ${index} 的 SpriteFrame 失败`);
@@ -502,9 +531,28 @@ export class LevelUnlockUI extends Component {
         const allCompleted = this.unlockStates.every(state => state === true);
         if (allCompleted) {
             console.log(`[LevelUnlockUI] 章节 ${this.chapter} 全部完成！`);
+            // 章节完成后，隐藏开始游戏按钮，显示返回按钮
+            this.updateButtonsForChapterComplete();
             // 可以触发章节完成回调
             // 这里不直接解锁下一章节，由 GameUI 统一管理
         }
+    }
+    
+    /**
+     * 更新按钮状态（章节完成时）
+     */
+    private updateButtonsForChapterComplete(): void {
+        // 隐藏开始游戏按钮
+        if (this.startGameBtn) {
+            this.startGameBtn.active = false;
+        }
+        
+        // 显示返回按钮
+        if (this.backBtn) {
+            this.backBtn.active = true;
+        }
+        
+        console.log('[LevelUnlockUI] 章节完成，已隐藏开始游戏按钮，显示返回按钮');
     }
     
     /**
@@ -578,6 +626,95 @@ export class LevelUnlockUI extends Component {
             }
         }
         this.saveUnlockStates();
+    }
+
+    /**
+     * 快速通过第n关之前的所有关卡（用于测试）
+     * @param level 关卡编号（全局关卡编号），会解锁该关卡之前的所有关卡（不包括该关卡本身）
+     * @param withAnimation 是否播放解锁动画，默认false
+     */
+    public quickUnlockBeforeLevel(level: number, withAnimation: boolean = false): void {
+        // 转换为章节内的索引
+        const targetIndex = level - this.startLevel;
+        
+        if (targetIndex < 0) {
+            console.warn(`[LevelUnlockUI] 关卡编号 ${level} 不在当前章节范围内（${this.startLevel}-${this.endLevel}）`);
+            return;
+        }
+        
+        // 如果目标关卡超出当前章节范围，解锁整个章节
+        const maxIndex = Math.min(targetIndex, this.totalLevels);
+        
+        console.log(`[LevelUnlockUI] 快速解锁关卡 ${this.startLevel} 到 ${this.startLevel + maxIndex - 1}（共 ${maxIndex} 关）`);
+        
+        // 解锁指定关卡之前的所有关卡
+        for (let i = 0; i < maxIndex; i++) {
+            if (!this.unlockStates[i]) {
+                const globalLevel = this.startLevel + i;
+                
+                // 更新解锁状态
+                this.unlockStates[i] = true;
+                
+                // 更新UI
+                const pieceNode = this.pieceNodes[i];
+                const cardNode = this.cardNodes[i];
+                
+                if (pieceNode && pieceNode.isValid) {
+                    if (withAnimation) {
+                        // 播放动画
+                        pieceNode.active = true;
+                        pieceNode.setScale(0, 0, 1);
+                        tween(pieceNode)
+                            .to(0.3, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' })
+                            .start();
+                    } else {
+                        // 直接显示
+                        pieceNode.active = true;
+                    }
+                }
+                
+                if (cardNode && cardNode.isValid) {
+                    const cardItem = cardNode.getComponent(CardItem);
+                    if (cardItem) {
+                        cardItem.setUnlocked(true);
+                    }
+                    
+                    if (withAnimation) {
+                        // 播放翻牌动画
+                        tween(cardNode)
+                            .to(0.3, { scale: new Vec3(0, 1, 1) }, { easing: 'sineIn' })
+                            .call(() => {
+                                cardNode.active = false;
+                                cardNode.scale = new Vec3(1, 1, 1);
+                            })
+                            .start();
+                    } else {
+                        // 直接隐藏
+                        cardNode.active = false;
+                    }
+                }
+                
+                // 解锁下一关（如果存在）
+                const nextLevelIndex = i + 1;
+                if (nextLevelIndex < this.totalLevels) {
+                    const nextCardNode = this.cardNodes[nextLevelIndex];
+                    if (nextCardNode && nextCardNode.isValid) {
+                        const nextCardItem = nextCardNode.getComponent(CardItem);
+                        if (nextCardItem) {
+                            nextCardItem.setCanPlay(true);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 保存解锁状态
+        this.saveUnlockStates();
+        
+        // 检查章节是否全部完成
+        this.checkChapterComplete();
+        
+        console.log(`[LevelUnlockUI] 快速解锁完成！`);
     }
 
     protected onDestroy() {

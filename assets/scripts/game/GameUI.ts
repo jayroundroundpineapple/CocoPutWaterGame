@@ -49,6 +49,7 @@ export class GameUI extends Component {
     private justCompletedLevel: number = 0;
     
     start() {
+        (window as any).gameUI = this;
         this.puzzleGameUI.active = false;
         // 初始状态：显示章节界面，隐藏关卡解锁界面
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
@@ -79,6 +80,11 @@ export class GameUI extends Component {
         this.scheduleOnce(() => {
             this.startPreload();
         }, 0.5);
+    }
+    quickUnlockBeforeLevel(level:number){
+        if (this.levelUnlockUI) {
+            this.levelUnlockUI.quickUnlockBeforeLevel(level, true);
+        }
     }
     
     /**
