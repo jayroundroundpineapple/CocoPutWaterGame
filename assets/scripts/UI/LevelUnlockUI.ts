@@ -90,14 +90,18 @@ export class LevelUnlockUI extends Component {
      * @param endLevel 章节结束关卡（全局关卡编号）
      * @param gridRows 网格行数（用于分割图片）
      * @param gridCols 网格列数（用于分割图片）
+     * @param backgroundImage 章节背景图（可选，如果不传则使用默认的backgroundImage）
      */
-    public init(chapter: number, startLevel: number, endLevel: number, gridRows: number, gridCols: number): void {
+    public init(chapter: number, startLevel: number, endLevel: number, gridRows: number, gridCols: number, backgroundImage?: SpriteFrame): void {
         this.chapter = chapter;
         this.startLevel = startLevel;
         this.endLevel = endLevel;
         this.totalLevels = endLevel - startLevel + 1;  // 章节内的关卡数
         this.gridRows = gridRows;
         this.gridCols = gridCols;
+        if (backgroundImage) {
+            this.backgroundImage = backgroundImage;
+        }
 
         // 加载解锁状态
         this.loadUnlockStates();

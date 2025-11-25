@@ -283,6 +283,22 @@ export class ChapterUI extends Component {
     }
 
     /**
+     * 获取章节背景图
+     * @param chapter 章节编号（从1开始）
+     * @returns 章节背景图 SpriteFrame，如果章节不存在则返回null
+     */
+    public getChapterBackgroundImage(chapter: number): SpriteFrame | null {
+        const index = chapter - 1;
+        if (index < 0 || index >= this.chapters.length) {
+            console.warn(`[ChapterUI] 章节编号无效: ${chapter}`);
+            return null;
+        }
+        
+        const config = this.chapters[index];
+        return config.unlockImage || null;
+    }
+
+    /**
      * 检查章节是否已完成（全部关卡通关）
      * @param chapter 章节编号（从1开始）
      */

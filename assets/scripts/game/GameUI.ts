@@ -337,7 +337,14 @@ export class GameUI extends Component {
             // 根据章节计算网格布局（5x5）
             const gridRows = 5;
             const gridCols = 5;
-            this.levelUnlockUI.init(chapter, startLevel, endLevel, gridRows, gridCols);
+            
+            // 获取章节对应的背景图
+            let chapterBackgroundImage: SpriteFrame | null = null;
+            if (this.chapterUI) {
+                chapterBackgroundImage = this.chapterUI.getChapterBackgroundImage(chapter);
+            }
+            // 初始化关卡解锁UI，传入章节背景图
+            this.levelUnlockUI.init(chapter, startLevel, endLevel, gridRows, gridCols, chapterBackgroundImage);
             this.levelUnlockUI.node.active = true;
             
             if (showUnlockAnimation && this.justCompletedLevel > 0) {
