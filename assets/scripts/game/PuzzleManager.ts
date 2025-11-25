@@ -225,11 +225,9 @@ export class PuzzleManager extends Component {
      */
     public startLevel(level: number): void {
         console.log(`[PuzzleManager] 开始关卡 ${level}`);
-        
         // 设置当前关卡
         this.currentLevel = level;
         this.isCompleted = false;  // 重置完成标志
-        
         // 如果配置为空，尝试重新加载
         if (this.levelConfigs.length === 0) {
             console.warn('[PuzzleManager] 关卡配置为空，尝试重新加载...');

@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, SpriteFrame, Sprite, UITransform, Rect, resources, Prefab, instantiate, tween, Vec3, sys, utils } from 'cc';
+import { _decorator, Component, Node, SpriteFrame, Sprite, UITransform, Rect, resources, Prefab, instantiate, tween, Vec3, sys, utils, Label } from 'cc';
 import { CardItem } from './CardItem';
 import { Utils } from '../utils/Utils';
 const { ccclass, property } = _decorator;
@@ -15,16 +15,14 @@ export class LevelUnlockUI extends Component {
     private piecePrefab: Prefab = null;  // 小块预制体
     @property(SpriteFrame)
     private backgroundImage: SpriteFrame = null;  // 完整的通关背景图
-
     @property(SpriteFrame)
     private cardSprite: SpriteFrame = null;  
-
     @property(Prefab)
     private cardPrefab: Prefab = null;  
-
     @property(Node)
-    private startGameBtn: Node = null; 
-    
+    private startGameBtn: Node = null;
+    @property(Label) 
+    private levelLb:Label = null;
     @property(Node)
     private backBtn: Node = null;  // 返回章节界面按钮
 
@@ -111,6 +109,39 @@ export class LevelUnlockUI extends Component {
         
         // 检查章节是否已完成，更新按钮状态
         this.updateButtonsState();
+        
+        // 更新关卡标签显示
+        this.updateLevelLabel();
+    }
+    
+    /**
+     * 更新关卡标签显示
+     */
+    private updateLevelLabel(): void {
+        if (!this.levelLb) {
+            return;
+        }
+        
+        // 找到当前章节中已解锁的最高关卡
+        let currentLevel = this.startLevel;  // 默认第一关
+        
+        // 从后往前查找已解锁的最高关卡
+        for (let i = this.totalLevels - 1; i >= 0; i--) {
+            if (this.unlockStates[i]) {
+                currentLevel = this.startLevel + i;
+                break;
+            }
+        }
+        
+        // 如果找到了已解锁的关卡，显示下一关（如果下一关存在）
+        const nextLevel = currentLevel + 1;
+        if (nextLevel <= this.endLevel) {
+            currentLevel = nextLevel;
+        }
+        
+        // 更新标签文本
+        this.levelLb.string = `LEVEL ${currentLevel}`;
+        console.log(`[LevelUnlockUI] 更新关卡标签: Level ${currentLevel}`);
     }
     
     /**
@@ -143,13 +174,34 @@ export class LevelUnlockUI extends Component {
      */
     private onStartGameBtnClick(): void {
         console.log('[LevelUnlockUI] 点击开始游戏按钮');
-        // 通知外部开始游戏
-        if (this.onStartGame) {
-        Utils.setScale(this.startGameBtn, 0.95, 0.1, () => {
-            this.onStartGame();
-        })
+        
+        // 找到当前章节中已解锁的最高关卡，如果没有解锁的关卡，则进入第一关
+        let targetLevel = this.startLevel;  // 默认第一关
+        
+        // 从后往前查找已解锁的最高关卡
+        for (let i = this.totalLevels - 1; i >= 0; i--) {
+            if (this.unlockStates[i]) {
+                targetLevel = this.startLevel + i;
+                break;
+            }
+        }
+        
+        // 如果所有关卡都未解锁，进入第一关
+        // 如果找到了已解锁的关卡，进入下一关（如果下一关存在）
+        const nextLevel = targetLevel + 1;
+        if (nextLevel <= this.endLevel) {
+            targetLevel = nextLevel;
+        }
+        
+        console.log(`[LevelUnlockUI] 进入关卡 ${targetLevel}`);
+        
+        // 触发进入关卡回调
+        if (this.onEnterLevel) {
+            Utils.setScale(this.startGameBtn, 0.95, 0.1, () => {
+                this.onEnterLevel(targetLevel);
+            });
         } else {
-            console.warn('[LevelUnlockUI] 未设置 onStartGame 回调');
+            console.warn('[LevelUnlockUI] 未设置 onEnterLevel 回调');
         }
     }
 
@@ -524,6 +576,10 @@ export class LevelUnlockUI extends Component {
         }
         // 检查章节是否全部完成
         this.checkChapterComplete();
+        
+        // 更新关卡标签显示
+        this.updateLevelLabel();
+        
         console.log(`[LevelUnlockUI] 关卡 ${level} 已解锁`);
     }
     

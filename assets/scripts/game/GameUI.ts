@@ -1,4 +1,4 @@
-import { _decorator, Button, Component, Node, SpriteFrame, AudioSource } from 'cc';
+import { _decorator, Button, Component, Node, SpriteFrame, AudioSource, sys } from 'cc';
 import { AdManager } from './adManager';
 import { AdType } from './ad-enums';
 import { PuzzleManager } from './PuzzleManager';
@@ -254,16 +254,10 @@ export class GameUI extends Component {
      */
     private initLevelUnlockUI() {
         if (this.levelUnlockUI) {
-            // 设置开始游戏回调
-            this.levelUnlockUI.onStartGame = () => {
-                this.startPuzzleGame();
-            };
-            
             // 设置进入关卡回调（点击卡牌时触发）
             this.levelUnlockUI.onEnterLevel = (level: number) => {
                 this.enterLevel(level);
             };
-            
             // 设置返回章节界面回调
             this.levelUnlockUI.onBackToChapter = () => {
                 this.backToChapter();
@@ -287,13 +281,9 @@ export class GameUI extends Component {
      * 下一关按钮点击处理
      */
     private onNextLevelClick(): void {
-        console.log('[GameUI] 点击下一关按钮');
-        
-        // 隐藏拼图游戏UI
         if (this.puzzleGameUI) {
             this.puzzleGameUI.active = false;
         }
-        
         // 返回到章节UI，然后自动进入章节并显示解锁动画
         this.backToChapterWithUnlockAnimation();
     }
@@ -306,11 +296,6 @@ export class GameUI extends Component {
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
-        // if (this.chapterUI && this.chapterUI.node) {
-        //     this.chapterUI.show();
-        // }
-        
-        // 延迟一下，然后自动进入当前章节并显示解锁动画
         this.scheduleOnce(() => {
             this.enterChapter(this.currentChapter, this.currentStartLevel, this.currentEndLevel, true);
         }, 0.3);
@@ -418,6 +403,63 @@ export class GameUI extends Component {
             console.error('[GameUI] PuzzleManager 未设置');
         }
     }
+    
+    /**
+     * 开始拼图游戏（从开始游戏按钮调用）
+     * 进入当前章节的最新关卡
+     */
+    private startPuzzleGameFromButton(): void {
+        console.log('[GameUI] 从开始游戏按钮进入最新关卡');
+        
+        // 隐藏关卡解锁UI
+        if (this.levelUnlockUI && this.levelUnlockUI.node) {
+            this.levelUnlockUI.node.active = false;
+        }
+        
+        // 显示拼图游戏UI
+        if (this.puzzleGameUI) {
+            this.puzzleGameUI.active = true;
+        }
+        
+        // 计算当前章节的最新关卡
+        if (this.levelUnlockUI && this.puzzleManager) {
+            // 获取当前章节信息
+            const chapter = this.levelUnlockUI.getChapter();
+            const startLevel = this.currentStartLevel;
+            const endLevel = this.currentEndLevel;
+            // 从本地存储读取解锁状态
+            const storageKey = `puzzle_unlock_states_chapter_${chapter}`;
+            const saved = sys.localStorage.getItem(storageKey);
+            let unlockStates: boolean[] = [];
+            
+            if (saved) {
+                try {
+                    unlockStates = JSON.parse(saved);
+                } catch (e) {
+                    console.error('[GameUI] 读取解锁状态失败:', e);
+                }
+            }
+            // 找到已解锁的最高关卡
+            let targetLevel = startLevel;  // 默认第一关
+            const totalLevels = endLevel - startLevel + 1;
+            for (let i = totalLevels - 1; i >= 0; i--) {
+                if (unlockStates[i]) {
+                    targetLevel = startLevel + i;
+                    break;
+                }
+            }
+            // 如果找到了已解锁的关卡，进入下一关（如果下一关存在）
+            const nextLevel = targetLevel + 1;
+            if (nextLevel <= endLevel) {
+                targetLevel = nextLevel;
+            }
+            console.log(`[GameUI] 进入最新关卡: ${targetLevel}`);
+            // 开始指定关卡的拼图
+            this.puzzleManager.startLevel(targetLevel);
+        } else {
+            console.error('[GameUI] LevelUnlockUI 或 PuzzleManager 未设置');
+        }
+    }
 
     /**
      * 初始化退出按钮
@@ -458,7 +500,6 @@ export class GameUI extends Component {
             this.puzzleManager.onPuzzleComplete = (level: number) => {
                 this.onPuzzleComplete(level);
             };
-            // this.puzzleManager.startPuzzle(spriteFrame);
         } else {
             console.error('无法获取拼图图片！请设置 puzzleImage');
         }

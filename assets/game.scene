@@ -29,7 +29,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 168
+      "__id__": 165
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -60,7 +60,7 @@
     },
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 169
+      "__id__": 166
     },
     "_id": "30c5af41-e954-47fe-a5b7-ce59a31408d8"
   },
@@ -265,24 +265,21 @@
       },
       {
         "__id__": 10
-      },
-      {
-        "__id__": 161
       }
     ],
     "_active": true,
     "_components": [
       {
+        "__id__": 161
+      },
+      {
+        "__id__": 162
+      },
+      {
+        "__id__": 163
+      },
+      {
         "__id__": 164
-      },
-      {
-        "__id__": 165
-      },
-      {
-        "__id__": 166
-      },
-      {
-        "__id__": 167
       }
     ],
     "_prefab": null,
@@ -2026,6 +2023,9 @@
     },
     "startGameBtn": {
       "__id__": 32
+    },
+    "levelLb": {
+      "__id__": 38
     },
     "backBtn": {
       "__id__": 42
@@ -5887,7 +5887,7 @@
         "__id__": 152
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 155
@@ -6278,115 +6278,6 @@
     "_id": "a5oKyl2lhIXJrV8+TIH+kt"
   },
   {
-    "__type__": "cc.Node",
-    "_name": "通关成功",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "_parent": {
-      "__id__": 7
-    },
-    "_children": [],
-    "_active": true,
-    "_components": [
-      {
-        "__id__": 162
-      },
-      {
-        "__id__": 163
-      }
-    ],
-    "_prefab": null,
-    "_lpos": {
-      "__type__": "cc.Vec3",
-      "x": -769.044,
-      "y": -13.412,
-      "z": 0
-    },
-    "_lrot": {
-      "__type__": "cc.Quat",
-      "x": 0,
-      "y": 0,
-      "z": 0,
-      "w": 1
-    },
-    "_lscale": {
-      "__type__": "cc.Vec3",
-      "x": 1,
-      "y": 1,
-      "z": 1
-    },
-    "_mobility": 0,
-    "_layer": 33554432,
-    "_euler": {
-      "__type__": "cc.Vec3",
-      "x": 0,
-      "y": 0,
-      "z": 0
-    },
-    "_id": "62ryUCq39JBKdl49lpRXIJ"
-  },
-  {
-    "__type__": "cc.UITransform",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 161
-    },
-    "_enabled": true,
-    "__prefab": null,
-    "_contentSize": {
-      "__type__": "cc.Size",
-      "width": 720,
-      "height": 1280
-    },
-    "_anchorPoint": {
-      "__type__": "cc.Vec2",
-      "x": 0.5,
-      "y": 0.5
-    },
-    "_id": "8fq0Mr0EpLd5wFDEpk9VY6"
-  },
-  {
-    "__type__": "cc.Sprite",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 161
-    },
-    "_enabled": true,
-    "__prefab": null,
-    "_customMaterial": null,
-    "_srcBlendFactor": 2,
-    "_dstBlendFactor": 4,
-    "_color": {
-      "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
-      "a": 255
-    },
-    "_spriteFrame": {
-      "__uuid__": "f85259cf-bad8-4497-978d-d7c062c1e0e1@f9941",
-      "__expectedType__": "cc.SpriteFrame"
-    },
-    "_type": 0,
-    "_fillType": 0,
-    "_sizeMode": 1,
-    "_fillCenter": {
-      "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 0
-    },
-    "_fillStart": 0,
-    "_fillRange": 0,
-    "_isTrimmedMode": true,
-    "_useGrayscale": false,
-    "_atlas": null,
-    "_id": "99ZPYe+JVEdqsjpPzLGpzs"
-  },
-  {
     "__type__": "cc.UITransform",
     "_name": "",
     "_objFlags": 0,
@@ -6511,28 +6402,28 @@
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 170
+      "__id__": 167
     },
     "shadows": {
-      "__id__": 171
+      "__id__": 168
     },
     "_skybox": {
-      "__id__": 172
+      "__id__": 169
     },
     "fog": {
-      "__id__": 173
+      "__id__": 170
     },
     "octree": {
-      "__id__": 174
+      "__id__": 171
     },
     "skin": {
-      "__id__": 175
+      "__id__": 172
     },
     "lightProbeInfo": {
-      "__id__": 176
+      "__id__": 173
     },
     "postSettings": {
-      "__id__": 177
+      "__id__": 174
     },
     "bakedWithStationaryMainLight": false,
     "bakedWithHighpLightmap": false
