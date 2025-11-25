@@ -186,8 +186,9 @@ export class ChapterUI extends Component {
         const chapterItem = chapterNode.getComponent(ChapterItem);
         if (chapterItem) {
             const isUnlocked = this.chapterUnlockStates[index];
+            const isCompleted = this.isChapterCompleted(config.chapter);
             chapterItem.setSpriteFrame(config.unlockImage);
-            chapterItem.init(config.chapter, config.startLevel, config.endLevel,config.describe, isUnlocked);
+            chapterItem.init(config.chapter, config.startLevel, config.endLevel, config.describe, isUnlocked, isCompleted);
             // 设置点击回调
             chapterItem.onClick = (chapter: number) => {
                 this.onChapterClick(chapter, index);
@@ -279,6 +280,49 @@ export class ChapterUI extends Component {
             return false;
         }
         return this.chapterUnlockStates[index];
+    }
+
+    /**
+     * 检查章节是否已完成（全部关卡通关）
+     * @param chapter 章节编号（从1开始）
+     */
+    public isChapterCompleted(chapter: number): boolean {
+        // 检查该章节的所有关卡是否都已解锁
+        const chapterKey = `puzzle_unlock_states_chapter_${chapter}`;
+        const saved = sys.localStorage.getItem(chapterKey);
+        
+        if (!saved) {
+            return false;
+        }
+        
+        try {
+            const unlockStates = JSON.parse(saved);
+            // 检查所有关卡是否都已解锁
+            return unlockStates.every((state: boolean) => state === true);
+        } catch (e) {
+            console.error('[ChapterUI] 检查章节完成状态失败:', e);
+            return false;
+        }
+    }
+
+    /**
+     * 更新章节完成状态（当章节完成时调用）
+     * @param chapter 章节编号（从1开始）
+     */
+    public updateChapterCompleted(chapter: number): void {
+        const index = chapter - 1;
+        if (index < 0 || index >= this.chapterNodes.length) {
+            return;
+        }
+        
+        const chapterNode = this.chapterNodes[index];
+        if (chapterNode && chapterNode.isValid) {
+            const chapterItem = chapterNode.getComponent(ChapterItem);
+            if (chapterItem) {
+                const isCompleted = this.isChapterCompleted(chapter);
+                chapterItem.setCompleted(isCompleted);
+            }
+        }
     }
 
     /**

@@ -9,31 +9,28 @@ const { ccclass, property } = _decorator;
 export class ChapterItem extends Component {
     @property(Node)
     private chapterBg: Node = null;  // 章节背景节点
-    
+    @property(Node)
+    private passNode: Node = null;
     @property(Node)
     private unLockImage: Node = null;  
-    
     @property(Node)
     private lockImage: Node = null;  
-   
     @property(Label)
-    private chapterLvLabel: Label = null;  // 章节等级标签（如：第一章、第二章）
-    
+    private chapterLvLabel: Label = null; 
     @property(Label)
-    private describeLabel: Label = null;  // 描述标签（如：关卡 1-25）
+    private describeLabel: Label = null; 
 
-    // 章节信息
     private chapter: number = 0;  // 章节编号
-    private startLevel: number = 0;  // 起始关卡
-    private endLevel: number = 0;  // 结束关卡
-    private describe: string = '';  // 描述
-    private isUnlocked: boolean = false;  // 是否解锁
+    private startLevel: number = 0;  
+    private endLevel: number = 0; 
+    private describe: string = ''; 
+    private isUnlocked: boolean = false; 
+    private isCompleted: boolean = false;  // 是否已完成（全部关卡通关）
 
     // 点击回调
     public onClick: (chapter: number) => void = null;
 
     protected onLoad() {
-        // 绑定点击事件
         this.node.on(Node.EventType.TOUCH_END, this.onItemClick, this);
     }
 
@@ -44,13 +41,15 @@ export class ChapterItem extends Component {
      * @param endLevel 结束关卡（全局关卡编号）
      * @param describe 描述
      * @param isUnlocked 是否解锁
+     * @param isCompleted 是否已完成（全部关卡通关），默认false
      */
-    public init(chapter: number, startLevel: number, endLevel: number,describe:string, isUnlocked: boolean): void {
+    public init(chapter: number, startLevel: number, endLevel: number, describe: string, isUnlocked: boolean, isCompleted: boolean = false): void {
         this.chapter = chapter;
         this.startLevel = startLevel;
         this.endLevel = endLevel;
         this.describe = describe;
         this.isUnlocked = isUnlocked;
+        this.isCompleted = isCompleted;
         this.updateUI();
     }
     public setSpriteFrame(spriteFrame: SpriteFrame): void {
@@ -74,6 +73,11 @@ export class ChapterItem extends Component {
 
         this.unLockImage.active = false;
         this.lockImage.active = !this.isUnlocked;
+
+        // 更新通关节点显示状态（只有解锁且完成时才显示）
+        if (this.passNode) {
+            this.passNode.active = this.isUnlocked && this.isCompleted;
+        }
 
         // 设置按钮交互状态
         const button = this.node.getComponent(Button);
@@ -111,6 +115,25 @@ export class ChapterItem extends Component {
         }
         this.isUnlocked = isUnlocked;
         this.updateUI();
+    }
+
+    /**
+     * 设置完成状态（章节全部通关）
+     * @param isCompleted 是否已完成
+     */
+    public setCompleted(isCompleted: boolean): void {
+        if (this.isCompleted === isCompleted) {
+            return;
+        }
+        this.isCompleted = isCompleted;
+        this.updateUI();
+    }
+
+    /**
+     * 获取是否已完成
+     */
+    public getIsCompleted(): boolean {
+        return this.isCompleted;
     }
 
     /**

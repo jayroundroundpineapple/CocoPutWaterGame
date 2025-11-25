@@ -558,6 +558,11 @@ export class GameUI extends Component {
                 const currentChapter = this.levelUnlockUI.getChapter();
                 console.log(`[GameUI] 章节 ${currentChapter} 全部完成！`);
                 
+                // 更新章节完成状态
+                if (this.chapterUI) {
+                    this.chapterUI.updateChapterCompleted(currentChapter);
+                }
+            
                 // 解锁下一章节
                 if (this.chapterUI && currentChapter < 2) {
                     const nextChapter = currentChapter + 1;
