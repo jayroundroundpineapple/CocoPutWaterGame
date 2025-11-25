@@ -97,7 +97,7 @@ export class PuzzleManager extends Component {
                     console.log(`[PuzzleManager] 重试加载关卡配置 (${this.loadRetryCount}/${this.MAX_RETRY_COUNT})`);
                     this.scheduleOnce(() => {
                         this.loadLevelConfigs();
-                    }, 0.5);  // 延迟0.5秒后重试
+                    }, 0.5); 
                 } else {
                     console.error('[PuzzleManager] 加载关卡配置失败，已达到最大重试次数');
                     this.loadDefaultConfig();
@@ -110,9 +110,6 @@ export class PuzzleManager extends Component {
                 this.levelConfigs = data.levels;
                 this.loadRetryCount = 0;  // 重置重试计数
                 console.log('[PuzzleManager] 加载关卡配置成功，共', this.levelConfigs.length, '关');
-                
-                // 配置加载成功后，触发预加载完成回调（如果配置加载是预加载的一部分）
-                // 实际的图片预加载由 preloadAllImages 方法处理
             } else {
                 console.error('[PuzzleManager] 关卡配置格式错误');
                 // 如果格式错误，也尝试重试
@@ -132,8 +129,6 @@ export class PuzzleManager extends Component {
      * 加载默认配置（从JSON文件读取，如果多次重试都失败则使用空配置）
      */
     private loadDefaultConfig() {
-        // 最后一次尝试从JSON文件加载
-        console.log('[PuzzleManager] 尝试最后一次加载JSON配置...');
         resources.load('config/puzzle-levels', JsonAsset, (err, jsonAsset) => {
             if (err) {
                 console.error('[PuzzleManager] 最终加载失败，使用空配置:', err);
@@ -157,12 +152,10 @@ export class PuzzleManager extends Component {
      * 获取当前关卡配置
      */
     private getCurrentLevelConfig(): LevelConfig | null {
-        // 如果配置为空，尝试重新加载
         if (this.levelConfigs.length === 0) {
             console.warn('[PuzzleManager] 关卡配置为空，尝试重新加载...');
             this.loadRetryCount = 0;  // 重置重试计数
             this.loadLevelConfigs();
-            // 等待加载完成（这里返回null，调用方需要处理）
             return null;
         }
 
@@ -184,18 +177,12 @@ export class PuzzleManager extends Component {
         const width = uiTransform.width;
         const height = uiTransform.height;
 
-        // 计算每个单元格的尺寸
         const cellWidth = width / cols;
         const cellHeight = height / rows;
 
         // 清空位置数组
         this.positions = [];
 
-        // 计算所有位置
-        // 索引布局（从左到右，从上到下）：
-        // 0  1  2  ... (cols-1)
-        // cols  cols+1  ... (2*cols-1)
-        // ...
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
                 // 计算中心点位置（相对于容器中心）
@@ -497,23 +484,18 @@ export class PuzzleManager extends Component {
      */
     private handlePuzzleComplete() {
         console.log(`拼图完成！关卡 ${this.currentLevel}`);
-
-        // 播放完成动画
-        this.playCompleteAnimation();
-        
-        // 调用外部回调（通知UI显示成功弹窗，不再直接进入下一关）
+        // 播放完成动画  先注释调 弹成功UI弹窗
+        // this.playCompleteAnimation();
         if (this.onPuzzleComplete) {
             this.onPuzzleComplete(this.currentLevel);
         }
     }
-    
     /**
      * 获取当前关卡的图片（用于成功弹窗显示）
      */
     public getCurrentLevelImage(): SpriteFrame | null {
         return this.currentImage || null;
     }
-    
     /**
      * 进入下一关（由外部调用，例如成功弹窗的按钮点击后）
      */
@@ -525,9 +507,6 @@ export class PuzzleManager extends Component {
             // 可以显示完成界面或重新开始
             return;
         }
-
-        console.log(`[PuzzleManager] 进入第 ${this.currentLevel} 关: ${nextConfig.rows}x${nextConfig.cols}`);
-        console.log('[PuzzleManager] 尝试加载图片:', nextConfig.imagePath);
         resources.load(nextConfig.imagePath, SpriteFrame, (err, spriteFrame) => {
             if (err) {
                 console.error('加载图片失败:', err);

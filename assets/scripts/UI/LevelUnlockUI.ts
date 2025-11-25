@@ -219,69 +219,77 @@ export class LevelUnlockUI extends Component {
                     this.onCardItemClick(levelNum);
                 };
             }
-            // 已解锁的关卡隐藏卡牌，未解锁的关卡显示卡牌
+            // 已解锁的关卡直接显示最终状态（pieceNode显示，cardNode隐藏）
+            // 未解锁的关卡显示卡牌，隐藏pieceNode
             if (isUnlocked) {
-                // 已解锁的关卡：卡牌先显示（等待播放翻牌动画），pieceNode先隐藏
-                cardNode.active = true;
-                pieceNode.active = false;
+                // 已解锁的关卡：直接显示最终状态
+                cardNode.active = false;
+                pieceNode.active = true;
             } else {
+                // 未解锁的关卡：显示卡牌，隐藏pieceNode
                 cardNode.active = true;
-                // 未解锁的关卡隐藏pieceNode（初始状态）
                 pieceNode.active = false;
             }
         }
     }
     
     /**
-     * 播放已解锁关卡的解锁动画
-     * 用于从成功弹窗返回时，重新播放解锁动画
-     */
-    public playUnlockAnimationsForCompletedLevels(): void {
-        console.log('[LevelUnlockUI] 播放已解锁关卡的解锁动画');
-        
-        for (let i = 0; i < this.totalLevels; i++) {
-            if (this.unlockStates[i]) {
-                const globalLevel = this.startLevel + i;
-                // 重新播放解锁动画
-                this.playUnlockAnimationForLevel(globalLevel);
-            }
-        }
-    }
-    
-    /**
-     * 为指定关卡播放解锁动画
+     * 播放指定关卡的解锁动画
+     * 用于从成功弹窗返回时，只播放刚刚通关的关卡动画
      * @param level 关卡编号（全局关卡编号）
      */
-    private playUnlockAnimationForLevel(level: number): void {
+    public playUnlockAnimationForLevel(level: number): void {
         const index = level - this.startLevel;
         
         if (index < 0 || index >= this.totalLevels) {
+            console.warn(`[LevelUnlockUI] 关卡编号无效: ${level} (章节 ${this.chapter} 的范围是 ${this.startLevel}-${this.endLevel})`);
             return;
         }
         
-        // 显示pieceNode并播放动画
-        const pieceNode = this.pieceNodes[index];
-        if (pieceNode && pieceNode.isValid) {
-            pieceNode.active = true;
-            pieceNode.setScale(0, 0, 1);
-            tween(pieceNode)
-                .to(0.3, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' })
-                .start();
+        // 检查关卡是否已解锁
+        if (!this.unlockStates[index]) {
+            console.warn(`[LevelUnlockUI] 关卡 ${level} 未解锁，无法播放动画`);
+            return;
         }
         
-        // 隐藏cardNode并播放动画
+        console.log(`[LevelUnlockUI] 播放关卡 ${level} 的解锁动画`);
+        
+        // 先设置初始状态：cardNode显示，pieceNode隐藏
         const cardNode = this.cardNodes[index];
+        const pieceNode = this.pieceNodes[index];
+        
         if (cardNode && cardNode.isValid) {
-            cardNode.active = true;  // 先显示，然后播放隐藏动画
+            cardNode.active = true;
             cardNode.scale = new Vec3(1, 1, 1);
-            tween(cardNode)
-                .to(0.3, { scale: new Vec3(0, 1, 1) }, { easing: 'sineIn' })
-                .call(() => {
-                    cardNode.active = false;
-                    cardNode.scale = new Vec3(1, 1, 1);
-                })
-                .start();
         }
+        
+        if (pieceNode && pieceNode.isValid) {
+            pieceNode.active = false;
+            pieceNode.setScale(0, 0, 1);
+        }
+        
+        // 延迟一下，然后播放动画
+        this.scheduleOnce(() => {
+            // 显示pieceNode并播放动画
+            if (pieceNode && pieceNode.isValid) {
+                pieceNode.active = true;
+                pieceNode.setScale(0, 1, 1);
+                tween(pieceNode).delay(0.1)
+                    .to(0.3, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' })
+                    .start();
+            }
+            
+            // 隐藏cardNode并播放翻牌动画
+            if (cardNode && cardNode.isValid) {
+                tween(cardNode)
+                    .to(0.3, { scale: new Vec3(0, 1, 1) }, { easing: 'sineIn' })
+                    .call(() => {
+                        cardNode.active = false;
+                        cardNode.scale = new Vec3(1, 1, 1);
+                    })
+                    .start();
+            }
+        }, 0.1);
     }
 
     /**
@@ -297,11 +305,9 @@ export class LevelUnlockUI extends Component {
     ): void {
         pieceNode.name = "piece"+index.toString();
         pieceNode.parent = this.container;
-        // 添加 UITransform
         const uiTransform = pieceNode.getComponent(UITransform);
         uiTransform.width = pieceWidth;
         uiTransform.height = pieceHeight;
-        // 设置位置
         const x = (col + 0.5) * pieceWidth - this.container.getComponent(UITransform).width / 2;
         const y = this.container.getComponent(UITransform).height / 2 - (row + 0.5) * pieceHeight;
         pieceNode.setPosition(x, y, 0);
@@ -341,10 +347,8 @@ export class LevelUnlockUI extends Component {
         const texture = originalFrame.texture;
         const width = texture.width;
         const height = texture.height;
-        
         // 翻转行索引（因为纹理坐标系Y轴从下往上）
         let currentRow = this.gridRows - row - 1;
-
         // 计算每个单元格的尺寸（基于纹理尺寸）
         const cellWidth = width / this.gridCols;
         const cellHeight = height / this.gridRows;

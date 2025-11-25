@@ -45,6 +45,9 @@ export class GameUI extends Component {
     private currentStartLevel: number = 1;
     private currentEndLevel: number = 25;
     
+    // 刚刚通关的关卡编号（用于播放解锁动画）
+    private justCompletedLevel: number = 0;
+    
     start() {
         this.puzzleGameUI.active = false;
         // 初始状态：显示章节界面，隐藏关卡解锁界面
@@ -227,13 +230,9 @@ export class GameUI extends Component {
      */
     private backToChapterWithUnlockAnimation(): void {
         console.log('[GameUI] 返回章节界面并显示解锁动画');
-        
-        // 隐藏关卡解锁UI（如果正在显示）
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
-        
-        // 显示章节界面
         if (this.chapterUI && this.chapterUI.node) {
             this.chapterUI.show();
         }
@@ -268,11 +267,11 @@ export class GameUI extends Component {
             this.levelUnlockUI.init(chapter, startLevel, endLevel, gridRows, gridCols);
             this.levelUnlockUI.node.active = true;
             
-            // 如果需要显示解锁动画，播放已解锁关卡的动画
-            if (showUnlockAnimation) {
+            if (showUnlockAnimation && this.justCompletedLevel > 0) {
                 this.scheduleOnce(() => {
-                    this.levelUnlockUI.playUnlockAnimationsForCompletedLevels();
-                }, 0.1);
+                    this.levelUnlockUI.playUnlockAnimationForLevel(this.justCompletedLevel);
+                    this.justCompletedLevel = 0;
+                }, 0.2);
             }
         }
     }
@@ -474,6 +473,9 @@ export class GameUI extends Component {
     private onPuzzleComplete(level: number) {
         console.log(`恭喜！完成第 ${level} 关拼图！`);
         
+        // 记录刚刚通关的关卡
+        this.justCompletedLevel = level;
+        
         // 解锁对应关卡（不播放动画，动画将在返回章节后播放）
         if (this.levelUnlockUI) {
             this.levelUnlockUI.unlockLevel(level, false);  // 不播放动画，只保存状态
@@ -496,6 +498,7 @@ export class GameUI extends Component {
         if (this.puzzleSuccessUI && this.puzzleManager) {
             const completedImage = this.puzzleManager.getCurrentLevelImage();
             if (completedImage) {
+                this.puzzleGameUI.active = false;
                 this.puzzleSuccessUI.show(completedImage);
             } else {
                 console.warn('[GameUI] 无法获取完成的拼图图片');
