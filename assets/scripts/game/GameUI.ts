@@ -144,6 +144,11 @@ export class GameUI extends Component {
                 console.log('[GameUI] 设置界面已关闭');
                 this.restoreSettingButton();
             };
+            // 设置返回首页回调
+            this.settingUI.onHome = () => {
+                console.log('[GameUI] 从设置界面返回首页');
+                this.backToHome();
+            };
         }
     }
 
@@ -207,6 +212,28 @@ export class GameUI extends Component {
      */
     private backToChapter(): void {
         console.log('[GameUI] 返回章节界面');
+        
+        // 隐藏关卡解锁UI
+        if (this.levelUnlockUI && this.levelUnlockUI.node) {
+            this.levelUnlockUI.node.active = false;
+        }
+        
+        // 显示章节界面
+        if (this.chapterUI && this.chapterUI.node) {
+            this.chapterUI.show();
+        }
+    }
+
+    /**
+     * 返回首页（从设置界面）
+     */
+    private backToHome(): void {
+        console.log('[GameUI] 返回首页');
+        
+        // 隐藏拼图游戏UI
+        if (this.puzzleGameUI) {
+            this.puzzleGameUI.active = false;
+        }
         
         // 隐藏关卡解锁UI
         if (this.levelUnlockUI && this.levelUnlockUI.node) {

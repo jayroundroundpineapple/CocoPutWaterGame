@@ -10,6 +10,8 @@ const { ccclass, property } = _decorator;
 @ccclass('SettingUI')
 export class SettingUI extends Component {
     @property(Node)
+    private homeBtn: Node = null;
+    @property(Node)
     private closeBtn: Node = null;  
     @property(Node)
     private soundBtn: Node = null; 
@@ -32,6 +34,9 @@ export class SettingUI extends Component {
     // 关闭回调
     public onClose: () => void = null;
     public clickBackgroundToClose: boolean = true;
+    
+    // 返回首页回调
+    public onHome: () => void = null;
 
     protected onLoad() {
         this.audioManager = AudioManager.getInstance();
@@ -48,6 +53,11 @@ export class SettingUI extends Component {
             this.closeBtn.on(Node.EventType.TOUCH_END, this.onCloseBtnClick, this);
         } else {
             console.warn('[SettingUI] 未设置关闭按钮');
+        }
+        if (this.homeBtn) {
+            this.homeBtn.on(Node.EventType.TOUCH_END, this.onHomeBtnClick, this);
+        } else {
+            console.warn('[SettingUI] 未设置首页按钮');
         }
         if (this.soundBtn) {
             this.soundBtn.on(Node.EventType.TOUCH_END, this.onSoundBtnClick, this);
@@ -66,7 +76,7 @@ export class SettingUI extends Component {
             return;
         }
         if (this.soundBtn) {
-            const sprite = this.soundBtn.getComponent(Sprite);
+            const sprite = this.soundBtn.children[0].getComponent(Sprite);
             if (sprite) {
                 sprite.spriteFrame = this.audioManager.isSoundEnabled() 
                     ? this.soundOnSprite 
@@ -74,7 +84,7 @@ export class SettingUI extends Component {
             }
         }
         if (this.bgmBtn) {
-            const sprite = this.bgmBtn.getComponent(Sprite);
+            const sprite = this.bgmBtn.children[0].getComponent(Sprite);
             if (sprite) {
                 sprite.spriteFrame = this.audioManager.isMusicEnabled() 
                     ? this.musicOnSprite 
@@ -189,13 +199,13 @@ export class SettingUI extends Component {
      * 隐藏设置界面
      * @param duration 动画时长（秒），默认 0.3
      */
-    public hide(duration: number = 0.3): void {
+    public hide(duration: number = 0.15): void {
         if (!this.isShowing) {
             console.warn('[SettingUI] 设置界面已经隐藏');
             return;
         }
         this.isShowing = false;
-        Utils.hidePopup(this.node, duration, 'backIn', () => {
+        Utils.hidePopup(this.node, duration, 'quadIn', () => {
             console.log('[SettingUI] 设置界面隐藏完成');
             // 通知外部设置界面已关闭
             if (this.onClose) {
@@ -208,7 +218,7 @@ export class SettingUI extends Component {
      * 切换显示/隐藏
      * @param duration 动画时长（秒），默认 0.3
      */
-    public toggle(duration: number = 0.3): void {
+    public toggle(duration: number = 0.2): void {
         if (this.isShowing) {
             this.hide(duration);
         } else {
@@ -228,6 +238,25 @@ export class SettingUI extends Component {
     }
 
     /**
+     * 首页按钮点击事件
+     */
+    private onHomeBtnClick(): void {
+        console.log('[SettingUI] 点击首页按钮');
+        // 播放点击音效
+        if (this.audioManager) {
+            this.audioManager.playClickSound();
+        }
+        // 先隐藏设置界面
+        this.hide();
+        // 触发返回首页回调
+        if (this.onHome) {
+            this.onHome();
+        } else {
+            console.warn('[SettingUI] 未设置返回首页回调');
+        }
+    }
+
+    /**
      * 获取是否正在显示
      */
     public getIsShowing(): boolean {
@@ -238,6 +267,9 @@ export class SettingUI extends Component {
         // 清理事件监听
         if (this.closeBtn) {
             this.closeBtn.off(Node.EventType.TOUCH_END, this.onCloseBtnClick, this);
+        }
+        if (this.homeBtn) {
+            this.homeBtn.off(Node.EventType.TOUCH_END, this.onHomeBtnClick, this);
         }
         if(this.soundBtn){
             this.soundBtn.off(Node.EventType.TOUCH_END, this.onSoundBtnClick, this);

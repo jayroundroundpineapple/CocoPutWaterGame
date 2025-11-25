@@ -65,14 +65,14 @@ export class ChapterItem extends Component {
     private updateUI(): void {
         // 更新章节等级标签
         if (this.chapterLvLabel) {
-            this.chapterLvLabel.string = `关卡 ${this.startLevel}-${this.endLevel}`;
+            this.chapterLvLabel.string = `${this.startLevel}-${this.endLevel}`;
         }
 
         if (this.describeLabel) {
             this.describeLabel.string = `${this.describe}`;
         }
 
-        this.unLockImage.active = this.isUnlocked;
+        this.unLockImage.active = false;
         this.lockImage.active = !this.isUnlocked;
 
         // 设置按钮交互状态

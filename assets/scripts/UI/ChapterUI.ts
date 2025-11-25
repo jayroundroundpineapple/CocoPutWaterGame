@@ -176,11 +176,12 @@ export class ChapterUI extends Component {
 
         // 设置大小和位置
         const uiTransform = chapterNode.getComponent(UITransform) || chapterNode.addComponent(UITransform);
-        uiTransform.width = width;
-        uiTransform.height = height;
-
-        const x = (index + 0.5) * width - this.container.getComponent(UITransform).width / 2;
-        const y = 0;
+        // uiTransform.width = width;
+        // uiTransform.height = height;
+        let xArr = [-180,180]
+        // const x = (index + 0.5) * width - this.container.getComponent(UITransform).width / 2;
+        const x = xArr[index];
+        const y =  -uiTransform.width / 2;
         chapterNode.setPosition(x, y, 0);
         const chapterItem = chapterNode.getComponent(ChapterItem);
         if (chapterItem) {
