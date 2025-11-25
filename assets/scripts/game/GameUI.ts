@@ -5,6 +5,7 @@ import { PuzzleManager } from './PuzzleManager';
 import { SettingUI } from '../UI/SettingUI';
 import { LevelUnlockUI } from '../UI/LevelUnlockUI';
 import { ChapterUI } from '../UI/ChapterUI';
+import { PuzzleSuccessUI } from '../UI/PuzzleSuccessUI';
 import { AudioManager } from '../utils/AudioManager';
 const { ccclass, property } = _decorator;
 
@@ -24,6 +25,8 @@ export class GameUI extends Component {
     private chapterUI: ChapterUI = null;  // 章节选择UI
     @property(LevelUnlockUI)
     private levelUnlockUI: LevelUnlockUI = null;  // 关卡解锁UI
+    @property(PuzzleSuccessUI)
+    private puzzleSuccessUI: PuzzleSuccessUI = null;  // 拼图成功弹窗UI
     @property(Node)
     private puzzleGameUI: Node = null;  // 拼图游戏UI
     @property(Node)
@@ -49,6 +52,7 @@ export class GameUI extends Component {
         this.initSettingUI();
         this.initChapterUI();
         this.initLevelUnlockUI();
+        this.initPuzzleSuccessUI();
         this.initExitButton();
         this.initAudio();
         this.initPreload();
@@ -183,6 +187,37 @@ export class GameUI extends Component {
             this.levelUnlockUI.onBackToChapter = () => {
                 this.backToChapter();
             };
+        }
+    }
+    
+    /**
+     * 初始化拼图成功弹窗UI
+     */
+    private initPuzzleSuccessUI() {
+        if (this.puzzleSuccessUI) {
+            // 设置下一关回调
+            this.puzzleSuccessUI.onNextLevel = () => {
+                this.onNextLevelClick();
+            };
+        }
+    }
+    
+    /**
+     * 下一关按钮点击处理
+     */
+    private onNextLevelClick(): void {
+        console.log('[GameUI] 点击下一关按钮');
+        
+        // 检查是否还有下一关
+        if (this.puzzleManager) {
+            if (this.puzzleManager.hasNextLevel()) {
+                // 有下一关，进入下一关
+                this.puzzleManager.nextLevel();
+            } else {
+                // 没有下一关，返回关卡解锁界面
+                console.log('[GameUI] 所有关卡完成，返回关卡解锁界面');
+                this.backToLevelUnlock();
+            }
         }
     }
     
@@ -421,8 +456,20 @@ export class GameUI extends Component {
                 }
             }
         }
-        // 可以选择返回关卡解锁界面，或者继续下一关
-        // this.backToLevelUnlock();
+        
+        // 显示成功弹窗（显示完成的拼图图片）
+        if (this.puzzleSuccessUI && this.puzzleManager) {
+            const completedImage = this.puzzleManager.getCurrentLevelImage();
+            if (completedImage) {
+                this.puzzleSuccessUI.show(completedImage);
+            } else {
+                console.warn('[GameUI] 无法获取完成的拼图图片');
+                // 即使没有图片也显示弹窗
+                this.puzzleSuccessUI.show(null);
+            }
+        } else {
+            console.warn('[GameUI] PuzzleSuccessUI 或 PuzzleManager 未设置');
+        }
     }
 
     onInitButtonClick() {

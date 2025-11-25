@@ -50,6 +50,21 @@ export class PuzzleManager extends Component {
     
     // 预加载完成回调
     public onPreloadComplete: () => void = null;
+    
+    /**
+     * 获取当前关卡编号
+     */
+    public getCurrentLevel(): number {
+        return this.currentLevel;
+    }
+    
+    /**
+     * 检查是否有下一关
+     */
+    public hasNextLevel(): boolean {
+        const nextConfig = this.levelConfigs.find(c => c.level === this.currentLevel + 1);
+        return nextConfig !== undefined;
+    }
 
     protected onLoad() {
         this.loadLevelConfigs();
@@ -483,31 +498,26 @@ export class PuzzleManager extends Component {
     private handlePuzzleComplete() {
         console.log(`拼图完成！关卡 ${this.currentLevel}`);
 
-        // 调用外部回调
+        // 播放完成动画
+        this.playCompleteAnimation();
+        
+        // 调用外部回调（通知UI显示成功弹窗，不再直接进入下一关）
         if (this.onPuzzleComplete) {
             this.onPuzzleComplete(this.currentLevel);
         }
-
-        // 播放完成动画
-        this.playCompleteAnimation();
-        this.scheduleOnce(() => {
-            this.nextLevel();
-        }, 1);
     }
-
+    
     /**
-     * 播放完成动画
+     * 获取当前关卡的图片（用于成功弹窗显示）
      */
-    private playCompleteAnimation() {
-        for (const piece of this.pieces) {
-            piece.node.setScale(1.1, 1.1, 1);
-            this.scheduleOnce(() => {
-                piece.node.setScale(1, 1, 1);
-            }, 0.2);
-        }
+    public getCurrentLevelImage(): SpriteFrame | null {
+        return this.currentImage || null;
     }
-
-    private nextLevel() {
+    
+    /**
+     * 进入下一关（由外部调用，例如成功弹窗的按钮点击后）
+     */
+    public nextLevel(): void {
         this.currentLevel++;
         const nextConfig = this.levelConfigs.find(c => c.level === this.currentLevel);
         if (!nextConfig) {
@@ -529,6 +539,19 @@ export class PuzzleManager extends Component {
             this.startPuzzle(spriteFrame);
         });
     }
+
+    /**
+     * 播放完成动画
+     */
+    private playCompleteAnimation() {
+        for (const piece of this.pieces) {
+            piece.node.setScale(1.1, 1.1, 1);
+            this.scheduleOnce(() => {
+                piece.node.setScale(1, 1, 1);
+            }, 0.2);
+        }
+    }
+
 
     /**
      * 清除所有拼图块

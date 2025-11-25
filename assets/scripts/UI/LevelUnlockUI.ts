@@ -221,9 +221,13 @@ export class LevelUnlockUI extends Component {
             }
             // 已解锁的关卡隐藏卡牌，未解锁的关卡显示卡牌
             if (isUnlocked) {
-                cardNode.active = false; 
+                cardNode.active = false;
+                // 已解锁的关卡显示对应的pieceNode
+                pieceNode.active = true;
             } else {
-                cardNode.active = true; 
+                cardNode.active = true;
+                // 未解锁的关卡隐藏pieceNode（初始状态）
+                pieceNode.active = false;
             }
         }
     }
@@ -249,6 +253,7 @@ export class LevelUnlockUI extends Component {
         const x = (col + 0.5) * pieceWidth - this.container.getComponent(UITransform).width / 2;
         const y = this.container.getComponent(UITransform).height / 2 - (row + 0.5) * pieceHeight;
         pieceNode.setPosition(x, y, 0);
+        pieceNode.active = false;
         const sprite = pieceNode.getComponent(Sprite);
         const croppedFrame = this.createCroppedSpriteFrame(
             this.backgroundImage,
@@ -379,6 +384,21 @@ export class LevelUnlockUI extends Component {
         // 更新解锁状态
         this.unlockStates[index] = true;
         this.saveUnlockStates();
+        
+        // 显示对应的pieceNode（显示解锁的图片小块）
+        const pieceNode = this.pieceNodes[index];
+        if (pieceNode && pieceNode.isValid) {
+            if (withAnimation) {
+                pieceNode.active = true;
+                pieceNode.setScale(0, 0, 1);
+                tween(pieceNode)
+                    .to(0.3, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' })
+                    .start();
+            } else {
+                pieceNode.active = true;
+            }
+        }
+        
         // 更新 CardItem 组件的解锁状态
         const cardNode = this.cardNodes[index];
         if (cardNode && cardNode.isValid) {
