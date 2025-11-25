@@ -279,40 +279,30 @@ export class LevelUnlockUI extends Component {
             const localLevel = i + 1;  // 章节内的关卡编号（从1开始）
             const globalLevel = this.startLevel + i;  // 全局关卡编号
             const isUnlocked = this.unlockStates[i];
-            
             // 计算是否可以玩：章节内第一关默认可以玩，或者上一关已解锁
             let canPlay = false;
             if (localLevel === 1) {
                 // 如果是第一章的第一关，或者上一章节已完成
                 if (this.chapter === 1) {
-                    canPlay = true;  // 第一章第一关默认可以玩
+                    canPlay = true; 
                 } else {
-                    // 检查上一章节是否全部完成
                     canPlay = this.isPreviousChapterCompleted();
                 }
             } else {
-                // 上一关已解锁，当前关就可以玩
                 const prevLevelIndex = localLevel - 2;  // 上一关的索引
                 canPlay = prevLevelIndex >= 0 && this.unlockStates[prevLevelIndex] === true;
             }
-            
-            // 初始化 CardItem 组件
             const cardItem = cardNode.getComponent(CardItem);
             if (cardItem) {
                 cardItem.init(globalLevel, isUnlocked, canPlay);  // 使用全局关卡编号
-                // 设置点击回调
                 cardItem.onClick = (levelNum: number) => {
                     this.onCardItemClick(levelNum);
                 };
             }
-            // 已解锁的关卡直接显示最终状态（pieceNode显示，cardNode隐藏）
-            // 未解锁的关卡显示卡牌，隐藏pieceNode
             if (isUnlocked) {
-                // 已解锁的关卡：直接显示最终状态
                 cardNode.active = false;
                 pieceNode.active = true;
             } else {
-                // 未解锁的关卡：显示卡牌，隐藏pieceNode
                 cardNode.active = true;
                 pieceNode.active = false;
             }
@@ -358,8 +348,8 @@ export class LevelUnlockUI extends Component {
         this.scheduleOnce(() => {
             // 显示pieceNode并播放动画
             if (pieceNode && pieceNode.isValid) {
-                pieceNode.active = true;
                 pieceNode.setScale(0, 1, 1);
+                pieceNode.active = true;
                 tween(pieceNode).delay(0.1)
                     .to(0.3, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' })
                     .start();
