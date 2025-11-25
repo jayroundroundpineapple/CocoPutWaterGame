@@ -239,9 +239,9 @@ export class GameUI extends Component {
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
-        if (this.chapterUI && this.chapterUI.node) {
-            this.chapterUI.show();
-        }
+        // if (this.chapterUI && this.chapterUI.node) {
+        //     this.chapterUI.show();
+        // }
         
         // 延迟一下，然后自动进入当前章节并显示解锁动画
         this.scheduleOnce(() => {

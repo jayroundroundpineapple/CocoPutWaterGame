@@ -11,11 +11,11 @@ export class ChapterItem extends Component {
     private chapterBg: Node = null;  // 章节背景节点
     
     @property(Node)
-    private unLockImage: Node = null;  // 解锁状态图片
+    private unLockImage: Node = null;  
     
     @property(Node)
-    private lockImage: Node = null;  // 锁定状态图片
-    
+    private lockImage: Node = null;  
+   
     @property(Label)
     private chapterLvLabel: Label = null;  // 章节等级标签（如：第一章、第二章）
     
@@ -93,9 +93,9 @@ export class ChapterItem extends Component {
                     color.b = 255;
                 } else {
                     // 锁定状态：变暗
-                    color.r = 100;
-                    color.g = 100;
-                    color.b = 100;
+                    color.r = 10;
+                    color.g = 10;
+                    color.b = 10;
                 }
                 sprite.color = color;
             }
