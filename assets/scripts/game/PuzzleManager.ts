@@ -233,7 +233,6 @@ export class PuzzleManager extends Component {
             console.warn('[PuzzleManager] 关卡配置为空，尝试重新加载...');
             this.loadRetryCount = 0;  // 重置重试计数
             this.loadLevelConfigs();
-            
             // 延迟执行，等待配置加载完成
             this.scheduleOnce(() => {
                 this.tryStartLevel(level);
