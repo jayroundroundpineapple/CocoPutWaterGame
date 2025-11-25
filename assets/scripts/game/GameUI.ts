@@ -12,9 +12,9 @@ const { ccclass, property } = _decorator;
 @ccclass('GameUI')
 export class GameUI extends Component {
     @property(Node)
-    private initButton: Node = null;
+    private testBtn: Node = null;
     @property(Node)
-    private showrewardBtn: Node = null;
+    private initButton: Node = null;
     @property(Node)
     private settingBtn: Node = null;
     @property(SettingUI)
@@ -35,7 +35,6 @@ export class GameUI extends Component {
     private puzzleImage: SpriteFrame = null;  // 拼图图片
     
     
-    
     private bgmNode:Node = null; // 背景音乐节点
     private sfxNode:Node = null; // 音效节点
     private audioManager: AudioManager = null;
@@ -44,7 +43,6 @@ export class GameUI extends Component {
     private currentChapter: number = 1;
     private currentStartLevel: number = 1;
     private currentEndLevel: number = 25;
-    
     // 刚刚通关的关卡编号（用于播放解锁动画）
     private justCompletedLevel: number = 0;
     
@@ -56,7 +54,7 @@ export class GameUI extends Component {
             this.levelUnlockUI.node.active = false;
         }
         this.initButton.on(Node.EventType.TOUCH_END, this.onInitButtonClick, this);
-        this.showrewardBtn.on(Node.EventType.TOUCH_END, this.onShowRewardButtonClick, this);
+        this.initTestButton();
         this.initPuzzle();
         this.initSettingUI();
         this.initChapterUI();
@@ -81,9 +79,78 @@ export class GameUI extends Component {
             this.startPreload();
         }, 0.5);
     }
-    quickUnlockBeforeLevel(level:number){
+    /**
+     * 初始化测试按钮
+     */
+    private initTestButton(): void {
+        if (this.testBtn) {
+            this.testBtn.on(Node.EventType.TOUCH_END, this.onTestButtonClick, this);
+        } else {
+            console.warn('[GameUI] 未设置测试按钮');
+        }
+    }
+    
+    /**
+     * 测试按钮点击事件
+     * 弹出输入框，输入关卡编号后快速解锁并跳转
+     */
+    private onTestButtonClick(): void {
+        const input = prompt('请输入要跳转的关卡编号（1-50）：');
+        
+        if (input === null) {
+            return;
+        }
+        const level = parseInt(input, 10);
+        if (isNaN(level) || level < 1) {
+            alert('请输入有效的关卡编号（大于0的数字）');
+            return;
+        }
+        
+        console.log(`[GameUI] 快速解锁并跳转到关卡 ${level}`);
+        this.quickUnlockAndJumpToLevel(level);
+    }
+    
+    /**
+     * 快速解锁到指定关卡之前的所有关卡，并跳转到该关卡
+     * @param level 目标关卡编号（全局关卡编号）
+     */
+    public quickUnlockAndJumpToLevel(level: number): void {
+        console.log(`[GameUI] 快速解锁并跳转到关卡 ${level}`);
+        
+        // 1. 先解锁到该关卡之前的所有关卡
         if (this.levelUnlockUI) {
-            this.levelUnlockUI.quickUnlockBeforeLevel(level, true);
+            // 解锁到该关卡之前的所有关卡（不包括该关卡本身）
+            this.levelUnlockUI.quickUnlockBeforeLevel(level, false);
+        }
+        
+        // 2. 确定目标关卡所在的章节
+        let targetChapter = 1;
+        let targetStartLevel = 1;
+        let targetEndLevel = 25;
+        
+        if (level >= 1 && level <= 25) {
+            targetChapter = 1;
+            targetStartLevel = 1;
+            targetEndLevel = 25;
+        } else if (level >= 26 && level <= 50) {
+            targetChapter = 2;
+            targetStartLevel = 26;
+            targetEndLevel = 50;
+        }
+        // 3. 如果不在当前章节，先进入目标章节
+        if (this.currentChapter !== targetChapter) {
+            console.log(`[GameUI] 切换到章节 ${targetChapter}`);
+            this.enterChapter(targetChapter, targetStartLevel, targetEndLevel, false);
+        }
+    }
+    
+    /**
+     * 快速解锁到指定关卡之前的所有关卡（测试用）
+     * @param level 关卡编号（全局关卡编号）
+     */
+    public quickUnlockBeforeLevel(level: number): void {
+        if (this.levelUnlockUI) {
+            this.levelUnlockUI.quickUnlockBeforeLevel(level, false);
         }
     }
     
@@ -547,8 +614,9 @@ export class GameUI extends Component {
         if (this.initButton) {
             this.initButton.off(Node.EventType.TOUCH_END, this.onInitButtonClick, this);
         }
-        if (this.showrewardBtn) {
-            this.showrewardBtn.off(Node.EventType.TOUCH_END, this.onShowRewardButtonClick, this);
+       
+        if (this.testBtn) {
+            this.testBtn.off(Node.EventType.TOUCH_END, this.onTestButtonClick, this);
         }
     }
 }
