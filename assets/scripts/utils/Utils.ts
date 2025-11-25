@@ -81,4 +81,13 @@ export class Utils {
             this.hidePopup(node, duration);
         }
     }
+    public static setScale(node: Node, scale: number,duration:number = 0.07,cb:Function=null): void {
+        tween(node)
+            .to(duration, { scale: new Vec3(scale, scale, 1) })
+            .to(duration, { scale: new Vec3(1, 1, 1) })
+            .call(() => {
+                cb && cb();
+            })
+            .start();
+    }
 }

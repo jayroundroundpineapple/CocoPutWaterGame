@@ -1,5 +1,6 @@
-import { _decorator, Component, Node, SpriteFrame, Sprite, UITransform, Rect, resources, Prefab, instantiate, tween, Vec3, sys } from 'cc';
+import { _decorator, Component, Node, SpriteFrame, Sprite, UITransform, Rect, resources, Prefab, instantiate, tween, Vec3, sys, utils } from 'cc';
 import { CardItem } from './CardItem';
+import { Utils } from '../utils/Utils';
 const { ccclass, property } = _decorator;
 
 /**
@@ -108,10 +109,11 @@ export class LevelUnlockUI extends Component {
      */
     private onStartGameBtnClick(): void {
         console.log('[LevelUnlockUI] 点击开始游戏按钮');
-        
         // 通知外部开始游戏
         if (this.onStartGame) {
+        Utils.setScale(this.startGameBtn, 0.95, 0.1, () => {
             this.onStartGame();
+        })
         } else {
             console.warn('[LevelUnlockUI] 未设置 onStartGame 回调');
         }
