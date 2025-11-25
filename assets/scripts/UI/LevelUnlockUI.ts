@@ -221,14 +221,66 @@ export class LevelUnlockUI extends Component {
             }
             // 已解锁的关卡隐藏卡牌，未解锁的关卡显示卡牌
             if (isUnlocked) {
-                cardNode.active = false;
-                // 已解锁的关卡显示对应的pieceNode
-                pieceNode.active = true;
+                // 已解锁的关卡：卡牌先显示（等待播放翻牌动画），pieceNode先隐藏
+                cardNode.active = true;
+                pieceNode.active = false;
             } else {
                 cardNode.active = true;
                 // 未解锁的关卡隐藏pieceNode（初始状态）
                 pieceNode.active = false;
             }
+        }
+    }
+    
+    /**
+     * 播放已解锁关卡的解锁动画
+     * 用于从成功弹窗返回时，重新播放解锁动画
+     */
+    public playUnlockAnimationsForCompletedLevels(): void {
+        console.log('[LevelUnlockUI] 播放已解锁关卡的解锁动画');
+        
+        for (let i = 0; i < this.totalLevels; i++) {
+            if (this.unlockStates[i]) {
+                const globalLevel = this.startLevel + i;
+                // 重新播放解锁动画
+                this.playUnlockAnimationForLevel(globalLevel);
+            }
+        }
+    }
+    
+    /**
+     * 为指定关卡播放解锁动画
+     * @param level 关卡编号（全局关卡编号）
+     */
+    private playUnlockAnimationForLevel(level: number): void {
+        const index = level - this.startLevel;
+        
+        if (index < 0 || index >= this.totalLevels) {
+            return;
+        }
+        
+        // 显示pieceNode并播放动画
+        const pieceNode = this.pieceNodes[index];
+        if (pieceNode && pieceNode.isValid) {
+            pieceNode.active = true;
+            pieceNode.setScale(0, 0, 1);
+            tween(pieceNode)
+                .to(0.3, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' })
+                .start();
+        }
+        
+        // 隐藏cardNode并播放动画
+        const cardNode = this.cardNodes[index];
+        if (cardNode && cardNode.isValid) {
+            cardNode.active = true;  // 先显示，然后播放隐藏动画
+            cardNode.scale = new Vec3(1, 1, 1);
+            tween(cardNode)
+                .to(0.3, { scale: new Vec3(0, 1, 1) }, { easing: 'sineIn' })
+                .call(() => {
+                    cardNode.active = false;
+                    cardNode.scale = new Vec3(1, 1, 1);
+                })
+                .start();
         }
     }
 

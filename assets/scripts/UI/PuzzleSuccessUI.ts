@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, EventTouch } from 'cc';
+import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, EventTouch, view, Color } from 'cc';
 import { Utils } from '../utils/Utils';
 import { AudioManager } from '../utils/AudioManager';
 const { ccclass, property } = _decorator;
