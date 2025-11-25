@@ -258,7 +258,6 @@ export class ChapterUI extends Component {
                     chapterNode.getComponent(Sprite).color = color;
                 }
             }
-
             // 播放解锁动画
             tween(chapterNode)
                 .to(0.2, { scale: new Vec3(1.1, 1.1, 1) })

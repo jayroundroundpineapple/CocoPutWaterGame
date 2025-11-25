@@ -341,7 +341,7 @@ export class LevelUnlockUI extends Component {
         
         if (pieceNode && pieceNode.isValid) {
             pieceNode.active = false;
-            pieceNode.setScale(0, 0, 1);
+            pieceNode.setScale(0, 1, 1);
         }
         
         // 延迟一下，然后播放动画
@@ -351,14 +351,14 @@ export class LevelUnlockUI extends Component {
                 pieceNode.setScale(0, 1, 1);
                 pieceNode.active = true;
                 tween(pieceNode).delay(0.1)
-                    .to(0.3, { scale: new Vec3(1, 1, 1) }, { easing: 'backOut' })
+                    .to(0.5, { scale: new Vec3(1, 1, 1) })
                     .start();
             }
             
             // 隐藏cardNode并播放翻牌动画
             if (cardNode && cardNode.isValid) {
                 tween(cardNode)
-                    .to(0.3, { scale: new Vec3(0, 1, 1) }, { easing: 'sineIn' })
+                    .to(0.3, { scale: new Vec3(0, 1, 1) })
                     .call(() => {
                         cardNode.active = false;
                         cardNode.scale = new Vec3(1, 1, 1);
