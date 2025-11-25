@@ -1,4 +1,6 @@
 import { _decorator, Component, Node, Label, Sprite, Button, EventTouch, Color } from 'cc';
+import { AudioManager } from '../utils/AudioManager';
+import { Utils } from '../utils/Utils';
 const { ccclass, property } = _decorator;
 
 /**
@@ -90,19 +92,18 @@ export class CardItem extends Component {
      * 卡牌点击事件
      */
     private onCardClick(event: EventTouch): void {
-        if (!this.canPlay) {
-            console.log(`[CardItem] 关卡 ${this.levelNumber} 未解锁，无法进入`);
-            return;
-        }
-
-        console.log(`[CardItem] 点击关卡 ${this.levelNumber}，进入游戏`);
-        
-        // 触发回调
-        if (this.onClick) {
-            this.onClick(this.levelNumber);
-        } else {
-            console.warn(`[CardItem] 关卡 ${this.levelNumber} 未设置 onClick 回调`);
-        }
+        AudioManager.getInstance().playClickSound();
+        Utils.setScale(this.node, 0.95, 0.1, () => {
+            if (!this.canPlay) {
+                console.log(`[CardItem] 关卡 ${this.levelNumber} 未解锁，无法进入`);
+                return;
+            }
+            if (this.onClick) {
+                this.onClick(this.levelNumber);
+            } else {
+                console.warn(`[CardItem] 关卡 ${this.levelNumber} 未设置 onClick 回调`);
+            }
+        });
     }
 
     /**

@@ -7,6 +7,7 @@ import { LevelUnlockUI } from '../UI/LevelUnlockUI';
 import { ChapterUI } from '../UI/ChapterUI';
 import { PuzzleSuccessUI } from '../UI/PuzzleSuccessUI';
 import { AudioManager } from '../utils/AudioManager';
+import { Utils } from '../utils/Utils';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameUI')
@@ -234,6 +235,24 @@ export class GameUI extends Component {
                 console.log('[GameUI] 从设置界面返回首页');
                 this.backToHome();
             };
+            // 设置重置关卡回调
+            this.settingUI.onReloadLevel = () => {
+                console.log('[GameUI] 重置当前关卡');
+                this.reloadCurrentLevel();
+                this.closeSetting();
+            };
+        }
+    }
+    
+    /**
+     * 重置当前关卡
+     */
+    private reloadCurrentLevel(): void {
+        if (this.puzzleManager) {
+            this.puzzleManager.restartLevel();
+            console.log('[GameUI] 关卡已重置');
+        } else {
+            console.error('[GameUI] PuzzleManager 未设置，无法重置关卡');
         }
     }
 
@@ -511,7 +530,12 @@ export class GameUI extends Component {
                 this.audioManager.playClickSound();
             }
             
-            this.settingUI.show();
+            // 检查是否在游戏中（puzzleGameUI 是否激活）
+            const isInGame = this.puzzleGameUI && this.puzzleGameUI.active;
+            
+            // 显示设置界面，传递是否在游戏中的状态
+            this.settingUI.show(0.3, isInGame);
+            
             // 禁用设置按钮，防止重复打开
             if (this.settingBtn) {
                 const button = this.settingBtn.getComponent(Button);
@@ -563,12 +587,10 @@ export class GameUI extends Component {
      * 退出游戏按钮点击事件
      */
     private onExitGameBtnClick(): void {
-        console.log('[GameUI] 点击退出游戏按钮');
-        // 播放点击音效
-        if (this.audioManager) {
-            this.audioManager.playClickSound();
-        }
-        this.backToLevelUnlock();
+        AudioManager.getInstance().playClickSound();
+        Utils.setScale(this.exitGameBtn, 0.95, 0.1, () => {
+            this.backToLevelUnlock();
+        });
     }
 
     /**

@@ -1,4 +1,6 @@
 import { _decorator, Component, Label, Node, Button, Sprite, SpriteFrame } from 'cc';
+import { Utils } from '../utils/Utils';
+import { AudioManager } from '../utils/AudioManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -140,19 +142,19 @@ export class ChapterItem extends Component {
      * 章节项点击事件
      */
     private onItemClick(): void {
-        if (!this.isUnlocked) {
-            console.log(`[ChapterItem] 章节 ${this.chapter} 未解锁，无法进入`);
-            return;
-        }
-
-        console.log(`[ChapterItem] 点击章节 ${this.chapter}，进入关卡 ${this.startLevel}-${this.endLevel}`);
-
-        // 触发回调
-        if (this.onClick) {
-            this.onClick(this.chapter);
-        } else {
-            console.warn(`[ChapterItem] 章节 ${this.chapter} 未设置 onClick 回调`);
-        }
+        AudioManager.getInstance().playClickSound();
+        Utils.setScale(this.node, 0.95, 0.1, () => {
+            if (!this.isUnlocked) {
+                console.log(`[ChapterItem] 章节 ${this.chapter} 未解锁，无法进入`);
+                return;
+            }
+            // 触发回调
+            if (this.onClick) {
+                this.onClick(this.chapter);
+            } else {
+                console.warn(`[ChapterItem] 章节 ${this.chapter} 未设置 onClick 回调`);
+            }
+        });
     }
 
     /**

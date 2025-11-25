@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, director, UITransform, Color, Sprite, SpriteFrame, view, EventTouch } from 'cc';
+import { _decorator, Component, Node, director, UITransform, Color, Sprite, SpriteFrame, view, EventTouch, Button, utils } from 'cc';
 import { Utils } from '../utils/Utils';
 import { AudioManager } from '../utils/AudioManager';
 const { ccclass, property } = _decorator;
@@ -10,33 +10,39 @@ const { ccclass, property } = _decorator;
 @ccclass('SettingUI')
 export class SettingUI extends Component {
     @property(Node)
+    private reloadBtn: Node = null;
+    @property(Node)
     private homeBtn: Node = null;
     @property(Node)
-    private closeBtn: Node = null;  
+    private closeBtn: Node = null;
     @property(Node)
-    private soundBtn: Node = null; 
+    private soundBtn: Node = null;
     @property(Node)
-    private bgmBtn: Node = null;  
+    private bgmBtn: Node = null;
     @property(SpriteFrame)
-    private soundOnSprite: SpriteFrame = null;  
+    private soundOnSprite: SpriteFrame = null;
     @property(SpriteFrame)
-    private soundOffSprite: SpriteFrame = null;  
+    private soundOffSprite: SpriteFrame = null;
     @property(SpriteFrame)
-    private musicOnSprite: SpriteFrame = null;  
+    private musicOnSprite: SpriteFrame = null;
     @property(SpriteFrame)
-    private musicOffSprite: SpriteFrame = null;  
+    private musicOffSprite: SpriteFrame = null;
     @property(Node)
     private backgroundMask: Node = null;  // 背景遮罩层
 
     private isShowing: boolean = false;
     private audioManager: AudioManager = null;
-    
     // 关闭回调
     public onClose: () => void = null;
     public clickBackgroundToClose: boolean = true;
-    
+
     // 返回首页回调
     public onHome: () => void = null;
+
+    // 重置关卡回调（仅在游戏中有效）
+    public onReloadLevel: () => void = null;
+
+    private isInGame: boolean = false;
 
     protected onLoad() {
         this.audioManager = AudioManager.getInstance();
@@ -47,7 +53,7 @@ export class SettingUI extends Component {
             this.setupBackgroundMask(this.backgroundMask);
         }
     }
-    
+
     protected start() {
         if (this.closeBtn) {
             this.closeBtn.on(Node.EventType.TOUCH_END, this.onCloseBtnClick, this);
@@ -65,9 +71,12 @@ export class SettingUI extends Component {
         if (this.bgmBtn) {
             this.bgmBtn.on(Node.EventType.TOUCH_END, this.onbgmBtnClick, this);
         }
+        if (this.reloadBtn) {
+            this.reloadBtn.on(Node.EventType.TOUCH_END, this.onReloadBtnClick, this);
+        }
         this.updateButtonStates();
     }
-    
+
     /**
      * 更新按钮状态（根据音频管理器）
      */
@@ -78,21 +87,21 @@ export class SettingUI extends Component {
         if (this.soundBtn) {
             const sprite = this.soundBtn.children[0].getComponent(Sprite);
             if (sprite) {
-                sprite.spriteFrame = this.audioManager.isSoundEnabled() 
-                    ? this.soundOnSprite 
+                sprite.spriteFrame = this.audioManager.isSoundEnabled()
+                    ? this.soundOnSprite
                     : this.soundOffSprite;
             }
         }
         if (this.bgmBtn) {
             const sprite = this.bgmBtn.children[0].getComponent(Sprite);
             if (sprite) {
-                sprite.spriteFrame = this.audioManager.isMusicEnabled() 
-                    ? this.musicOnSprite 
+                sprite.spriteFrame = this.audioManager.isMusicEnabled()
+                    ? this.musicOnSprite
                     : this.musicOffSprite;
             }
         }
     }
-    
+
     /**
      * 音效按钮点击事件
      */
@@ -104,13 +113,13 @@ export class SettingUI extends Component {
         const newState = !this.audioManager.isSoundEnabled();
         this.audioManager.setSoundEnabled(newState);
         if (this.soundBtn) {
-            const sprite = this.soundBtn.getComponent(Sprite);
+            const sprite = this.soundBtn.children[0].getComponent(Sprite);
             if (sprite) {
                 sprite.spriteFrame = newState ? this.soundOnSprite : this.soundOffSprite;
             }
         }
     }
-    
+
     /**
      * 音乐按钮点击事件
      */
@@ -125,11 +134,31 @@ export class SettingUI extends Component {
         this.audioManager.setMusicEnabled(newState);
         // 更新按钮图标
         if (this.bgmBtn) {
-            const sprite = this.bgmBtn.getComponent(Sprite);
+            const sprite = this.bgmBtn.children[0].getComponent(Sprite);
             if (sprite) {
                 sprite.spriteFrame = newState ? this.musicOnSprite : this.musicOffSprite;
             }
         }
+    }
+
+    /**
+     * 重置关卡按钮点击事件
+     */
+    private onReloadBtnClick(): void {
+        // 如果不在游戏中，不响应点击
+        if (!this.isInGame) {
+            console.log('[SettingUI] 不在游戏中，重置按钮无效');
+            return;
+        }
+        Utils.setScale(this.reloadBtn, 0.95, 0.1, () => {
+            // 触发重置关卡回调
+            if (this.onReloadLevel) {
+                this.onReloadLevel();
+            } else {
+                console.warn('[SettingUI] 未设置 onReloadLevel 回调');
+            }
+        })
+        this.audioManager.playClickSound();
     }
     /**
      * 创建背景遮罩层
@@ -140,22 +169,20 @@ export class SettingUI extends Component {
         maskNode.parent = this.node;
         // 设置为第一个子节点（在最底层）
         maskNode.setSiblingIndex(0);
-        // 添加 UITransform 组件，设置为全屏
         const uiTransform = maskNode.addComponent(UITransform);
         const visibleSize = view.getVisibleSize();
         uiTransform.width = visibleSize.width;
         uiTransform.height = visibleSize.height;
-        
+
         // 设置位置为屏幕中心
         maskNode.setPosition(0, 0, 0);
-        // 添加 Sprite 组件用于显示半透明背景（可选）
+        // 添加 Sprite 组件用于显示半透明背景
         const sprite = maskNode.addComponent(Sprite);
         // 如果没有设置 SpriteFrame，可以创建一个纯色背景
         // 这里我们只使用 UITransform 来拦截触摸事件
-        
+
         // 设置背景遮罩属性
         this.setupBackgroundMask(maskNode);
-        
         this.backgroundMask = maskNode;
     }
 
@@ -183,13 +210,19 @@ export class SettingUI extends Component {
     /**
      * 显示设置界面
      * @param duration 动画时长（秒），默认 0.3
+     * @param isInGame 是否在游戏中（用于控制 reloadBtn 的显示/隐藏）
      */
-    public show(duration: number = 0.3): void {
+    public show(duration: number = 0.3, isInGame: boolean = false): void {
         if (this.isShowing) {
             console.warn('SettingUI已经显示了');
             return;
         }
         this.isShowing = true;
+        this.isInGame = isInGame;
+
+        // 更新按钮状态（包括 reloadBtn）
+        this.updateButtonStates();
+
         Utils.showPopup(this.node, duration, 'backOut', () => {
             console.log('SettingUI打开');
         });
@@ -205,7 +238,7 @@ export class SettingUI extends Component {
             return;
         }
         this.isShowing = false;
-        Utils.hidePopup(this.node, duration, 'quadIn', () => {
+        Utils.hidePopup(this.node, duration, 'linear', () => {
             console.log('[SettingUI] 设置界面隐藏完成');
             // 通知外部设置界面已关闭
             if (this.onClose) {
@@ -230,11 +263,10 @@ export class SettingUI extends Component {
      * 关闭按钮点击事件
      */
     private onCloseBtnClick(): void {
-        // 播放点击音效
-        if (this.audioManager) {
-            this.audioManager.playClickSound();
-        }
-        this.hide();
+        this.audioManager.playClickSound();
+        Utils.setScale(this.closeBtn, 0.95, 0.1, () => {
+            this.hide();
+        });
     }
 
     /**
@@ -246,14 +278,14 @@ export class SettingUI extends Component {
         if (this.audioManager) {
             this.audioManager.playClickSound();
         }
-        // 先隐藏设置界面
-        this.hide();
-        // 触发返回首页回调
-        if (this.onHome) {
-            this.onHome();
-        } else {
-            console.warn('[SettingUI] 未设置返回首页回调');
-        }
+        Utils.setScale(this.homeBtn, 0.95, 0.1, () => {
+            this.hide();
+            if (this.onHome) {
+                this.onHome();
+            } else {
+                console.warn('[SettingUI] 未设置返回首页回调');
+            }
+        });
     }
 
     /**
@@ -271,11 +303,14 @@ export class SettingUI extends Component {
         if (this.homeBtn) {
             this.homeBtn.off(Node.EventType.TOUCH_END, this.onHomeBtnClick, this);
         }
-        if(this.soundBtn){
+        if (this.soundBtn) {
             this.soundBtn.off(Node.EventType.TOUCH_END, this.onSoundBtnClick, this);
         }
-        if(this.bgmBtn){
+        if (this.bgmBtn) {
             this.bgmBtn.off(Node.EventType.TOUCH_END, this.onbgmBtnClick, this);
+        }
+        if (this.reloadBtn) {
+            this.reloadBtn.off(Node.EventType.TOUCH_END, this.onReloadBtnClick, this);
         }
         if (this.backgroundMask) {
             this.backgroundMask.off(Node.EventType.TOUCH_START, this.onBackgroundTouch, this);

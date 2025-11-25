@@ -10,7 +10,7 @@ const { ccclass, property } = _decorator;
 @ccclass('PuzzleSuccessUI')
 export class PuzzleSuccessUI extends Component {
     @property(Node)
-    private nextLevelBtn: Node = null;  // 下一关按钮
+    private nextLevelBtn: Node = null;  
     
     @property(Node)
     private backgroundMask: Node = null;  // 背景遮罩层
@@ -54,13 +54,11 @@ export class PuzzleSuccessUI extends Component {
             console.warn('[PuzzleSuccessUI] 成功弹窗已经显示');
             return;
         }
-        
         // 设置图片
         if (image && this.successImage) {
             this.currentImage = image;
             this.successImage.spriteFrame = image;
         }
-        
         this.isShowing = true;
         Utils.showPopup(this.node, duration, 'backOut', () => {
             console.log('[PuzzleSuccessUI] 成功弹窗显示完成');
@@ -81,24 +79,17 @@ export class PuzzleSuccessUI extends Component {
             console.log('[PuzzleSuccessUI] 成功弹窗隐藏完成');
         });
     }
-
     /**
      * 下一关按钮点击事件
      */
     private onNextLevelBtnClick(): void {
-        console.log('[PuzzleSuccessUI] 点击下一关按钮');
-        // 播放点击音效
-        if (this.audioManager) {
-            this.audioManager.playClickSound();
-        }
-        // 先隐藏弹窗
-        this.hide();
-        // 触发下一关回调
-        if (this.onNextLevel) {
-            this.onNextLevel();
-        } else {
-            console.warn('[PuzzleSuccessUI] 未设置 onNextLevel 回调');
-        }
+        AudioManager.getInstance().playClickSound();
+        Utils.setScale(this.nextLevelBtn, 0.95, 0.1, () => {
+            this.hide();
+            if (this.onNextLevel) {
+                this.onNextLevel();
+            }
+        });
     }
 
     /**

@@ -44,18 +44,16 @@ export class Utils {
     public static hidePopup(
         node: Node,
         duration: number = 0.3,
-        easing: any = 'backIn',
+        easing: any = 'linear',
         onComplete?: () => void
     ): void {
         if (!node) {
             console.error('[Utils] hidePopup: node 不能为空');
             return;
         }
-        // 执行动画：scale 从 1 到 0
         tween(node)
             .to(duration, { scale: new Vec3(0, 0, 1) }, { easing: easing })
             .call(() => {
-                // 动画完成后隐藏节点
                 node.active = false;
                 if (onComplete) {
                     onComplete();
