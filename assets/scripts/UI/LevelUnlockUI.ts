@@ -132,16 +132,11 @@ export class LevelUnlockUI extends Component {
                 break;
             }
         }
-        
-        // 如果找到了已解锁的关卡，显示下一关（如果下一关存在）
         const nextLevel = currentLevel + 1;
         if (nextLevel <= this.endLevel) {
             currentLevel = nextLevel;
         }
-        
-        // 更新标签文本
-        this.levelLb.string = `LEVEL ${currentLevel}`;
-        console.log(`[LevelUnlockUI] 更新关卡标签: Level ${currentLevel}`);
+        this.levelLb.string = `LEVEL ${currentLevel-1}`;
     }
     
     /**

@@ -53,7 +53,7 @@ export class GameUI extends Component {
     
     start() {
         (window as any).gameUI = this;
-        this.puzzleGameUI.active = false;
+        this.puzzleGameUI.active = this.testBtn.active = false;
         // 初始状态：显示章节界面，隐藏关卡解锁界面
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
@@ -126,13 +126,7 @@ export class GameUI extends Component {
     public quickUnlockAndJumpToLevel(level: number): void {
         console.log(`[GameUI] 快速解锁并跳转到关卡 ${level}`);
         
-        // 1. 先解锁到该关卡之前的所有关卡
-        if (this.levelUnlockUI) {
-            // 解锁到该关卡之前的所有关卡（不包括该关卡本身）
-            this.levelUnlockUI.quickUnlockBeforeLevel(level, false);
-        }
-        
-        // 2. 确定目标关卡所在的章节
+        // 1. 确定目标关卡所在的章节
         let targetChapter = 1;
         let targetStartLevel = 1;
         let targetEndLevel = 25;
@@ -146,20 +140,58 @@ export class GameUI extends Component {
             targetStartLevel = 26;
             targetEndLevel = 50;
         }
-        // 3. 如果不在当前章节，先进入目标章节
-        if (this.currentChapter !== targetChapter) {
-            console.log(`[GameUI] 切换到章节 ${targetChapter}`);
-            this.enterChapter(targetChapter, targetStartLevel, targetEndLevel, false);
-        }
         
-        // 4. 进入目标关卡
-        this.scheduleOnce(() => {
-            this.enterLevel(level);
-        }, 0.3);
+        // 2. 如果目标关卡在第二章节，需要先解锁第一章节的所有关卡
+        if (targetChapter > 1) {
+            // 先进入第一章节，解锁所有关卡
+            this.enterChapter(1, 1, 25, false);
+            this.scheduleOnce(() => {
+                if (this.levelUnlockUI) {
+                    // 解锁第一章节的所有关卡（1-25），传入 26 表示解锁到 26 之前的所有关卡
+                    this.levelUnlockUI.quickUnlockBeforeLevel(26, false);
+                    // 检查第一章节是否完成，并更新 ChapterUI
+                    if (this.levelUnlockUI.isChapterCompleted()) {
+                        if (this.chapterUI) {
+                            this.chapterUI.updateChapterCompleted(1);
+                            // 解锁第二章节
+                            this.chapterUI.unlockChapter(2);
+                        }
+                    }
+                }
+                // 3. 进入目标章节
+                this.scheduleOnce(() => {
+                    this.enterChapter(targetChapter, targetStartLevel, targetEndLevel, false);
+                    // 4. 解锁目标章节中目标关卡之前的所有关卡（如果目标关卡不是章节第一关）
+                    this.scheduleOnce(() => {
+                        if (this.levelUnlockUI && level > targetStartLevel) {
+                            this.levelUnlockUI.quickUnlockBeforeLevel(level, false);
+                        }
+                    }, 0.2);
+                }, 0.2);
+            }, 0.2);
+        } else {
+            // 目标关卡在第一章节
+            // 先进入第一章节
+            this.enterChapter(targetChapter, targetStartLevel, targetEndLevel, false);
+            // 解锁目标关卡之前的所有关卡
+            this.scheduleOnce(() => {
+                if (this.levelUnlockUI && level > targetStartLevel) {
+                    this.levelUnlockUI.quickUnlockBeforeLevel(level, false);
+                    // 检查第一章节是否完成，并更新 ChapterUI
+                    if (this.levelUnlockUI.isChapterCompleted()) {
+                        if (this.chapterUI) {
+                            this.chapterUI.updateChapterCompleted(1);
+                            // 解锁第二章节
+                            this.chapterUI.unlockChapter(2);
+                        }
+                    }
+                }
+            }, 0.2);
+        }
     }
     
     /**
-     * 快速解锁到指定关卡之前的所有关卡（测试用）
+     * 
      * @param level 关卡编号（全局关卡编号）
      */
     public quickUnlockBeforeLevel(level: number): void {
@@ -320,11 +352,13 @@ export class GameUI extends Component {
         if (this.levelUnlockUI) {
             // 设置进入关卡回调（点击卡牌时触发）
             this.levelUnlockUI.onEnterLevel = (level: number) => {
+                this.testBtn.active = false;
                 this.enterLevel(level);
             };
             // 设置返回章节界面回调
             this.levelUnlockUI.onBackToChapter = () => {
                 this.backToChapter();
+                this.testBtn.active = false;
             };
         }
     }
@@ -372,6 +406,7 @@ export class GameUI extends Component {
         console.log(`[GameUI] 进入章节 ${chapter}，关卡范围：${startLevel}-${endLevel}`);
         
         // 保存当前章节信息
+        this.testBtn.active = true;
         this.currentChapter = chapter;
         this.currentStartLevel = startLevel;
         this.currentEndLevel = endLevel;
@@ -416,8 +451,18 @@ export class GameUI extends Component {
             this.levelUnlockUI.node.active = false;
         }
         
-        // 显示章节界面
+        // 刷新章节UI状态（检查章节完成状态和解锁状态）
         if (this.chapterUI && this.chapterUI.node) {
+            // 检查并更新所有章节的完成状态
+            for (let chapter = 1; chapter <= 2; chapter++) {
+                if (this.chapterUI.isChapterCompleted(chapter)) {
+                    this.chapterUI.updateChapterCompleted(chapter);
+                    // 如果第一章节完成，解锁第二章节
+                    if (chapter === 1 && !this.chapterUI.isChapterUnlocked(2)) {
+                        this.chapterUI.unlockChapter(2);
+                    }
+                }
+            }
             this.chapterUI.show();
         }
     }
@@ -438,8 +483,18 @@ export class GameUI extends Component {
             this.levelUnlockUI.node.active = false;
         }
         
-        // 显示章节界面
+        // 刷新章节UI状态（检查章节完成状态和解锁状态）
         if (this.chapterUI && this.chapterUI.node) {
+            // 检查并更新所有章节的完成状态
+            for (let chapter = 1; chapter <= 2; chapter++) {
+                if (this.chapterUI.isChapterCompleted(chapter)) {
+                    this.chapterUI.updateChapterCompleted(chapter);
+                    // 如果第一章节完成，解锁第二章节
+                    if (chapter === 1 && !this.chapterUI.isChapterUnlocked(2)) {
+                        this.chapterUI.unlockChapter(2);
+                    }
+                }
+            }
             this.chapterUI.show();
         }
     }
@@ -648,18 +703,13 @@ export class GameUI extends Component {
      */
     public backToLevelUnlock(): void {
         console.log('[GameUI] 返回关卡解锁界面');
-        
-        // 隐藏拼图游戏UI
+        this.testBtn.active = true;
         if (this.puzzleGameUI) {
             this.puzzleGameUI.active = false;
         }
-        
-        // 隐藏困难提示
         if (this.hardTip) {
             this.hardTip.active = false;
         }
-        
-        // 显示关卡解锁UI
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = true;
         }
