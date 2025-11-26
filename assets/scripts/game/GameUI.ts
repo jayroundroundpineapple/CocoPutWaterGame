@@ -712,6 +712,12 @@ export class GameUI extends Component {
         }
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = true;
+            // 更新关卡标签显示（确保显示最新状态）
+            this.scheduleOnce(() => {
+                if (this.levelUnlockUI) {
+                    this.levelUnlockUI.updateLevelLabel();
+                }
+            }, 0.1);
         }
     }
 

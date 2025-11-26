@@ -117,26 +117,39 @@ export class LevelUnlockUI extends Component {
     /**
      * 更新关卡标签显示
      */
-    private updateLevelLabel(): void {
+    public updateLevelLabel(): void {
         if (!this.levelLb) {
             return;
         }
         
         // 找到当前章节中已解锁的最高关卡
-        let currentLevel = this.startLevel;  // 默认第一关
+        let highestUnlockedLevel = -1;  // -1 表示没有已解锁的关卡
         
         // 从后往前查找已解锁的最高关卡
         for (let i = this.totalLevels - 1; i >= 0; i--) {
             if (this.unlockStates[i]) {
-                currentLevel = this.startLevel + i;
+                highestUnlockedLevel = this.startLevel + i;
                 break;
             }
         }
-        const nextLevel = currentLevel + 1;
-        if (nextLevel <= this.endLevel) {
-            currentLevel = nextLevel;
+        
+        // 确定要显示的关卡（下一关，即可玩的关卡）
+        let displayLevel: number;
+        if (highestUnlockedLevel === -1) {
+            // 如果所有关卡都未解锁，显示第一关
+            displayLevel = this.startLevel;
+        } else {
+            // 如果找到了已解锁的关卡，显示下一关（如果下一关存在）
+            const nextLevel = highestUnlockedLevel + 1;
+            if (nextLevel <= this.endLevel) {
+                displayLevel = nextLevel;
+            } else {
+                // 如果下一关不存在（已经是最后一关），显示最后一关
+                displayLevel = this.endLevel;
+            }
         }
-        this.levelLb.string = `LEVEL ${currentLevel-1}`;
+        
+        this.levelLb.string = `LEVEL ${displayLevel}`;
     }
     
     /**
@@ -170,25 +183,34 @@ export class LevelUnlockUI extends Component {
     private onStartGameBtnClick(): void {
         console.log('[LevelUnlockUI] 点击开始游戏按钮');
         
-        // 找到当前章节中已解锁的最高关卡，如果没有解锁的关卡，则进入第一关
-        let targetLevel = this.startLevel;  // 默认第一关
+        // 找到当前章节中已解锁的最高关卡
+        let highestUnlockedLevel = -1;  // -1 表示没有已解锁的关卡
         
         // 从后往前查找已解锁的最高关卡
         for (let i = this.totalLevels - 1; i >= 0; i--) {
             if (this.unlockStates[i]) {
-                targetLevel = this.startLevel + i;
+                highestUnlockedLevel = this.startLevel + i;
                 break;
             }
         }
         
-        // 如果所有关卡都未解锁，进入第一关
-        // 如果找到了已解锁的关卡，进入下一关（如果下一关存在）
-        const nextLevel = targetLevel + 1;
-        if (nextLevel <= this.endLevel) {
-            targetLevel = nextLevel;
+        // 确定目标关卡
+        let targetLevel: number;
+        if (highestUnlockedLevel === -1) {
+            // 如果所有关卡都未解锁，进入第一关
+            targetLevel = this.startLevel;
+        } else {
+            // 如果找到了已解锁的关卡，进入下一关（如果下一关存在）
+            const nextLevel = highestUnlockedLevel + 1;
+            if (nextLevel <= this.endLevel) {
+                targetLevel = nextLevel;
+            } else {
+                // 如果下一关不存在（已经是最后一关），进入最后一关
+                targetLevel = this.endLevel;
+            }
         }
         
-        console.log(`[LevelUnlockUI] 进入关卡 ${targetLevel}`);
+        console.log(`[LevelUnlockUI] 进入关卡 ${targetLevel}（已解锁最高关卡：${highestUnlockedLevel === -1 ? '无' : highestUnlockedLevel}）`);
         
         // 触发进入关卡回调
         if (this.onEnterLevel) {
@@ -467,8 +489,6 @@ export class LevelUnlockUI extends Component {
         // 确保扑克牌在小块之上
         cardNode.setSiblingIndex(100);
         
-        // 如果预制体没有 CardItem 组件，自动添加（可选）
-        // 注意：如果预制体中已经有 CardItem 组件，这里不会重复添加
         if (!cardNode.getComponent(CardItem)) {
             const cardItem = cardNode.addComponent(CardItem);
             // CardItem 的初始化会在 createUnlockUI 中调用
