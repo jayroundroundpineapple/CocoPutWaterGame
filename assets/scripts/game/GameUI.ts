@@ -1,4 +1,4 @@
-import { _decorator, Button, Component, Node, SpriteFrame, AudioSource, sys, Tween, tween, Vec3 } from 'cc';
+import { _decorator, Button, Component, Node, SpriteFrame, AudioSource, sys, Tween, tween, Vec3, EditBox, Label } from 'cc';
 import { AdManager } from './adManager';
 import { AdType } from './ad-enums';
 import { PuzzleManager } from './PuzzleManager';
@@ -36,6 +36,14 @@ export class GameUI extends Component {
     private hardTip:Node = null;
     @property(Node)
     private hardMask:Node = null;
+    @property(Node)
+    private levelInputDialog: Node = null;  // 关卡输入弹窗
+    @property(EditBox)
+    private levelInputEditBox: EditBox = null;  // 关卡输入框
+    @property(Button)
+    private levelInputConfirmBtn: Button = null;  // 确认按钮
+    @property(Button)
+    private levelInputCancelBtn: Button = null;  // 取消按钮
     @property(SpriteFrame)
     private puzzleImage: SpriteFrame = null;  // 拼图图片
     
@@ -64,6 +72,7 @@ export class GameUI extends Component {
         }
         this.initButton.on(Node.EventType.TOUCH_END, this.onInitButtonClick, this);
         this.initTestButton();
+        this.initLevelInputDialog();
         this.initPuzzle();
         this.initSettingUI();
         this.initChapterUI();
@@ -100,23 +109,88 @@ export class GameUI extends Component {
     }
     
     /**
+     * 初始化关卡输入弹窗
+     */
+    private initLevelInputDialog(): void {
+        if (this.levelInputDialog) {
+            // 初始状态：隐藏弹窗
+            this.levelInputDialog.active = false;
+            
+            // 绑定确认按钮
+            if (this.levelInputConfirmBtn) {
+                this.levelInputConfirmBtn.node.on(Node.EventType.TOUCH_END, this.onLevelInputConfirm, this);
+            }
+            
+            // 绑定取消按钮
+            if (this.levelInputCancelBtn) {
+                this.levelInputCancelBtn.node.on(Node.EventType.TOUCH_END, this.onLevelInputCancel, this);
+            }
+        } else {
+            console.warn('[GameUI] 未设置关卡输入弹窗');
+        }
+    }
+    
+    /**
      * 测试按钮点击事件
-     * 弹出输入框，输入关卡编号后快速解锁并跳转
+     * 显示输入弹窗
      */
     private onTestButtonClick(): void {
-        const input = prompt('请输入要跳转的关卡编号（1-50）：');
-        
-        if (input === null) {
+        if (this.levelInputDialog) {
+            this.levelInputDialog.active = true;
+            // 清空输入框
+            if (this.levelInputEditBox) {
+                this.levelInputEditBox.string = '';
+                // 聚焦到输入框（延迟一下确保弹窗已显示）
+                this.scheduleOnce(() => {
+                    if (this.levelInputEditBox && this.levelInputEditBox.node.active) {
+                        this.levelInputEditBox.focus();
+                    }
+                }, 0.1);
+            }
+        } else {
+            console.warn('[GameUI] 关卡输入弹窗未设置');
+        }
+    }
+    
+    /**
+     * 关卡输入确认按钮点击事件
+     */
+    private onLevelInputConfirm(): void {
+        if (!this.levelInputEditBox) {
+            console.warn('[GameUI] 关卡输入框未设置');
             return;
         }
-        const level = parseInt(input, 10);
-        if (isNaN(level) || level < 1) {
-            alert('请输入有效的关卡编号（大于0的数字）');
+        
+        const input = this.levelInputEditBox.string.trim();
+        if (!input) {
+            console.warn('[GameUI] 请输入关卡编号');
             return;
+        }
+        
+        const level = parseInt(input, 10);
+        if (isNaN(level) || level < 1 || level > 50) {
+            console.warn('[GameUI] 请输入有效的关卡编号（1-50）');
+            // 可以在这里显示提示信息，或者使用 Label 显示错误信息
+            return;
+        }
+        
+        // 隐藏弹窗
+        if (this.levelInputDialog) {
+            this.levelInputDialog.active = false;
         }
         
         console.log(`[GameUI] 快速解锁并跳转到关卡 ${level}`);
         this.quickUnlockAndJumpToLevel(level);
+    }
+    
+    /**
+     * 关卡输入取消按钮点击事件
+     */
+    private onLevelInputCancel(): void {
+        // 隐藏弹窗
+        if (this.levelInputDialog) {
+            this.levelInputDialog.active = false;
+        }
     }
     
     /**
@@ -166,12 +240,17 @@ export class GameUI extends Component {
                         if (this.levelUnlockUI && level > targetStartLevel) {
                             this.levelUnlockUI.quickUnlockBeforeLevel(level, false);
                         }
+                        // 所有操作完成后，更新关卡标签
+                        this.scheduleOnce(() => {
+                            if (this.levelUnlockUI) {
+                                this.levelUnlockUI.updateLevelLabel();
+                            }
+                        }, 0.1);
                     }, 0.2);
                 }, 0.2);
             }, 0.2);
         } else {
             // 目标关卡在第一章节
-            // 先进入第一章节
             this.enterChapter(targetChapter, targetStartLevel, targetEndLevel, false);
             // 解锁目标关卡之前的所有关卡
             this.scheduleOnce(() => {
@@ -186,6 +265,12 @@ export class GameUI extends Component {
                         }
                     }
                 }
+                // 所有操作完成后，更新关卡标签
+                this.scheduleOnce(() => {
+                    if (this.levelUnlockUI) {
+                        this.levelUnlockUI.updateLevelLabel();
+                    }
+                }, 0.1);
             }, 0.2);
         }
     }
@@ -803,6 +888,14 @@ export class GameUI extends Component {
        
         if (this.testBtn) {
             this.testBtn.off(Node.EventType.TOUCH_END, this.onTestButtonClick, this);
+        }
+        
+        if (this.levelInputConfirmBtn) {
+            this.levelInputConfirmBtn.node.off(Node.EventType.TOUCH_END, this.onLevelInputConfirm, this);
+        }
+        
+        if (this.levelInputCancelBtn) {
+            this.levelInputCancelBtn.node.off(Node.EventType.TOUCH_END, this.onLevelInputCancel, this);
         }
     }
 }
