@@ -10,6 +10,7 @@ interface LevelConfig {
     rows: number;
     cols: number;
     imagePath: string;
+    isHardTip?: boolean;  // 是否为困难模式
 }
 
 /**
@@ -492,6 +493,16 @@ export class PuzzleManager extends Component {
      */
     public getCurrentLevelImage(): SpriteFrame | null {
         return this.currentImage || null;
+    }
+    
+    /**
+     * 获取当前关卡是否为困难模式
+     */
+    public isCurrentLevelHard(): boolean {
+        if (!this.currentConfig) {
+            return false;
+        }
+        return this.currentConfig.isHardTip === true;
     }
     /**
      * 进入下一关（由外部调用，例如成功弹窗的按钮点击后）

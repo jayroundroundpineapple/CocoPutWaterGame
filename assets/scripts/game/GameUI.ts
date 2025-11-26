@@ -1,4 +1,4 @@
-import { _decorator, Button, Component, Node, SpriteFrame, AudioSource, sys } from 'cc';
+import { _decorator, Button, Component, Node, SpriteFrame, AudioSource, sys, Tween, tween, Vec3 } from 'cc';
 import { AdManager } from './adManager';
 import { AdType } from './ad-enums';
 import { PuzzleManager } from './PuzzleManager';
@@ -32,6 +32,10 @@ export class GameUI extends Component {
     private puzzleGameUI: Node = null;  // 拼图游戏UI
     @property(Node)
     private exitGameBtn: Node = null;  
+    @property(Node)
+    private hardTip:Node = null;
+    @property(Node)
+    private hardMask:Node = null;
     @property(SpriteFrame)
     private puzzleImage: SpriteFrame = null;  // 拼图图片
     
@@ -53,6 +57,10 @@ export class GameUI extends Component {
         // 初始状态：显示章节界面，隐藏关卡解锁界面
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
+        }
+        // 初始状态：隐藏困难提示
+        if (this.hardTip) {
+            this.hardTip.active = false;
         }
         this.initButton.on(Node.EventType.TOUCH_END, this.onInitButtonClick, this);
         this.initTestButton();
@@ -143,6 +151,11 @@ export class GameUI extends Component {
             console.log(`[GameUI] 切换到章节 ${targetChapter}`);
             this.enterChapter(targetChapter, targetStartLevel, targetEndLevel, false);
         }
+        
+        // 4. 进入目标关卡
+        this.scheduleOnce(() => {
+            this.enterLevel(level);
+        }, 0.3);
     }
     
     /**
@@ -251,8 +264,40 @@ export class GameUI extends Component {
         if (this.puzzleManager) {
             this.puzzleManager.restartLevel();
             console.log('[GameUI] 关卡已重置');
+            // 更新困难模式提示显示
+            this.updateHardTipVisibility();
         } else {
             console.error('[GameUI] PuzzleManager 未设置，无法重置关卡');
+        }
+    }
+    
+    /**
+     * 更新困难模式提示的显示状态
+     */
+    private updateHardTipVisibility(): void {
+        if (!this.hardTip) {
+            return;
+        }
+        if (this.puzzleManager) {
+            const isHard = this.puzzleManager.isCurrentLevelHard();
+            if (isHard) {
+                this.hardTip.setScale(0, 0, 1);
+                this.hardTip.active = true;
+                this.scheduleOnce(() => {
+                    this.hardMask.active = true;
+                },0.1)
+                tween(this.hardTip).delay(0.2)
+                .to(0.5, { scale: new Vec3(1, 1, 1) })
+                .delay(0.7)
+                .to(0.5, { scale: new Vec3(0, 0, 1) })
+                .call(() => {
+                    this.hardTip.active = false;
+                    this.hardMask.active = false;
+                })
+                .start();
+            } else {
+                console.log('[GameUI] 当前关卡为普通模式，隐藏困难提示');
+            }
         }
     }
 
@@ -418,6 +463,7 @@ export class GameUI extends Component {
         // 开始指定关卡的拼图
         if (this.puzzleManager) {
             this.puzzleManager.startLevel(level);
+            this.updateHardTipVisibility();
         } else {
             console.error('[GameUI] PuzzleManager 未设置');
         }
@@ -475,6 +521,10 @@ export class GameUI extends Component {
             console.log(`[GameUI] 进入最新关卡: ${targetLevel}`);
             // 开始指定关卡的拼图
             this.puzzleManager.startLevel(targetLevel);
+            // 延迟检查困难模式（等待关卡加载完成）
+            this.scheduleOnce(() => {
+                this.updateHardTipVisibility();
+            }, 0.5);
         } else {
             console.error('[GameUI] LevelUnlockUI 或 PuzzleManager 未设置');
         }
@@ -602,6 +652,11 @@ export class GameUI extends Component {
         // 隐藏拼图游戏UI
         if (this.puzzleGameUI) {
             this.puzzleGameUI.active = false;
+        }
+        
+        // 隐藏困难提示
+        if (this.hardTip) {
+            this.hardTip.active = false;
         }
         
         // 显示关卡解锁UI
