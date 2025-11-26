@@ -395,7 +395,14 @@ export class PuzzleManager extends Component {
             }
         }
 
-        if (nearestIndex >= 0 && minDistance < 100) {
+        // 计算到原位置的距离
+        const distanceToOriginal = Vec3.distance(piece.node.position, this.positions[piece.currentIndex]);
+        // 设置一个较小的阈值，如果移动距离很小，直接返回原位置
+        const snapThreshold = 20;  // 如果距离原位置小于这个值，直接返回原位置
+        // 设置一个检测阈值，用于判断是否应该交换或移动到新位置
+        const detectThreshold = 80;  // 如果距离最近位置小于这个值，才考虑交换或移动
+
+        if (nearestIndex >= 0 && minDistance < detectThreshold) {
             const targetPiece = this.pieces.find(p => p.currentIndex === nearestIndex && p !== piece);
             if (targetPiece) {
                 // 交换位置
@@ -405,15 +412,29 @@ export class PuzzleManager extends Component {
                     this.checkComplete();
                 }, 0.35);  // 略大于动画时长 0.3 秒
             } else if (piece.currentIndex !== nearestIndex) {
+                // 移动到其他空位置
                 piece.moveToPosition(this.positions[nearestIndex], nearestIndex);
                 this.scheduleOnce(() => {
                     this.checkComplete();
                 }, 0.35);
             } else {
-                this.checkComplete();
+                // 最近位置就是当前位置
+                // 如果距离原位置超过阈值，移回原位置；否则保持不动
+                if (distanceToOriginal > snapThreshold) {
+                    piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
+                } else {
+                    // 距离很小，直接检查完成
+                    this.checkComplete();
+                }
             }
         } else {
-            piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
+            // 距离所有位置都很远，或者距离最近位置超过阈值，返回原位置
+            if (distanceToOriginal > snapThreshold) {
+                piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
+            } else {
+                // 距离原位置很近，直接检查完成
+                this.checkComplete();
+            }
         }
     }
 
