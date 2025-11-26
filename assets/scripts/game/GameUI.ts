@@ -260,7 +260,6 @@ export class GameUI extends Component {
                     if (this.levelUnlockUI.isChapterCompleted()) {
                         if (this.chapterUI) {
                             this.chapterUI.updateChapterCompleted(1);
-                            // 解锁第二章节
                             this.chapterUI.unlockChapter(2);
                         }
                     }
