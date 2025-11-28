@@ -49,13 +49,33 @@ export class PuzzlePiece extends Component {
             } else {
                 this.sprite.spriteFrame = spriteFrame;
             }
+            this.setupSpriteNode();
         }
         
-        // 添加触摸事件
+        // 添加触摸事件（绑定到 PuzzlePiece 节点，确保整个节点都可以响应触摸）
         this.node.on(Node.EventType.TOUCH_START, this.onTouchStart, this);
         this.node.on(Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
         this.node.on(Node.EventType.TOUCH_END, this.onTouchEnd, this);
         this.node.on(Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
+    }
+    
+    /**
+     * 设置 sprite 节点的属性，确保层级和大小正确
+     */
+    private setupSpriteNode(): void {
+        if (!this.sprite || !this.sprite.node) return;
+        const spriteNode = this.sprite.node;
+        const nodeTransform = this.node.getComponent(UITransform);
+        if (nodeTransform) {
+            const spriteTransform = spriteNode.getComponent(UITransform);
+            if (spriteTransform) {
+                spriteTransform.width = nodeTransform.width;
+                spriteTransform.height = nodeTransform.height;
+                spriteTransform.setAnchorPoint(0.5, 0.5);
+            }
+            spriteNode.setPosition(0, 0, 0);
+            spriteNode.setSiblingIndex(0);
+        }
     }
     
     /**
