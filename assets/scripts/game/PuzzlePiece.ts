@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, Vec3, EventTouch, tween, Texture2D, Rect } from 'cc';
+import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, Vec3, EventTouch, tween, Texture2D, Rect, Graphics, Color } from 'cc';
 const { ccclass, property } = _decorator;
 
 /**
@@ -9,7 +9,8 @@ const { ccclass, property } = _decorator;
 export class PuzzlePiece extends Component {
     @property(Sprite)
     private sprite: Sprite = null;
-    
+    @property(Graphics)
+    private graphics: Graphics = null;
     // 拼图块的正确位置索引 (0-3)
     public correctIndex: number = 0;
     
@@ -76,6 +77,10 @@ export class PuzzlePiece extends Component {
             spriteNode.setPosition(0, 0, 0);
             spriteNode.setSiblingIndex(0);
         }
+        this.graphics.lineWidth = 5;
+        this.graphics.fillColor = new Color(30, 30, 30, 255);
+        this.graphics.roundRect(-nodeTransform.width/2, -nodeTransform.height/2, nodeTransform.width, nodeTransform.height, 20);
+        this.graphics.stroke();
     }
     
     /**
