@@ -36,7 +36,7 @@ export class PuzzlePiece extends Component {
      * @param cols 列数
      */
     public init(spriteFrame: SpriteFrame, index: number, correctIndex: number, rows: number, cols: number) {
-        this.node.name = "节点"+correctIndex.toString();
+        this.node.name = "piecePuzzle"+correctIndex.toString();
         this.correctIndex = correctIndex;
         this.currentIndex = index;
         this.isInCorrectPosition = (index === correctIndex);
