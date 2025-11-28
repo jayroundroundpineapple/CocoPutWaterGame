@@ -398,7 +398,7 @@ export class PuzzleManager extends Component {
         // 计算到原位置的距离
         const distanceToOriginal = Vec3.distance(piece.node.position, this.positions[piece.currentIndex]);
         // 设置一个较小的阈值，如果移动距离很小，直接返回原位置
-        const snapThreshold = 20;  // 如果距离原位置小于这个值，直接返回原位置
+        const snapThreshold = 5;  // 如果距离原位置小于这个值，直接返回原位置
         // 设置一个检测阈值，用于判断是否应该交换或移动到新位置
         const detectThreshold = 80;  // 如果距离最近位置小于这个值，才考虑交换或移动
 
