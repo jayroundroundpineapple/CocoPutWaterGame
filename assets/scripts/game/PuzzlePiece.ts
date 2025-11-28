@@ -11,6 +11,8 @@ export class PuzzlePiece extends Component {
     private sprite: Sprite = null;
     @property(Graphics)
     private graphics: Graphics = null;
+    @property(Node)
+    private maskNode: Node = null;
     // 拼图块的正确位置索引 (0-3)
     public correctIndex: number = 0;
     
@@ -77,9 +79,16 @@ export class PuzzlePiece extends Component {
             spriteNode.setPosition(0, 0, 0);
             spriteNode.setSiblingIndex(0);
         }
+        this.maskNode.getComponent(UITransform).width = nodeTransform.width;
+        this.maskNode.getComponent(UITransform).height = nodeTransform.height;
+        const maskGraphics = this.maskNode.getComponent(Graphics);
+        maskGraphics.roundRect(-nodeTransform.width/2, -nodeTransform.height/2, nodeTransform.width, nodeTransform.height, 10);
+        maskGraphics.fillColor = new Color(30, 30, 30, 255);
+        maskGraphics.fill();
+        maskGraphics.stroke();
         this.graphics.lineWidth = 5;
         this.graphics.fillColor = new Color(30, 30, 30, 255);
-        this.graphics.roundRect(-nodeTransform.width/2, -nodeTransform.height/2, nodeTransform.width, nodeTransform.height, 20);
+        this.graphics.roundRect(-nodeTransform.width/2, -nodeTransform.height/2, nodeTransform.width, nodeTransform.height, 10);
         this.graphics.stroke();
     }
     
