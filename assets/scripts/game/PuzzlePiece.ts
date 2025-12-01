@@ -151,16 +151,21 @@ export class PuzzlePiece extends Component {
         };
 
         // 获取边的起点坐标
+        // 当相邻边隐藏时，应该延伸到角落（用直线代替圆角）
         const getEdgeStart = (edge: string): { x: number; y: number } => {
             switch (edge) {
                 case 'top':
-                    return { x: this.hideLeft ? -halfW + radius : -halfW, y: -halfH };
+                    // 如果左边隐藏，顶边应该延伸到左上角
+                    return { x: this.hideLeft ? -halfW : -halfW, y: -halfH };
                 case 'right':
-                    return { x: halfW, y: this.hideTop ? -halfH + radius : -halfH };
+                    // 如果上边隐藏，右边应该延伸到右上角
+                    return { x: halfW, y: this.hideTop ? -halfH : -halfH };
                 case 'bottom':
-                    return { x: this.hideRight ? halfW - radius : halfW, y: halfH };
+                    // 如果右边隐藏，底边应该延伸到右下角
+                    return { x: this.hideRight ? halfW : halfW, y: halfH };
                 case 'left':
-                    return { x: -halfW, y: this.hideBottom ? halfH - radius : halfH };
+                    // 如果下边隐藏，左边应该延伸到左下角
+                    return { x: -halfW, y: this.hideBottom ? halfH : halfH };
                 default:
                     return { x: 0, y: 0 };
             }
@@ -204,6 +209,7 @@ export class PuzzlePiece extends Component {
                     path.push({ type: 'move', x: -halfW + radius, y: halfH });
                     path.push({ type: 'arc', cx: -halfW + radius, cy: halfH - radius, r: radius, startAngle: Math.PI/2, endAngle: Math.PI, anticlockwise: true });
                 } else {
+                    // 相邻边隐藏，直接移动到角落
                     path.push({ type: 'move', x: start.x, y: start.y });
                 }
             } else {
@@ -211,48 +217,54 @@ export class PuzzlePiece extends Component {
                 if (!isAdjacent(lastEdge, edgeName)) {
                     // 需要跳转，使用 moveTo
                     path.push({ type: 'move', x: start.x, y: start.y });
+                } else {
+                    // 如果相邻，检查前一条边是否隐藏
+                    // 如果前一条边隐藏，当前边需要从角落开始
+                    const prevEdgeHidden = 
+                        (lastEdge === 'top' && this.hideTop) ||
+                        (lastEdge === 'right' && this.hideRight) ||
+                        (lastEdge === 'bottom' && this.hideBottom) ||
+                        (lastEdge === 'left' && this.hideLeft);
+                    
+                    if (prevEdgeHidden) {
+                        // 前一条边隐藏，需要移动到当前边的起点（角落）
+                        path.push({ type: 'move', x: start.x, y: start.y });
+                    }
+                    // 如果前一条边未隐藏，arc 已经将位置移到了正确位置，不需要额外操作
                 }
-                // 如果相邻，arc 已经将位置移到了正确位置，不需要额外操作
             }
 
             // 绘制当前边
+            // 关键：当相邻边隐藏时，应该延伸到角落，用直线代替圆角
             if (edgeName === 'top') {
-                const endX = this.hideRight ? halfW - radius : halfW;
+                // 顶边：如果右边隐藏，应该延伸到右上角；否则到圆角起点
+                const endX = this.hideRight ? halfW : halfW - radius;
                 path.push({ type: 'line', x: endX, y: -halfH });
+                // 如果右边未隐藏，绘制右上角圆角
                 if (!this.hideRight) {
                     path.push({ type: 'arc', cx: halfW - radius, cy: -halfH + radius, r: radius, startAngle: -Math.PI/2, endAngle: 0, anticlockwise: true });
                 }
             } else if (edgeName === 'right') {
-                const endY = this.hideBottom ? halfH - radius : halfH;
-                // 如果上一条边是 top 且没有隐藏，arc 已经将位置移到了右边起点，直接画直线
-                if (lastEdge !== 'top' || this.hideTop) {
-                    path.push({ type: 'line', x: halfW, y: endY });
-                } else {
-                    // 已经在右边起点，直接画到终点
-                    path.push({ type: 'line', x: halfW, y: endY });
-                }
+                // 右边：如果下边隐藏，应该延伸到右下角；否则到圆角起点
+                const endY = this.hideBottom ? halfH : halfH - radius;
+                path.push({ type: 'line', x: halfW, y: endY });
+                // 如果下边未隐藏，绘制右下角圆角
                 if (!this.hideBottom) {
                     path.push({ type: 'arc', cx: halfW - radius, cy: halfH - radius, r: radius, startAngle: 0, endAngle: Math.PI/2, anticlockwise: true });
                 }
             } else if (edgeName === 'bottom') {
-                const endX = this.hideLeft ? -halfW + radius : -halfW;
-                // 如果上一条边是 right 且没有隐藏，arc 已经将位置移到了底边起点
-                if (lastEdge !== 'right' || this.hideRight) {
-                    path.push({ type: 'line', x: endX, y: halfH });
-                } else {
-                    path.push({ type: 'line', x: endX, y: halfH });
-                }
+                // 底边：如果左边隐藏，应该延伸到左下角；否则到圆角起点
+                const endX = this.hideLeft ? -halfW : -halfW + radius;
+                path.push({ type: 'line', x: endX, y: halfH });
+                // 如果左边未隐藏，绘制左下角圆角
                 if (!this.hideLeft) {
                     path.push({ type: 'arc', cx: -halfW + radius, cy: halfH - radius, r: radius, startAngle: Math.PI/2, endAngle: Math.PI, anticlockwise: true });
                 }
             } else if (edgeName === 'left') {
-                const endY = this.hideTop ? -halfH + radius : -halfH;
-                // 如果上一条边是 bottom 且没有隐藏，arc 已经将位置移到了左边起点
-                if (lastEdge !== 'bottom' || this.hideBottom) {
-                    path.push({ type: 'line', x: -halfW, y: endY });
-                } else {
-                    path.push({ type: 'line', x: -halfW, y: endY });
-                }
+                // 左边：如果上边隐藏，应该延伸到左上角；否则到圆角起点
+                const endY = this.hideTop ? -halfH : -halfH + radius;
+                path.push({ type: 'line', x: -halfW, y: endY });
+                // 如果上边未隐藏，绘制左上角圆角
                 if (!this.hideTop) {
                     path.push({ type: 'arc', cx: -halfW + radius, cy: -halfH + radius, r: radius, startAngle: Math.PI, endAngle: -Math.PI/2, anticlockwise: true });
                 }
