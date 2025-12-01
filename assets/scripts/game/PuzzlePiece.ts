@@ -142,7 +142,9 @@ export class PuzzlePiece extends Component {
         // 构建连续的路径，按顺时针顺序绘制
         // 从第一个需要绘制的边开始，确保路径连续
 
-        const path: Array<{ type: 'move' | 'line' | 'arc'; x?: number; y?: number; cx?: number; cy?: number; r?: number; startAngle?: number; endAngle?: number }> = [];
+        const path: Array<{ type: 'move' | 'line' | 'arc'; 
+            x?: number; y?: number; cx?: number; cy?: number; 
+            r?: number; startAngle?: number; endAngle?: number }> = [];
 
         // 顶边
         if (!this.hideTop) {
