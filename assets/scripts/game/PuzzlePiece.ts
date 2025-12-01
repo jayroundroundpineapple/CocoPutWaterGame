@@ -131,67 +131,149 @@ export class PuzzlePiece extends Component {
         this.borderGraphics.lineWidth = this.BORDER_WIDTH;
         this.borderGraphics.strokeColor = this.BORDER_COLOR;
 
-        // 绘制起点：根据未隐藏的边确定（优先从左上角开始）
-        let startX = -halfW;
-        let startY = -halfH;
-
-        // 步骤1：移动到第一个未隐藏的边角
-        if (!this.hideLeft && !this.hideTop) {
-            // 左上角：有圆角，移动到圆角终点
-            this.borderGraphics.moveTo(-halfW + radius, -halfH);
-        } else if (!this.hideTop) {
-            // 仅顶边显示，移动到顶边左侧起点
-            this.borderGraphics.moveTo(-halfW, -halfH);
-        } else if (!this.hideLeft) {
-            // 仅左边显示，移动到左边顶部起点
-            this.borderGraphics.moveTo(-halfW, -halfH + radius);
-        } else {
-            // 上下左右都隐藏，直接返回
+        // 如果所有边都不隐藏，绘制完整圆角矩形
+        if (!this.hideTop && !this.hideBottom && !this.hideLeft && !this.hideRight) {
+            this.borderGraphics.roundRect(-halfW, -halfH, width, height, radius);
+            this.borderGraphics.stroke();
             return;
         }
 
-        // 步骤2：绘制顶边 + 右上角圆角
-        if (!this.hideTop) {
-            // 绘制顶边直线
-            this.borderGraphics.lineTo(halfW - (this.hideRight ? 0 : radius), -halfH);
-            // 绘制右上角圆角（仅当右边未隐藏时）
-            if (!this.hideRight) {
-                this.borderGraphics.arc(halfW - radius, -halfH + radius, radius, -Math.PI/2, 0, true);
+        // 构建连续的路径，按顺时针顺序绘制
+        // 关键：当两个可见边之间有空隙（隐藏的边）时，使用 moveTo 跳转，避免出现对角线
+        
+        // 辅助函数：检查两个边是否相邻（在顺时针方向上）
+        const isAdjacent = (edge1: string | null, edge2: string): boolean => {
+            if (edge1 === null) return false;
+            const order = ['top', 'right', 'bottom', 'left'];
+            const idx1 = order.indexOf(edge1);
+            const idx2 = order.indexOf(edge2);
+            return (idx1 + 1) % 4 === idx2;
+        };
+
+        // 获取边的起点坐标
+        const getEdgeStart = (edge: string): { x: number; y: number } => {
+            switch (edge) {
+                case 'top':
+                    return { x: this.hideLeft ? -halfW + radius : -halfW, y: -halfH };
+                case 'right':
+                    return { x: halfW, y: this.hideTop ? -halfH + radius : -halfH };
+                case 'bottom':
+                    return { x: this.hideRight ? halfW - radius : halfW, y: halfH };
+                case 'left':
+                    return { x: -halfW, y: this.hideBottom ? halfH - radius : halfH };
+                default:
+                    return { x: 0, y: 0 };
             }
+        };
+
+        const path: Array<{ type: 'move' | 'line' | 'arc';
+            x?: number; y?: number; cx?: number; cy?: number;
+            r?: number; startAngle?: number; endAngle?: number; anticlockwise?: boolean }> = [];
+
+        let lastEdge: string | null = null;
+        let pathStarted = false;
+
+        // 按顺时针顺序处理每条边：顶边 -> 右边 -> 底边 -> 左边
+        const edges = [
+            { name: 'top', hide: this.hideTop },
+            { name: 'right', hide: this.hideRight },
+            { name: 'bottom', hide: this.hideBottom },
+            { name: 'left', hide: this.hideLeft }
+        ];
+
+        for (const edge of edges) {
+            if (edge.hide) continue; // 跳过隐藏的边
+
+            const edgeName = edge.name;
+            const start = getEdgeStart(edgeName);
+
+            if (!pathStarted) {
+                // 第一条可见边，确定起始点
+                pathStarted = true;
+                if (edgeName === 'top' && !this.hideLeft) {
+                    // 从左上角圆角开始
+                    path.push({ type: 'move', x: -halfW, y: -halfH + radius });
+                    path.push({ type: 'arc', cx: -halfW + radius, cy: -halfH + radius, r: radius, startAngle: Math.PI, endAngle: -Math.PI/2, anticlockwise: true });
+                } else if (edgeName === 'right' && !this.hideTop) {
+                    path.push({ type: 'move', x: halfW - radius, y: -halfH });
+                    path.push({ type: 'arc', cx: halfW - radius, cy: -halfH + radius, r: radius, startAngle: -Math.PI/2, endAngle: 0, anticlockwise: true });
+                } else if (edgeName === 'bottom' && !this.hideRight) {
+                    path.push({ type: 'move', x: halfW, y: halfH - radius });
+                    path.push({ type: 'arc', cx: halfW - radius, cy: halfH - radius, r: radius, startAngle: 0, endAngle: Math.PI/2, anticlockwise: true });
+                } else if (edgeName === 'left' && !this.hideBottom) {
+                    path.push({ type: 'move', x: -halfW + radius, y: halfH });
+                    path.push({ type: 'arc', cx: -halfW + radius, cy: halfH - radius, r: radius, startAngle: Math.PI/2, endAngle: Math.PI, anticlockwise: true });
+                } else {
+                    path.push({ type: 'move', x: start.x, y: start.y });
+                }
+            } else {
+                // 不是第一条边，检查是否需要跳转
+                if (!isAdjacent(lastEdge, edgeName)) {
+                    // 需要跳转，使用 moveTo
+                    path.push({ type: 'move', x: start.x, y: start.y });
+                }
+                // 如果相邻，arc 已经将位置移到了正确位置，不需要额外操作
+            }
+
+            // 绘制当前边
+            if (edgeName === 'top') {
+                const endX = this.hideRight ? halfW - radius : halfW;
+                path.push({ type: 'line', x: endX, y: -halfH });
+                if (!this.hideRight) {
+                    path.push({ type: 'arc', cx: halfW - radius, cy: -halfH + radius, r: radius, startAngle: -Math.PI/2, endAngle: 0, anticlockwise: true });
+                }
+            } else if (edgeName === 'right') {
+                const endY = this.hideBottom ? halfH - radius : halfH;
+                // 如果上一条边是 top 且没有隐藏，arc 已经将位置移到了右边起点，直接画直线
+                if (lastEdge !== 'top' || this.hideTop) {
+                    path.push({ type: 'line', x: halfW, y: endY });
+                } else {
+                    // 已经在右边起点，直接画到终点
+                    path.push({ type: 'line', x: halfW, y: endY });
+                }
+                if (!this.hideBottom) {
+                    path.push({ type: 'arc', cx: halfW - radius, cy: halfH - radius, r: radius, startAngle: 0, endAngle: Math.PI/2, anticlockwise: true });
+                }
+            } else if (edgeName === 'bottom') {
+                const endX = this.hideLeft ? -halfW + radius : -halfW;
+                // 如果上一条边是 right 且没有隐藏，arc 已经将位置移到了底边起点
+                if (lastEdge !== 'right' || this.hideRight) {
+                    path.push({ type: 'line', x: endX, y: halfH });
+                } else {
+                    path.push({ type: 'line', x: endX, y: halfH });
+                }
+                if (!this.hideLeft) {
+                    path.push({ type: 'arc', cx: -halfW + radius, cy: halfH - radius, r: radius, startAngle: Math.PI/2, endAngle: Math.PI, anticlockwise: true });
+                }
+            } else if (edgeName === 'left') {
+                const endY = this.hideTop ? -halfH + radius : -halfH;
+                // 如果上一条边是 bottom 且没有隐藏，arc 已经将位置移到了左边起点
+                if (lastEdge !== 'bottom' || this.hideBottom) {
+                    path.push({ type: 'line', x: -halfW, y: endY });
+                } else {
+                    path.push({ type: 'line', x: -halfW, y: endY });
+                }
+                if (!this.hideTop) {
+                    path.push({ type: 'arc', cx: -halfW + radius, cy: -halfH + radius, r: radius, startAngle: Math.PI, endAngle: -Math.PI/2, anticlockwise: true });
+                }
+            }
+
+            lastEdge = edgeName;
         }
 
-        // 步骤3：绘制右边 + 右下角圆角
-        if (!this.hideRight) {
-            // 绘制右边直线
-            this.borderGraphics.lineTo(halfW, halfH - (this.hideBottom ? 0 : radius));
-            // 绘制右下角圆角（仅当底边未隐藏时）
-            if (!this.hideBottom) {
-                this.borderGraphics.arc(halfW - radius, halfH - radius, radius, 0, Math.PI/2, true);
+        // 执行路径绘制
+        if (path.length > 0) {
+            for (const cmd of path) {
+                if (cmd.type === 'move') {
+                    this.borderGraphics.moveTo(cmd.x!, cmd.y!);
+                } else if (cmd.type === 'line') {
+                    this.borderGraphics.lineTo(cmd.x!, cmd.y!);
+                } else if (cmd.type === 'arc') {
+                    this.borderGraphics.arc(cmd.cx!, cmd.cy!, cmd.r!, cmd.startAngle!, cmd.endAngle!, cmd.anticlockwise!);
+                }
             }
+            this.borderGraphics.stroke();
         }
-
-        // 步骤4：绘制底边 + 左下角圆角
-        if (!this.hideBottom) {
-            // 绘制底边直线
-            this.borderGraphics.lineTo(-halfW + (this.hideLeft ? 0 : radius), halfH);
-            // 绘制左下角圆角（仅当左边未隐藏时）
-            if (!this.hideLeft) {
-                this.borderGraphics.arc(-halfW + radius, halfH - radius, radius, Math.PI/2, Math.PI, true);
-            }
-        }
-
-        // 步骤5：绘制左边 + 左上角圆角
-        if (!this.hideLeft) {
-            // 绘制左边直线
-            this.borderGraphics.lineTo(-halfW, -halfH + (this.hideTop ? 0 : radius));
-            // 绘制左上角圆角（仅当顶边未隐藏时）
-            if (!this.hideTop) {
-                this.borderGraphics.arc(-halfW + radius, -halfH + radius, radius, Math.PI, -Math.PI/2, true);
-            }
-        }
-
-        // 描边生效
-        this.borderGraphics.stroke();
     }
 
     /**
