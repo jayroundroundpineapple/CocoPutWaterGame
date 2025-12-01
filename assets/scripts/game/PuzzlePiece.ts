@@ -113,7 +113,7 @@ export class PuzzlePiece extends Component {
 
         // 绘制边框（根据隐藏状态）
         this.updateBorder();
-        this.updateMask();
+        // this.updateMask();
     }
     /**
      * 更新遮罩形状（根据隐藏边动态调整圆角）
@@ -381,7 +381,7 @@ export class PuzzlePiece extends Component {
         this.hideLeft = hideLeft;
         this.hideRight = hideRight;
         this.updateBorder();
-        this.updateMask();
+        // this.updateMask();
     }
 
     /**
