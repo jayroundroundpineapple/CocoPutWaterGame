@@ -36,6 +36,15 @@ export class PuzzleManager extends Component {
     private currentConfig: LevelConfig = null;
     // 所有关卡配置
     private levelConfigs: LevelConfig[] = [];
+    
+    // 当前关卡的网格信息
+    private currentRows: number = 0;
+    private currentCols: number = 0;
+    
+    // 相邻关系映射：记录每个拼图块在正确位置时，上下左右应该是什么拼图块（用correctIndex表示）
+    // Map<correctIndex, { top: number, bottom: number, left: number, right: number }>
+    // -1 表示该方向没有相邻拼图块（边界情况）
+    private adjacentMap: Map<number, { top: number; bottom: number; left: number; right: number }> = new Map();
 
     // 完成回调
     public onPuzzleComplete: (level: number) => void = null;
@@ -169,6 +178,30 @@ export class PuzzleManager extends Component {
         return config || null;
     }
 
+    /**
+     * 初始化相邻关系映射
+     * 记录每个拼图块在正确位置时，上下左右应该是什么拼图块
+     */
+    private initAdjacentMap(rows: number, cols: number): void {
+        this.adjacentMap.clear();
+        
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                const correctIndex = row * cols + col;
+                
+                // 计算上下左右的正确相邻拼图块的 correctIndex
+                const top = row > 0 ? (row - 1) * cols + col : -1;
+                const bottom = row < rows - 1 ? (row + 1) * cols + col : -1;
+                const left = col > 0 ? row * cols + (col - 1) : -1;
+                const right = col < cols - 1 ? row * cols + (col + 1) : -1;
+                
+                this.adjacentMap.set(correctIndex, { top, bottom, left, right });
+            }
+        }
+        
+        console.log(`[PuzzleManager] 初始化相邻关系映射: ${rows}x${cols}, 共${this.adjacentMap.size}个拼图块`);
+    }
+
     private initPositions(rows: number, cols: number) {
         if (!this.puzzleContainer) return;
 
@@ -211,6 +244,13 @@ export class PuzzleManager extends Component {
             return;
         }
         
+        // 保存网格信息
+        this.currentRows = this.currentConfig.rows;
+        this.currentCols = this.currentConfig.cols;
+        
+        // 初始化相邻关系映射
+        this.initAdjacentMap(this.currentRows, this.currentCols);
+        
         // 初始化位置
         this.initPositions(this.currentConfig.rows, this.currentConfig.cols);
         
@@ -218,6 +258,9 @@ export class PuzzleManager extends Component {
         this.clearPieces();
         this.createPieces(spriteFrame, this.currentConfig.rows, this.currentConfig.cols);
         this.shufflePieces();
+        
+        // 更新边框显示
+        this.updatePieceBorders();
     }
 
     /**
@@ -378,6 +421,8 @@ export class PuzzleManager extends Component {
             // 需要检查是否移动到其他位置
             this.checkPiecePosition(piece);
         }
+        // 注意：不在这里立即更新边框，因为位置可能还在变化中
+        // 边框更新会在 checkPiecePosition 或 swapPieces 中统一处理
     }
 
     /**
@@ -394,18 +439,17 @@ export class PuzzleManager extends Component {
                 nearestIndex = i;
             }
         }
-
         // 计算到原位置的距离
         const distanceToOriginal = Vec3.distance(piece.node.position, this.positions[piece.currentIndex]);
         // 设置一个较小的阈值，如果移动距离很小，直接返回原位置
         const snapThreshold = 5;  // 如果距离原位置小于这个值，直接返回原位置
-        // 设置一个检测阈值，用于判断是否应该交换或移动到新位置
-        const detectThreshold = 80;  // 如果距离最近位置小于这个值，才考虑交换或移动
+        // 设置一个检测阈值，用于判断是否应该交换或移动到新位置,小于这个值，才考虑交换或移动
+        const detectThreshold = 80;  
 
         if (nearestIndex >= 0 && minDistance < detectThreshold) {
             const targetPiece = this.pieces.find(p => p.currentIndex === nearestIndex && p !== piece);
             if (targetPiece) {
-                // 交换位置
+                // 交换位置（swapPieces 内部会处理边框更新）
                 this.swapPieces(piece, targetPiece);
                 // 延迟检查完成（等待动画完成）
                 this.scheduleOnce(() => {
@@ -414,7 +458,9 @@ export class PuzzleManager extends Component {
             } else if (piece.currentIndex !== nearestIndex) {
                 // 移动到其他空位置
                 piece.moveToPosition(this.positions[nearestIndex], nearestIndex);
+                // 延迟更新边框和检查完成（等待动画完成）
                 this.scheduleOnce(() => {
+                    // this.updatePieceBorders();
                     this.checkComplete();
                 }, 0.35);
             } else {
@@ -422,8 +468,13 @@ export class PuzzleManager extends Component {
                 // 如果距离原位置超过阈值，移回原位置；否则保持不动
                 if (distanceToOriginal > snapThreshold) {
                     piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
+                    this.scheduleOnce(() => {
+                        // this.updatePieceBorders();
+                        this.checkComplete();
+                    }, 0.35);
                 } else {
-                    // 距离很小，直接检查完成
+                    // 距离很小，直接更新边框并检查完成（无需动画）
+                    // this.updatePieceBorders();
                     this.checkComplete();
                 }
             }
@@ -431,8 +482,13 @@ export class PuzzleManager extends Component {
             // 距离所有位置都很远，或者距离最近位置超过阈值，返回原位置
             if (distanceToOriginal > snapThreshold) {
                 piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
+                this.scheduleOnce(() => {
+                    // this.updatePieceBorders();
+                    this.checkComplete();
+                }, 0.35);
             } else {
-                // 距离原位置很近，直接检查完成
+                // 距离原位置很近，直接更新边框并检查完成（无需动画）
+                // this.updatePieceBorders();
                 this.checkComplete();
             }
         }
@@ -447,6 +503,11 @@ export class PuzzleManager extends Component {
 
         piece1.moveToPosition(this.positions[index2], index2);
         piece2.moveToPosition(this.positions[index1], index1);
+        
+        // 延迟更新边框（等待动画完成）
+        this.scheduleOnce(() => {
+            this.updatePieceBorders();
+        }, 0.35);
     }
 
     /**
@@ -665,6 +726,97 @@ export class PuzzleManager extends Component {
             loaded: this.imageCache.size,
             total: this.levelConfigs.length
         };
+    }
+    
+    /**
+     * 更新所有拼图块的边框显示
+     * 检测相邻拼图块是否相对位置正确，如果正确则隐藏相邻边
+     */
+    private updatePieceBorders(): void {
+        if (this.pieces.length === 0 || this.currentRows === 0 || this.currentCols === 0 || this.adjacentMap.size === 0) {
+            return;
+        }
+        
+        // 使用Map跟踪每个拼图块的隐藏边状态
+        const borderState = new Map<PuzzlePiece, { hideTop: boolean; hideBottom: boolean; hideLeft: boolean; hideRight: boolean }>();
+        
+        // 初始化所有拼图块的边框状态
+        for (const piece of this.pieces) {
+            borderState.set(piece, { hideTop: false, hideBottom: false, hideLeft: false, hideRight: false });
+        }
+        
+        // 遍历所有拼图块，检查它们的相邻关系
+        for (const piece of this.pieces) {
+            const correctIndex = piece.correctIndex;
+            const currentIndex = piece.currentIndex;
+            
+            // 获取该拼图块在正确位置时应该的相邻拼图块
+            const adjacent = this.adjacentMap.get(correctIndex);
+            if (!adjacent) {
+                continue;
+            }
+            
+            // 计算当前拼图块在当前网格中的行列位置
+            const currentRow = Math.floor(currentIndex / this.currentCols);
+            const currentCol = currentIndex % this.currentCols;
+            
+            // 检查上方相邻的拼图块
+            if (adjacent.top !== -1 && currentRow > 0) {
+                const topIndex = currentIndex - this.currentCols;
+                const topPiece = this.pieces.find(p => p.currentIndex === topIndex);
+                if (topPiece && topPiece.correctIndex === adjacent.top) {
+                    // 上方是正确的相邻拼图块，隐藏相邻边
+                    const state1 = borderState.get(piece)!;
+                    const state2 = borderState.get(topPiece)!;
+                    state1.hideTop = true;
+                    state2.hideBottom = true;
+                }
+            }
+            
+            // 检查下方相邻的拼图块
+            if (adjacent.bottom !== -1 && currentRow < this.currentRows - 1) {
+                const bottomIndex = currentIndex + this.currentCols;
+                const bottomPiece = this.pieces.find(p => p.currentIndex === bottomIndex);
+                if (bottomPiece && bottomPiece.correctIndex === adjacent.bottom) {
+                    // 下方是正确的相邻拼图块，隐藏相邻边
+                    const state1 = borderState.get(piece)!;
+                    const state2 = borderState.get(bottomPiece)!;
+                    state1.hideBottom = true;
+                    state2.hideTop = true;
+                }
+            }
+            
+            // 检查左侧相邻的拼图块
+            if (adjacent.left !== -1 && currentCol > 0) {
+                const leftIndex = currentIndex - 1;
+                const leftPiece = this.pieces.find(p => p.currentIndex === leftIndex);
+                if (leftPiece && leftPiece.correctIndex === adjacent.left) {
+                    // 左侧是正确的相邻拼图块，隐藏相邻边
+                    const state1 = borderState.get(piece)!;
+                    const state2 = borderState.get(leftPiece)!;
+                    state1.hideLeft = true;
+                    state2.hideRight = true;
+                }
+            }
+            
+            // 检查右侧相邻的拼图块
+            if (adjacent.right !== -1 && currentCol < this.currentCols - 1) {
+                const rightIndex = currentIndex + 1;
+                const rightPiece = this.pieces.find(p => p.currentIndex === rightIndex);
+                if (rightPiece && rightPiece.correctIndex === adjacent.right) {
+                    // 右侧是正确的相邻拼图块，隐藏相邻边
+                    const state1 = borderState.get(piece)!;
+                    const state2 = borderState.get(rightPiece)!;
+                    state1.hideRight = true;
+                    state2.hideLeft = true;
+                }
+            }
+        }
+        
+        // 应用边框状态到所有拼图块
+        for (const [piece, state] of borderState) {
+            piece.setHiddenEdges(state.hideTop, state.hideBottom, state.hideLeft, state.hideRight);
+        }
     }
 }
 
