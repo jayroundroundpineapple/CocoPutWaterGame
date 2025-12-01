@@ -1,4 +1,4 @@
-import { _decorator, Button, Component, Node, SpriteFrame, AudioSource, sys, Tween, tween, Vec3, EditBox, Label } from 'cc';
+import { _decorator, Button, Component, Node, SpriteFrame, AudioSource, sys, Tween, tween, Vec3, EditBox, Label, Graphics } from 'cc';
 import { AdManager } from './adManager';
 import { AdType } from './ad-enums';
 import { PuzzleManager } from './PuzzleManager';
@@ -13,13 +13,15 @@ const { ccclass, property } = _decorator;
 @ccclass('GameUI')
 export class GameUI extends Component {
     @property(Node)
+    private testPraphics: Node = null;  // 拼图容器节点
+    @property(Node)
     private testBtn: Node = null;
     @property(Node)
     private initButton: Node = null;
     @property(Node)
     private settingBtn: Node = null;
     @property(SettingUI)
-    private settingUI: SettingUI = null; 
+    private settingUI: SettingUI = null;
     @property(PuzzleManager)
     private puzzleManager: PuzzleManager = null;  //拼图管理器
     @property(ChapterUI)
@@ -31,11 +33,11 @@ export class GameUI extends Component {
     @property(Node)
     private puzzleGameUI: Node = null;  // 拼图游戏UI
     @property(Node)
-    private exitGameBtn: Node = null;  
+    private exitGameBtn: Node = null;
     @property(Node)
-    private hardTip:Node = null;
+    private hardTip: Node = null;
     @property(Node)
-    private hardMask:Node = null;
+    private hardMask: Node = null;
     @property(Node)
     private levelInputDialog: Node = null;  // 关卡输入弹窗
     @property(EditBox)
@@ -46,22 +48,49 @@ export class GameUI extends Component {
     private levelInputCancelBtn: Button = null;  // 取消按钮
     @property(SpriteFrame)
     private puzzleImage: SpriteFrame = null;  // 拼图图片
-    
-    
-    private bgmNode:Node = null; // 背景音乐节点
-    private sfxNode:Node = null; // 音效节点
+
+
+    private bgmNode: Node = null; // 背景音乐节点
+    private sfxNode: Node = null; // 音效节点
     private audioManager: AudioManager = null;
-    
+
     // 当前章节信息（用于返回章节时使用）
     private currentChapter: number = 1;
     private currentStartLevel: number = 1;
     private currentEndLevel: number = 25;
     // 刚刚通关的关卡编号（用于播放解锁动画）
     private justCompletedLevel: number = 0;
-    
+
     start() {
         (window as any).gameUI = this;
         this.puzzleGameUI.active = this.testBtn.active = false;
+        
+        //*测试绘图路径 */
+        // const ctx = this.testPraphics.getComponent(Graphics);
+        // const path: Array<{
+        //     type: 'move' | 'line' | 'arc';
+        //     x?: number; y?: number; cx?: number; cy?: number;
+        //     r?: number; startAngle?: number; endAngle?: number; anticlockwise?: boolean
+        // }> = [];
+        // path.push({ type: 'move', x: 0, y: 50 });
+        // path.push({ type: 'arc', cx: 0, cy: 0, r: 50, startAngle: 1 * Math.PI, endAngle: 0.5 * Math.PI, anticlockwise: false });
+        // path.push({ type: 'line', x: 200, y: 50 });
+        // for (const cmd of path) {
+        //     if (cmd.type === 'move') {
+        //         ctx.moveTo(cmd.x!, cmd.y!);
+        //     } else if (cmd.type === 'line') {
+        //         ctx.lineTo(cmd.x!, cmd.y!);
+        //     } else if (cmd.type === 'arc') {
+        //         ctx.arc(cmd.cx!, cmd.cy!, cmd.r!, cmd.startAngle!, cmd.endAngle!, cmd.anticlockwise!);
+        //     }
+        // }
+        // ctx.stroke();
+        // ctx.moveTo(100, 0);
+        // ctx.arc(0, 0, 50, 0, 1 * Math.PI, false); //true为逆时针，false顺时针
+        // ctx.stroke();
+        //*测试绘图路径 */
+        
+
         // 初始状态：显示章节界面，隐藏关卡解锁界面
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
@@ -82,7 +111,7 @@ export class GameUI extends Component {
         this.initAudio();
         this.initPreload();
     }
-    
+
     /**
      * 初始化预加载
      */
@@ -91,7 +120,7 @@ export class GameUI extends Component {
             console.warn('[GameUI] PuzzleManager 未设置，无法预加载资源');
             return;
         }
-        
+
         // 等待配置加载完成后再预加载图片
         this.scheduleOnce(() => {
             this.startPreload();
@@ -107,7 +136,7 @@ export class GameUI extends Component {
             console.warn('[GameUI] 未设置测试按钮');
         }
     }
-    
+
     /**
      * 初始化关卡输入弹窗
      */
@@ -115,12 +144,12 @@ export class GameUI extends Component {
         if (this.levelInputDialog) {
             // 初始状态：隐藏弹窗
             this.levelInputDialog.active = false;
-            
+
             // 绑定确认按钮
             if (this.levelInputConfirmBtn) {
                 this.levelInputConfirmBtn.node.on(Node.EventType.TOUCH_END, this.onLevelInputConfirm, this);
             }
-            
+
             // 绑定取消按钮
             if (this.levelInputCancelBtn) {
                 this.levelInputCancelBtn.node.on(Node.EventType.TOUCH_END, this.onLevelInputCancel, this);
@@ -129,7 +158,7 @@ export class GameUI extends Component {
             console.warn('[GameUI] 未设置关卡输入弹窗');
         }
     }
-    
+
     /**
      * 测试按钮点击事件
      * 显示输入弹窗
@@ -151,7 +180,7 @@ export class GameUI extends Component {
             console.warn('[GameUI] 关卡输入弹窗未设置');
         }
     }
-    
+
     /**
      * 关卡输入确认按钮点击事件
      */
@@ -160,29 +189,29 @@ export class GameUI extends Component {
             console.warn('[GameUI] 关卡输入框未设置');
             return;
         }
-        
+
         const input = this.levelInputEditBox.string.trim();
         if (!input) {
             console.warn('[GameUI] 请输入关卡编号');
             return;
         }
-        
+
         const level = parseInt(input, 10);
         if (isNaN(level) || level < 1 || level > 50) {
             console.warn('[GameUI] 请输入有效的关卡编号（1-50）');
             // 可以在这里显示提示信息，或者使用 Label 显示错误信息
             return;
         }
-        
+
         // 隐藏弹窗
         if (this.levelInputDialog) {
             this.levelInputDialog.active = false;
         }
-        
+
         console.log(`[GameUI] 快速解锁并跳转到关卡 ${level}`);
         this.quickUnlockAndJumpToLevel(level);
     }
-    
+
     /**
      * 关卡输入取消按钮点击事件
      */
@@ -192,19 +221,19 @@ export class GameUI extends Component {
             this.levelInputDialog.active = false;
         }
     }
-    
+
     /**
      * 快速解锁到指定关卡之前的所有关卡，并跳转到该关卡
      * @param level 目标关卡编号（全局关卡编号）
      */
     public quickUnlockAndJumpToLevel(level: number): void {
         console.log(`[GameUI] 快速解锁并跳转到关卡 ${level}`);
-        
+
         // 1. 确定目标关卡所在的章节
         let targetChapter = 1;
         let targetStartLevel = 1;
         let targetEndLevel = 25;
-        
+
         if (level >= 1 && level <= 25) {
             targetChapter = 1;
             targetStartLevel = 1;
@@ -214,7 +243,7 @@ export class GameUI extends Component {
             targetStartLevel = 26;
             targetEndLevel = 50;
         }
-        
+
         // 2. 如果目标关卡在第二章节，需要先解锁第一章节的所有关卡
         if (targetChapter > 1) {
             // 先进入第一章节，解锁所有关卡
@@ -273,7 +302,7 @@ export class GameUI extends Component {
             }, 0.2);
         }
     }
-    
+
     /**
      * 
      * @param level 关卡编号（全局关卡编号）
@@ -283,7 +312,7 @@ export class GameUI extends Component {
             this.levelUnlockUI.quickUnlockBeforeLevel(level, false);
         }
     }
-    
+
     /**
      * 开始预加载所有关卡图片
      */
@@ -291,9 +320,9 @@ export class GameUI extends Component {
         if (!this.puzzleManager) {
             return;
         }
-        
+
         console.log('[GameUI] 开始预加载所有关卡图片资源...');
-        
+
         // 设置预加载进度回调
         this.puzzleManager.onPreloadProgress = (loaded: number, total: number) => {
             const progress = Math.floor((loaded / total) * 100);
@@ -301,12 +330,12 @@ export class GameUI extends Component {
                 console.log(`[GameUI] 预加载进度: ${loaded}/${total} (${progress}%)`);
             }
         };
-        
+
         // 设置预加载完成回调
         this.puzzleManager.onPreloadComplete = () => {
             console.log('[GameUI] ✅ 所有关卡图片预加载完成！游戏可以流畅运行了');
         };
-        
+
         // 开始预加载
         this.puzzleManager.preloadAllImages(
             (loaded: number, total: number) => {
@@ -322,33 +351,33 @@ export class GameUI extends Component {
             }
         );
     }
-    
+
     /**
      * 初始化音频系统
      */
     private initAudio(): void {
         // 获取音频管理器实例
         this.audioManager = AudioManager.getInstance();
-        
+
         // 创建音频节点（如果未设置）
         if (!this.bgmNode) {
             this.bgmNode = new Node('BGMNode');
             this.bgmNode.parent = this.node;
             this.bgmNode.addComponent(AudioSource);
         }
-        
+
         if (!this.sfxNode) {
             this.sfxNode = new Node('SFXNode');
             this.sfxNode.parent = this.node;
             this.sfxNode.addComponent(AudioSource);
         }
-        
+
         // 初始化音频管理器（会自动播放背景音乐）
         this.audioManager.init(this.bgmNode, this.sfxNode);
-        
+
         console.log('[GameUI] 音频系统初始化完成，背景音乐已开始播放');
     }
-    
+
     /**
      * 初始化设置界面
      */
@@ -372,7 +401,7 @@ export class GameUI extends Component {
             };
         }
     }
-    
+
     /**
      * 重置当前关卡
      */
@@ -386,7 +415,7 @@ export class GameUI extends Component {
             console.error('[GameUI] PuzzleManager 未设置，无法重置关卡');
         }
     }
-    
+
     /**
      * 更新困难模式提示的显示状态
      */
@@ -401,16 +430,16 @@ export class GameUI extends Component {
                 this.hardTip.active = true;
                 this.scheduleOnce(() => {
                     this.hardMask.active = true;
-                },0.1)
+                }, 0.1)
                 tween(this.hardTip).delay(0.2)
-                .to(0.5, { scale: new Vec3(1, 1, 1) })
-                .delay(0.7)
-                .to(0.5, { scale: new Vec3(0, 0, 1) })
-                .call(() => {
-                    this.hardTip.active = false;
-                    this.hardMask.active = false;
-                })
-                .start();
+                    .to(0.5, { scale: new Vec3(1, 1, 1) })
+                    .delay(0.7)
+                    .to(0.5, { scale: new Vec3(0, 0, 1) })
+                    .call(() => {
+                        this.hardTip.active = false;
+                        this.hardMask.active = false;
+                    })
+                    .start();
             } else {
                 console.log('[GameUI] 当前关卡为普通模式，隐藏困难提示');
             }
@@ -428,7 +457,7 @@ export class GameUI extends Component {
             };
         }
     }
-    
+
     /**
      * 初始化关卡解锁UI
      */
@@ -446,7 +475,7 @@ export class GameUI extends Component {
             };
         }
     }
-    
+
     /**
      * 初始化拼图成功弹窗UI
      */
@@ -458,7 +487,7 @@ export class GameUI extends Component {
             };
         }
     }
-    
+
     /**
      * 下一关按钮点击处理
      */
@@ -469,7 +498,7 @@ export class GameUI extends Component {
         // 返回到章节UI，然后自动进入章节并显示解锁动画
         this.backToChapterWithUnlockAnimation();
     }
-    
+
     /**
      * 返回章节界面并显示解锁动画
      */
@@ -482,30 +511,30 @@ export class GameUI extends Component {
             this.enterChapter(this.currentChapter, this.currentStartLevel, this.currentEndLevel, true);
         }, 0.3);
     }
-    
+
     /**
      * 进入指定章节
      */
     private enterChapter(chapter: number, startLevel: number, endLevel: number, showUnlockAnimation: boolean = false): void {
         console.log(`[GameUI] 进入章节 ${chapter}，关卡范围：${startLevel}-${endLevel}`);
-        
+
         // 保存当前章节信息
         this.testBtn.active = true;
         this.currentChapter = chapter;
         this.currentStartLevel = startLevel;
         this.currentEndLevel = endLevel;
-        
+
         // 隐藏章节界面
         if (this.chapterUI && this.chapterUI.node) {
             this.chapterUI.hide();
         }
-        
+
         // 显示关卡解锁UI
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             // 根据章节计算网格布局（5x5）
             const gridRows = 5;
             const gridCols = 5;
-            
+
             // 获取章节对应的背景图
             let chapterBackgroundImage: SpriteFrame | null = null;
             if (this.chapterUI) {
@@ -514,7 +543,7 @@ export class GameUI extends Component {
             // 初始化关卡解锁UI，传入章节背景图
             this.levelUnlockUI.init(chapter, startLevel, endLevel, gridRows, gridCols, chapterBackgroundImage);
             this.levelUnlockUI.node.active = true;
-            
+
             if (showUnlockAnimation && this.justCompletedLevel > 0) {
                 this.scheduleOnce(() => {
                     this.levelUnlockUI.playUnlockAnimationForLevel(this.justCompletedLevel);
@@ -523,18 +552,18 @@ export class GameUI extends Component {
             }
         }
     }
-    
+
     /**
      * 返回章节界面
      */
     private backToChapter(): void {
         console.log('[GameUI] 返回章节界面');
-        
+
         // 隐藏关卡解锁UI
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
-        
+
         // 刷新章节UI状态（检查章节完成状态和解锁状态）
         if (this.chapterUI && this.chapterUI.node) {
             // 检查并更新所有章节的完成状态
@@ -556,17 +585,17 @@ export class GameUI extends Component {
      */
     private backToHome(): void {
         console.log('[GameUI] 返回首页');
-        
+
         // 隐藏拼图游戏UI
         if (this.puzzleGameUI) {
             this.puzzleGameUI.active = false;
         }
-        
+
         // 隐藏关卡解锁UI
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
-        
+
         // 刷新章节UI状态（检查章节完成状态和解锁状态）
         if (this.chapterUI && this.chapterUI.node) {
             // 检查并更新所有章节的完成状态
@@ -588,17 +617,17 @@ export class GameUI extends Component {
      */
     private enterLevel(level: number): void {
         console.log(`[GameUI] 进入关卡 ${level}`);
-        
+
         // 隐藏关卡解锁UI
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
-        
+
         // 显示拼图游戏UI
         if (this.puzzleGameUI) {
             this.puzzleGameUI.active = true;
         }
-        
+
         // 开始指定关卡的拼图
         if (this.puzzleManager) {
             this.puzzleManager.startLevel(level);
@@ -607,24 +636,24 @@ export class GameUI extends Component {
             console.error('[GameUI] PuzzleManager 未设置');
         }
     }
-    
+
     /**
      * 开始拼图游戏（从开始游戏按钮调用）
      * 进入当前章节的最新关卡
      */
     private startPuzzleGameFromButton(): void {
         console.log('[GameUI] 从开始游戏按钮进入最新关卡');
-        
+
         // 隐藏关卡解锁UI
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
-        
+
         // 显示拼图游戏UI
         if (this.puzzleGameUI) {
             this.puzzleGameUI.active = true;
         }
-        
+
         // 计算当前章节的最新关卡
         if (this.levelUnlockUI && this.puzzleManager) {
             // 获取当前章节信息
@@ -635,7 +664,7 @@ export class GameUI extends Component {
             const storageKey = `puzzle_unlock_states_chapter_${chapter}`;
             const saved = sys.localStorage.getItem(storageKey);
             let unlockStates: boolean[] = [];
-            
+
             if (saved) {
                 try {
                     unlockStates = JSON.parse(saved);
@@ -679,7 +708,7 @@ export class GameUI extends Component {
             console.warn('[GameUI] 未设置退出游戏按钮');
         }
     }
-    
+
     /**
      * 恢复设置按钮状态
      */
@@ -691,7 +720,7 @@ export class GameUI extends Component {
             }
         }
     }
-    
+
     /**
      * 初始化拼图游戏
      */
@@ -703,7 +732,7 @@ export class GameUI extends Component {
         let spriteFrame: SpriteFrame = null;
         if (this.puzzleImage) {
             spriteFrame = this.puzzleImage;
-        } 
+        }
         if (spriteFrame) {
             this.puzzleManager.onPuzzleComplete = (level: number) => {
                 this.onPuzzleComplete(level);
@@ -718,13 +747,13 @@ export class GameUI extends Component {
             if (this.audioManager) {
                 this.audioManager.playClickSound();
             }
-            
+
             // 检查是否在游戏中（puzzleGameUI 是否激活）
             const isInGame = this.puzzleGameUI && this.puzzleGameUI.active;
-            
+
             // 显示设置界面，传递是否在游戏中的状态
             this.settingUI.show(0.3, isInGame);
-            
+
             // 禁用设置按钮，防止重复打开
             if (this.settingBtn) {
                 const button = this.settingBtn.getComponent(Button);
@@ -736,7 +765,7 @@ export class GameUI extends Component {
             console.error('[GameUI] 设置界面未设置');
         }
     }
-    
+
     public closeSetting(): void {
         if (this.settingUI) {
             this.settingUI.hide();
@@ -747,23 +776,23 @@ export class GameUI extends Component {
             this.settingUI.toggle();
         }
     }
-    
+
     /**
      * 开始拼图游戏
      */
     public startPuzzleGame(): void {
         console.log('[GameUI] 开始拼图游戏');
-        
+
         // 隐藏关卡解锁UI
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
-        
+
         // 显示拼图游戏UI
         if (this.puzzleGameUI) {
             this.puzzleGameUI.active = true;
         }
-        
+
         // 开始第一关拼图
         if (this.puzzleManager && this.puzzleImage) {
             // 这里可以加载第一关的图片
@@ -810,24 +839,24 @@ export class GameUI extends Component {
      */
     private onPuzzleComplete(level: number) {
         console.log(`恭喜！完成第 ${level} 关拼图！`);
-        
+
         // 记录刚刚通关的关卡
         this.justCompletedLevel = level;
-        
+
         // 解锁对应关卡（不播放动画，动画将在返回章节后播放）
         if (this.levelUnlockUI) {
             this.levelUnlockUI.unlockLevel(level, false);  // 不播放动画，只保存状态
-            
+
             // 检查章节是否全部完成
             if (this.levelUnlockUI.isChapterCompleted()) {
                 const currentChapter = this.levelUnlockUI.getChapter();
                 console.log(`[GameUI] 章节 ${currentChapter} 全部完成！`);
-                
+
                 // 更新章节完成状态
                 if (this.chapterUI) {
                     this.chapterUI.updateChapterCompleted(currentChapter);
                 }
-            
+
                 // 解锁下一章节
                 if (this.chapterUI && currentChapter < 2) {
                     const nextChapter = currentChapter + 1;
@@ -836,7 +865,7 @@ export class GameUI extends Component {
                 }
             }
         }
-        
+
         // 显示成功弹窗（显示完成的拼图图片）
         if (this.puzzleSuccessUI && this.puzzleManager) {
             const completedImage = this.puzzleManager.getCurrentLevelImage();
@@ -864,16 +893,16 @@ export class GameUI extends Component {
             }
         );
     }
-    
+
     onShowRewardButtonClick() {
         console.log('onShowRewardButtonClick');
-        AdManager.ShowAd(AdType.AD_TYPE_Reward, 'reward_placement',(adtype,adevent,error)=>{
+        AdManager.ShowAd(AdType.AD_TYPE_Reward, 'reward_placement', (adtype, adevent, error) => {
             console.log('Ad Event:', adtype, adevent, error);
         });
     }
-    
+
     update(deltaTime: number) {
-        
+
     }
 
     protected onDestroy() {
@@ -884,15 +913,15 @@ export class GameUI extends Component {
         if (this.initButton) {
             this.initButton.off(Node.EventType.TOUCH_END, this.onInitButtonClick, this);
         }
-       
+
         if (this.testBtn) {
             this.testBtn.off(Node.EventType.TOUCH_END, this.onTestButtonClick, this);
         }
-        
+
         if (this.levelInputConfirmBtn) {
             this.levelInputConfirmBtn.node.off(Node.EventType.TOUCH_END, this.onLevelInputConfirm, this);
         }
-        
+
         if (this.levelInputCancelBtn) {
             this.levelInputCancelBtn.node.off(Node.EventType.TOUCH_END, this.onLevelInputCancel, this);
         }

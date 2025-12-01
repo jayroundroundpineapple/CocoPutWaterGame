@@ -234,16 +234,16 @@ export class PuzzlePiece extends Component {
             switch (edge) {
                 case 'top':
                     // 如果左边隐藏，顶边应该延伸到左上角
-                    return { x: this.hideLeft ? -halfW : -halfW, y: -halfH };
+                    return { x: this.hideLeft ? -halfW : -halfW, y: halfH };
                 case 'right':
                     // 如果上边隐藏，右边应该延伸到右上角
-                    return { x: halfW, y: this.hideTop ? -halfH : -halfH };
+                    return { x: halfW, y: this.hideTop ? -halfH : halfH };
                 case 'bottom':
                     // 如果右边隐藏，底边应该延伸到右下角
-                    return { x: this.hideRight ? halfW : halfW, y: halfH };
+                    return { x: this.hideRight ? halfW : halfW, y: -halfH };
                 case 'left':
                     // 如果下边隐藏，左边应该延伸到左下角
-                    return { x: -halfW, y: this.hideBottom ? halfH : halfH };
+                    return { x: -halfW, y: this.hideBottom ? halfH : -halfH };
                 default:
                     return { x: 0, y: 0 };
             }
@@ -277,17 +277,21 @@ export class PuzzlePiece extends Component {
                 pathStarted = true;
                 if (edgeName === 'top' && !this.hideLeft) {
                     // 从左上角圆角开始
-                    path.push({ type: 'move', x: -halfW, y: -halfH + radius });
-                    path.push({ type: 'arc', cx: -halfW + radius, cy: -halfH + radius, r: radius, startAngle: Math.PI, endAngle: -Math.PI / 2, anticlockwise: true });
+                    path.push({ type: 'move', x: -halfW, y: halfH - radius });
+                    path.push({ type: 'arc', cx: -halfW + radius, cy: halfH - radius, 
+                        r: radius, startAngle: Math.PI, endAngle: Math.PI / 2, anticlockwise: false });
                 } else if (edgeName === 'right' && !this.hideTop) {
-                    path.push({ type: 'move', x: halfW - radius, y: -halfH });
-                    path.push({ type: 'arc', cx: halfW - radius, cy: -halfH + radius, r: radius, startAngle: -Math.PI / 2, endAngle: 0, anticlockwise: true });
+                    path.push({ type: 'move', x: halfW - radius, y: halfH });
+                    path.push({ type: 'arc', cx: halfW - radius, cy: halfH - radius, 
+                        r: radius, startAngle: Math.PI / 2, endAngle: 0, anticlockwise: false });
                 } else if (edgeName === 'bottom' && !this.hideRight) {
-                    path.push({ type: 'move', x: halfW, y: halfH - radius });
-                    path.push({ type: 'arc', cx: halfW - radius, cy: halfH - radius, r: radius, startAngle: 0, endAngle: Math.PI / 2, anticlockwise: true });
+                    path.push({ type: 'move', x: halfW, y: -halfH + radius });
+                    path.push({ type: 'arc', cx: halfW - radius, cy: -halfH + radius, 
+                        r: radius, startAngle: 0, endAngle: -Math.PI / 2, anticlockwise: false });
                 } else if (edgeName === 'left' && !this.hideBottom) {
-                    path.push({ type: 'move', x: -halfW + radius, y: halfH });
-                    path.push({ type: 'arc', cx: -halfW + radius, cy: halfH - radius, r: radius, startAngle: Math.PI / 2, endAngle: Math.PI, anticlockwise: true });
+                    path.push({ type: 'move', x: -halfW + radius, y: -halfH + radius });
+                    path.push({ type: 'arc', cx: -halfW + radius, cy: -halfH + radius, 
+                        r: radius, startAngle: -Math.PI / 2, endAngle: Math.PI, anticlockwise: false });
                 } else {
                     // 相邻边隐藏，直接移动到角落
                     path.push({ type: 'move', x: start.x, y: start.y });
@@ -315,30 +319,30 @@ export class PuzzlePiece extends Component {
             }
 
             // 绘制当前边
-            // 关键：当相邻边隐藏时，应该延伸到角落，用直线代替圆角
+            // 关键：当相邻边隐藏时，应该延伸到角落，用直±线代替圆角
             if (edgeName === 'top') {
                 // 顶边：如果右边隐藏，应该延伸到右上角；否则到圆角起点
                 const endX = this.hideRight ? halfW : halfW - radius;
-                path.push({ type: 'line', x: endX, y: -halfH });
+                path.push({ type: 'line', x: endX, y: halfH });
                 // 如果右边未隐藏，绘制右上角圆角
                 if (!this.hideRight) {
-                    path.push({ type: 'arc', cx: halfW - radius, cy: -halfH + radius, r: radius, startAngle: -Math.PI / 2, endAngle: 0, anticlockwise: true });
+                    path.push({ type: 'arc', cx: halfW - radius, cy: halfH - radius, r: radius, startAngle: Math.PI / 2, endAngle: 0, anticlockwise: false });
                 }
             } else if (edgeName === 'right') {
                 // 右边：如果下边隐藏，应该延伸到右下角；否则到圆角起点
-                const endY = this.hideBottom ? halfH : halfH - radius;
+                const endY = this.hideBottom ? -halfH : -halfH + radius;
                 path.push({ type: 'line', x: halfW, y: endY });
                 // 如果下边未隐藏，绘制右下角圆角
                 if (!this.hideBottom) {
-                    path.push({ type: 'arc', cx: halfW - radius, cy: halfH - radius, r: radius, startAngle: 0, endAngle: Math.PI / 2, anticlockwise: true });
+                    path.push({ type: 'arc', cx: halfW - radius, cy: -halfH + radius, r: radius, startAngle: 0, endAngle: -Math.PI / 2, anticlockwise: false });
                 }
             } else if (edgeName === 'bottom') {
                 // 底边：如果左边隐藏，应该延伸到左下角；否则到圆角起点
                 const endX = this.hideLeft ? -halfW : -halfW + radius;
-                path.push({ type: 'line', x: endX, y: halfH });
+                path.push({ type: 'line', x: endX, y: -halfH });
                 // 如果左边未隐藏，绘制左下角圆角
                 if (!this.hideLeft) {
-                    path.push({ type: 'arc', cx: -halfW + radius, cy: halfH - radius, r: radius, startAngle: Math.PI / 2, endAngle: Math.PI, anticlockwise: true });
+                    path.push({ type: 'arc', cx: -halfW + radius, cy: -halfH + radius, r: radius, startAngle: -Math.PI / 2, endAngle: Math.PI, anticlockwise: false });
                 }
             } else if (edgeName === 'left') {
                 // 左边：如果上边隐藏，应该延伸到左上角；否则到圆角起点
@@ -346,7 +350,7 @@ export class PuzzlePiece extends Component {
                 path.push({ type: 'line', x: -halfW, y: endY });
                 // 如果上边未隐藏，绘制左上角圆角
                 if (!this.hideTop) {
-                    path.push({ type: 'arc', cx: -halfW + radius, cy: -halfH + radius, r: radius, startAngle: Math.PI, endAngle: -Math.PI / 2, anticlockwise: true });
+                    path.push({ type: 'arc', cx: -halfW + radius, cy: halfH - radius, r: radius, startAngle: Math.PI, endAngle: Math.PI / 2, anticlockwise: false });
                 }
             }
 
