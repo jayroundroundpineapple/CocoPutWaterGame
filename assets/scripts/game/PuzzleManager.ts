@@ -769,6 +769,7 @@ export class PuzzleManager extends Component {
                 console.warn(`[PuzzleManager] 找不到 correctIndex=${correctIndex} 的相邻关系映射`);
                 continue;
             }
+            console.log(`拼图块 ${correctIndex} 当前位置 ${currentIndex}, 相邻关系:`, adjacent);
             
             // 计算当前拼图块在当前网格中的行列位置
             const currentRow = Math.floor(currentIndex / this.currentCols);
@@ -876,6 +877,8 @@ export class PuzzleManager extends Component {
         // 应用边框状态到所有拼图块
         for (const [piece, state] of borderState) {
             piece.setHiddenEdges(state.hideTop, state.hideBottom, state.hideLeft, state.hideRight);
+            console.log(`拼图块当前位置：${piece.correctIndex},拼块正确位置:${piece.correctIndex},
+            隐藏边: top=${state.hideTop}, bottom=${state.hideBottom}, left=${state.hideLeft}, right=${state.hideRight}`);
         }
     }
 }
