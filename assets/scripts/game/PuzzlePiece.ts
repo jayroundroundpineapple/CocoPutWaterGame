@@ -29,7 +29,9 @@ export class PuzzlePiece extends Component {
     // 边框配置
     private readonly BORDER_WIDTH = 3;
     private readonly BORDER_COLOR = new Color(30, 30, 30, 255);
-    private readonly CORNER_RADIUS = 10;
+    private readonly CORNER_RADIUS = 6;
+    private readonly Puzzle_CORNER_RADIUS = 6;
+
 
     // 回调函数
     public onPositionChanged: (piece: PuzzlePiece, newIndex: number) => void = null;
@@ -104,13 +106,89 @@ export class PuzzlePiece extends Component {
         this.maskNode.getComponent(UITransform).width = nodeTransform.width;
         this.maskNode.getComponent(UITransform).height = nodeTransform.height;
         const maskGraphics = this.maskNode.getComponent(Graphics);
-        maskGraphics.roundRect(-nodeTransform.width / 2, -nodeTransform.height / 2, nodeTransform.width, nodeTransform.height, 6);
+        maskGraphics.roundRect(-nodeTransform.width / 2, -nodeTransform.height / 2, nodeTransform.width, nodeTransform.height, this.Puzzle_CORNER_RADIUS);
         maskGraphics.fillColor = new Color(30, 30, 30, 255);
         maskGraphics.fill();
         maskGraphics.stroke();
 
         // 绘制边框（根据隐藏状态）
         this.updateBorder();
+        this.updateMask();
+    }
+    /**
+     * 更新遮罩形状（根据隐藏边动态调整圆角）
+     * 当相邻边隐藏时，对应的角应该变成方形
+     * 遮罩始终覆盖整个区域，只是圆角会根据隐藏状态调整
+     */
+    private updateMask(): void {
+        if (!this.maskNode || !this.node.getComponent(UITransform)) return;
+
+        const nodeTransform = this.node.getComponent(UITransform);
+        const width = nodeTransform.width;
+        const height = nodeTransform.height;
+        const halfW = width / 2;
+        const halfH = height / 2;
+        const radius = this.Puzzle_CORNER_RADIUS; // 遮罩圆角半径
+
+        const maskGraphics = this.maskNode.getComponent(Graphics);
+        maskGraphics.clear();
+        maskGraphics.fillColor = new Color(30, 30, 30, 255);
+
+        // 如果所有边都不隐藏，绘制完整圆角矩形
+        if (!this.hideTop && !this.hideBottom && !this.hideLeft && !this.hideRight) {
+            maskGraphics.roundRect(-halfW, -halfH, width, height, radius);
+            maskGraphics.fill();
+            return;
+        }
+        // const topLeftRound = !this.hideTop && !this.hideLeft;
+        // const topRightRound = !this.hideTop && !this.hideRight;
+        // const bottomRightRound = !this.hideBottom && !this.hideRight;
+        // const bottomLeftRound = !this.hideBottom && !this.hideLeft;
+
+        // const x = -halfW;
+        // const y = -halfH;
+
+        // // 按顺时针顺序构建路径，始终绘制完整的矩形，只是调整圆角
+        // // 从左上角开始
+        // if (topLeftRound) {
+        //     maskGraphics.moveTo(x, y + radius);
+        //     maskGraphics.arc(x + radius, y + radius, radius, Math.PI, -Math.PI / 2, true);
+        // } else {
+        //     maskGraphics.moveTo(x, y);
+        // }
+
+        // // 顶边（始终绘制）
+        // const topEndX = topRightRound ? x + width - radius : x + width;
+        // maskGraphics.lineTo(topEndX, y);
+        // if (topRightRound) {
+        //     maskGraphics.arc(x + width - radius, y + radius, radius, -Math.PI / 2, 0, true);
+        // }
+
+        // // 右边（始终绘制）
+        // const rightEndY = bottomRightRound ? y + height - radius : y + height;
+        // maskGraphics.lineTo(x + width, rightEndY);
+        // if (bottomRightRound) {
+        //     maskGraphics.arc(x + width - radius, y + height - radius, radius, 0, Math.PI / 2, true);
+        // }
+
+        // // 底边（始终绘制）
+        // const bottomEndX = bottomLeftRound ? x + radius : x;
+        // maskGraphics.lineTo(bottomEndX, y + height);
+        // if (bottomLeftRound) {
+        //     maskGraphics.arc(x + radius, y + height - radius, radius, Math.PI / 2, Math.PI, true);
+        // }
+
+        // // 左边（始终绘制）
+        // const leftEndY = topLeftRound ? y + radius : y;
+        // maskGraphics.lineTo(x, leftEndY);
+        // if (topLeftRound) {
+        //     // 如果左上角是圆角，需要绘制圆角闭合
+        //     // 但此时已经在正确位置，不需要额外操作
+        // }
+
+        // 闭合路径并填充
+        // maskGraphics.close();
+        // maskGraphics.fill();
     }
 
     /**
@@ -140,7 +218,7 @@ export class PuzzlePiece extends Component {
 
         // 构建连续的路径，按顺时针顺序绘制
         // 关键：当两个可见边之间有空隙（隐藏的边）时，使用 moveTo 跳转，避免出现对角线
-        
+
         // 辅助函数：检查两个边是否相邻（在顺时针方向上）
         const isAdjacent = (edge1: string | null, edge2: string): boolean => {
             if (edge1 === null) return false;
@@ -171,9 +249,11 @@ export class PuzzlePiece extends Component {
             }
         };
 
-        const path: Array<{ type: 'move' | 'line' | 'arc';
+        const path: Array<{
+            type: 'move' | 'line' | 'arc';
             x?: number; y?: number; cx?: number; cy?: number;
-            r?: number; startAngle?: number; endAngle?: number; anticlockwise?: boolean }> = [];
+            r?: number; startAngle?: number; endAngle?: number; anticlockwise?: boolean
+        }> = [];
 
         let lastEdge: string | null = null;
         let pathStarted = false;
@@ -198,16 +278,16 @@ export class PuzzlePiece extends Component {
                 if (edgeName === 'top' && !this.hideLeft) {
                     // 从左上角圆角开始
                     path.push({ type: 'move', x: -halfW, y: -halfH + radius });
-                    path.push({ type: 'arc', cx: -halfW + radius, cy: -halfH + radius, r: radius, startAngle: Math.PI, endAngle: -Math.PI/2, anticlockwise: true });
+                    path.push({ type: 'arc', cx: -halfW + radius, cy: -halfH + radius, r: radius, startAngle: Math.PI, endAngle: -Math.PI / 2, anticlockwise: true });
                 } else if (edgeName === 'right' && !this.hideTop) {
                     path.push({ type: 'move', x: halfW - radius, y: -halfH });
-                    path.push({ type: 'arc', cx: halfW - radius, cy: -halfH + radius, r: radius, startAngle: -Math.PI/2, endAngle: 0, anticlockwise: true });
+                    path.push({ type: 'arc', cx: halfW - radius, cy: -halfH + radius, r: radius, startAngle: -Math.PI / 2, endAngle: 0, anticlockwise: true });
                 } else if (edgeName === 'bottom' && !this.hideRight) {
                     path.push({ type: 'move', x: halfW, y: halfH - radius });
-                    path.push({ type: 'arc', cx: halfW - radius, cy: halfH - radius, r: radius, startAngle: 0, endAngle: Math.PI/2, anticlockwise: true });
+                    path.push({ type: 'arc', cx: halfW - radius, cy: halfH - radius, r: radius, startAngle: 0, endAngle: Math.PI / 2, anticlockwise: true });
                 } else if (edgeName === 'left' && !this.hideBottom) {
                     path.push({ type: 'move', x: -halfW + radius, y: halfH });
-                    path.push({ type: 'arc', cx: -halfW + radius, cy: halfH - radius, r: radius, startAngle: Math.PI/2, endAngle: Math.PI, anticlockwise: true });
+                    path.push({ type: 'arc', cx: -halfW + radius, cy: halfH - radius, r: radius, startAngle: Math.PI / 2, endAngle: Math.PI, anticlockwise: true });
                 } else {
                     // 相邻边隐藏，直接移动到角落
                     path.push({ type: 'move', x: start.x, y: start.y });
@@ -220,12 +300,12 @@ export class PuzzlePiece extends Component {
                 } else {
                     // 如果相邻，检查前一条边是否隐藏
                     // 如果前一条边隐藏，当前边需要从角落开始
-                    const prevEdgeHidden = 
+                    const prevEdgeHidden =
                         (lastEdge === 'top' && this.hideTop) ||
                         (lastEdge === 'right' && this.hideRight) ||
                         (lastEdge === 'bottom' && this.hideBottom) ||
                         (lastEdge === 'left' && this.hideLeft);
-                    
+
                     if (prevEdgeHidden) {
                         // 前一条边隐藏，需要移动到当前边的起点（角落）
                         path.push({ type: 'move', x: start.x, y: start.y });
@@ -242,7 +322,7 @@ export class PuzzlePiece extends Component {
                 path.push({ type: 'line', x: endX, y: -halfH });
                 // 如果右边未隐藏，绘制右上角圆角
                 if (!this.hideRight) {
-                    path.push({ type: 'arc', cx: halfW - radius, cy: -halfH + radius, r: radius, startAngle: -Math.PI/2, endAngle: 0, anticlockwise: true });
+                    path.push({ type: 'arc', cx: halfW - radius, cy: -halfH + radius, r: radius, startAngle: -Math.PI / 2, endAngle: 0, anticlockwise: true });
                 }
             } else if (edgeName === 'right') {
                 // 右边：如果下边隐藏，应该延伸到右下角；否则到圆角起点
@@ -250,7 +330,7 @@ export class PuzzlePiece extends Component {
                 path.push({ type: 'line', x: halfW, y: endY });
                 // 如果下边未隐藏，绘制右下角圆角
                 if (!this.hideBottom) {
-                    path.push({ type: 'arc', cx: halfW - radius, cy: halfH - radius, r: radius, startAngle: 0, endAngle: Math.PI/2, anticlockwise: true });
+                    path.push({ type: 'arc', cx: halfW - radius, cy: halfH - radius, r: radius, startAngle: 0, endAngle: Math.PI / 2, anticlockwise: true });
                 }
             } else if (edgeName === 'bottom') {
                 // 底边：如果左边隐藏，应该延伸到左下角；否则到圆角起点
@@ -258,7 +338,7 @@ export class PuzzlePiece extends Component {
                 path.push({ type: 'line', x: endX, y: halfH });
                 // 如果左边未隐藏，绘制左下角圆角
                 if (!this.hideLeft) {
-                    path.push({ type: 'arc', cx: -halfW + radius, cy: halfH - radius, r: radius, startAngle: Math.PI/2, endAngle: Math.PI, anticlockwise: true });
+                    path.push({ type: 'arc', cx: -halfW + radius, cy: halfH - radius, r: radius, startAngle: Math.PI / 2, endAngle: Math.PI, anticlockwise: true });
                 }
             } else if (edgeName === 'left') {
                 // 左边：如果上边隐藏，应该延伸到左上角；否则到圆角起点
@@ -266,7 +346,7 @@ export class PuzzlePiece extends Component {
                 path.push({ type: 'line', x: -halfW, y: endY });
                 // 如果上边未隐藏，绘制左上角圆角
                 if (!this.hideTop) {
-                    path.push({ type: 'arc', cx: -halfW + radius, cy: -halfH + radius, r: radius, startAngle: Math.PI, endAngle: -Math.PI/2, anticlockwise: true });
+                    path.push({ type: 'arc', cx: -halfW + radius, cy: -halfH + radius, r: radius, startAngle: Math.PI, endAngle: -Math.PI / 2, anticlockwise: true });
                 }
             }
 
@@ -301,6 +381,7 @@ export class PuzzlePiece extends Component {
         this.hideLeft = hideLeft;
         this.hideRight = hideRight;
         this.updateBorder();
+        this.updateMask();
     }
 
     /**
