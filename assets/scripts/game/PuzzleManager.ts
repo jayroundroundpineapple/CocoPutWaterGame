@@ -447,7 +447,7 @@ export class PuzzleManager extends Component {
         const detectThreshold = 80;  
 
         if (nearestIndex >= 0 && minDistance < detectThreshold) {
-            const targetPiece = this.pieces.find(p => p.currentIndex === nearestIndex && p !== piece);
+            const targetPiece = this.pieces.find(p => p?.currentIndex === nearestIndex && p !== piece);
             if (targetPiece) {
                 // 交换位置（swapPieces 内部会处理边框更新）
                 this.swapPieces(piece, targetPiece);
@@ -784,7 +784,7 @@ export class PuzzleManager extends Component {
             // 检查上方相邻的拼图块
             if (adjacent.top !== -1 && currentRow > 0) {
                 const topIndex = currentIndex - this.currentCols;
-                const topPiece = this.pieces.find(p => p.currentIndex === topIndex);
+                const topPiece = this.pieces.find(p => p?.currentIndex === topIndex);
                 if (topPiece && topPiece.correctIndex === adjacent.top) {
                     // 确保 topPiece 在 borderState 中
                     if (!borderState.has(topPiece)) {
@@ -807,7 +807,7 @@ export class PuzzleManager extends Component {
             // 检查下方相邻的拼图块
             if (adjacent.bottom !== -1 && currentRow < this.currentRows - 1) {
                 const bottomIndex = currentIndex + this.currentCols;
-                const bottomPiece = this.pieces.find(p => p.currentIndex === bottomIndex);
+                const bottomPiece = this.pieces.find(p => p?.currentIndex === bottomIndex);
                 if (bottomPiece && bottomPiece.correctIndex === adjacent.bottom) {
                     // 确保 bottomPiece 在 borderState 中
                     if (!borderState.has(bottomPiece)) {
@@ -830,7 +830,7 @@ export class PuzzleManager extends Component {
             // 检查左侧相邻的拼图块
             if (adjacent.left !== -1 && currentCol > 0) {
                 const leftIndex = currentIndex - 1;
-                const leftPiece = this.pieces.find(p => p.currentIndex === leftIndex);
+                const leftPiece = this.pieces.find(p => p?.currentIndex === leftIndex);
                 if (leftPiece && leftPiece.correctIndex === adjacent.left) {
                     // 确保 leftPiece 在 borderState 中
                     if (!borderState.has(leftPiece)) {
@@ -853,7 +853,7 @@ export class PuzzleManager extends Component {
             // 检查右侧相邻的拼图块
             if (adjacent.right !== -1 && currentCol < this.currentCols - 1) {
                 const rightIndex = currentIndex + 1;
-                const rightPiece = this.pieces.find(p => p.currentIndex === rightIndex);
+                const rightPiece = this.pieces.find(p => p?.currentIndex === rightIndex);
                 if (rightPiece && rightPiece.correctIndex === adjacent.right) {
                     // 确保 rightPiece 在 borderState 中
                     if (!borderState.has(rightPiece)) {
