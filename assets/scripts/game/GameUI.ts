@@ -13,7 +13,7 @@ const { ccclass, property } = _decorator;
 @ccclass('GameUI')
 export class GameUI extends Component {
     @property(Node)
-    private testPraphics: Node = null;  // 拼图容器节点
+    private testPraphics: Node = null;
     @property(Node)
     private testBtn: Node = null;
     @property(Node)
@@ -89,7 +89,7 @@ export class GameUI extends Component {
         // ctx.arc(0, 0, 50, 0, 1 * Math.PI, false); //true为逆时针，false顺时针
         // ctx.stroke();
         //*测试绘图路径 */
-        
+
 
         // 初始状态：显示章节界面，隐藏关卡解锁界面
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
