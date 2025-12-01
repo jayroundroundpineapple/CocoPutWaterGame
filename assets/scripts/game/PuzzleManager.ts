@@ -742,17 +742,31 @@ export class PuzzleManager extends Component {
         
         // 初始化所有拼图块的边框状态
         for (const piece of this.pieces) {
+            if (!piece) {
+                console.warn('[PuzzleManager] 发现空的拼图块，跳过');
+                continue;
+            }
             borderState.set(piece, { hideTop: false, hideBottom: false, hideLeft: false, hideRight: false });
+        }
+        
+        // 验证初始化
+        if (borderState.size !== this.pieces.length) {
+            console.warn(`[PuzzleManager] 边框状态初始化不完整: borderState.size=${borderState.size}, pieces.length=${this.pieces.length}`);
         }
         
         // 遍历所有拼图块，检查它们的相邻关系
         for (const piece of this.pieces) {
+            if (!piece) {
+                continue;
+            }
+            
             const correctIndex = piece.correctIndex;
             const currentIndex = piece.currentIndex;
             
             // 获取该拼图块在正确位置时应该的相邻拼图块
             const adjacent = this.adjacentMap.get(correctIndex);
             if (!adjacent) {
+                console.warn(`[PuzzleManager] 找不到 correctIndex=${correctIndex} 的相邻关系映射`);
                 continue;
             }
             
@@ -760,16 +774,32 @@ export class PuzzleManager extends Component {
             const currentRow = Math.floor(currentIndex / this.currentCols);
             const currentCol = currentIndex % this.currentCols;
             
+            // 确保当前拼图块在 borderState 中
+            if (!borderState.has(piece)) {
+                console.warn(`[PuzzleManager] 拼图块 correctIndex=${correctIndex} 不在 borderState 中，重新添加`);
+                borderState.set(piece, { hideTop: false, hideBottom: false, hideLeft: false, hideRight: false });
+            }
+            
             // 检查上方相邻的拼图块
             if (adjacent.top !== -1 && currentRow > 0) {
                 const topIndex = currentIndex - this.currentCols;
                 const topPiece = this.pieces.find(p => p.currentIndex === topIndex);
                 if (topPiece && topPiece.correctIndex === adjacent.top) {
+                    // 确保 topPiece 在 borderState 中
+                    if (!borderState.has(topPiece)) {
+                        console.warn(`[PuzzleManager] topPiece correctIndex=${topPiece.correctIndex} 不在 borderState 中，重新添加`);
+                        borderState.set(topPiece, { hideTop: false, hideBottom: false, hideLeft: false, hideRight: false });
+                    }
+                    
                     // 上方是正确的相邻拼图块，隐藏相邻边
-                    const state1 = borderState.get(piece)!;
-                    const state2 = borderState.get(topPiece)!;
-                    state1.hideTop = true;
-                    state2.hideBottom = true;
+                    const state1 = borderState.get(piece);
+                    const state2 = borderState.get(topPiece);
+                    if (state1 && state2) {
+                        state1.hideTop = true;
+                        state2.hideBottom = true;
+                    } else {
+                        console.error(`[PuzzleManager] 边框状态未找到: piece=${piece?.correctIndex}, topPiece=${topPiece?.correctIndex}, state1=${!!state1}, state2=${!!state2}`);
+                    }
                 }
             }
             
@@ -778,11 +808,21 @@ export class PuzzleManager extends Component {
                 const bottomIndex = currentIndex + this.currentCols;
                 const bottomPiece = this.pieces.find(p => p.currentIndex === bottomIndex);
                 if (bottomPiece && bottomPiece.correctIndex === adjacent.bottom) {
+                    // 确保 bottomPiece 在 borderState 中
+                    if (!borderState.has(bottomPiece)) {
+                        console.warn(`[PuzzleManager] bottomPiece correctIndex=${bottomPiece.correctIndex} 不在 borderState 中，重新添加`);
+                        borderState.set(bottomPiece, { hideTop: false, hideBottom: false, hideLeft: false, hideRight: false });
+                    }
+                    
                     // 下方是正确的相邻拼图块，隐藏相邻边
-                    const state1 = borderState.get(piece)!;
-                    const state2 = borderState.get(bottomPiece)!;
-                    state1.hideBottom = true;
-                    state2.hideTop = true;
+                    const state1 = borderState.get(piece);
+                    const state2 = borderState.get(bottomPiece);
+                    if (state1 && state2) {
+                        state1.hideBottom = true;
+                        state2.hideTop = true;
+                    } else {
+                        console.error(`[PuzzleManager] 边框状态未找到: piece=${piece?.correctIndex}, bottomPiece=${bottomPiece?.correctIndex}, state1=${!!state1}, state2=${!!state2}`);
+                    }
                 }
             }
             
@@ -791,11 +831,21 @@ export class PuzzleManager extends Component {
                 const leftIndex = currentIndex - 1;
                 const leftPiece = this.pieces.find(p => p.currentIndex === leftIndex);
                 if (leftPiece && leftPiece.correctIndex === adjacent.left) {
+                    // 确保 leftPiece 在 borderState 中
+                    if (!borderState.has(leftPiece)) {
+                        console.warn(`[PuzzleManager] leftPiece correctIndex=${leftPiece.correctIndex} 不在 borderState 中，重新添加`);
+                        borderState.set(leftPiece, { hideTop: false, hideBottom: false, hideLeft: false, hideRight: false });
+                    }
+                    
                     // 左侧是正确的相邻拼图块，隐藏相邻边
-                    const state1 = borderState.get(piece)!;
-                    const state2 = borderState.get(leftPiece)!;
-                    state1.hideLeft = true;
-                    state2.hideRight = true;
+                    const state1 = borderState.get(piece);
+                    const state2 = borderState.get(leftPiece);
+                    if (state1 && state2) {
+                        state1.hideLeft = true;
+                        state2.hideRight = true;
+                    } else {
+                        console.error(`[PuzzleManager] 边框状态未找到: piece=${piece?.correctIndex}, leftPiece=${leftPiece?.correctIndex}, state1=${!!state1}, state2=${!!state2}`);
+                    }
                 }
             }
             
@@ -804,11 +854,21 @@ export class PuzzleManager extends Component {
                 const rightIndex = currentIndex + 1;
                 const rightPiece = this.pieces.find(p => p.currentIndex === rightIndex);
                 if (rightPiece && rightPiece.correctIndex === adjacent.right) {
+                    // 确保 rightPiece 在 borderState 中
+                    if (!borderState.has(rightPiece)) {
+                        console.warn(`[PuzzleManager] rightPiece correctIndex=${rightPiece.correctIndex} 不在 borderState 中，重新添加`);
+                        borderState.set(rightPiece, { hideTop: false, hideBottom: false, hideLeft: false, hideRight: false });
+                    }
+                    
                     // 右侧是正确的相邻拼图块，隐藏相邻边
-                    const state1 = borderState.get(piece)!;
-                    const state2 = borderState.get(rightPiece)!;
-                    state1.hideRight = true;
-                    state2.hideLeft = true;
+                    const state1 = borderState.get(piece);
+                    const state2 = borderState.get(rightPiece);
+                    if (state1 && state2) {
+                        state1.hideRight = true;
+                        state2.hideLeft = true;
+                    } else {
+                        console.error(`[PuzzleManager] 边框状态未找到: piece=${piece?.correctIndex}, rightPiece=${rightPiece?.correctIndex}, state1=${!!state1}, state2=${!!state2}`);
+                    }
                 }
             }
         }
