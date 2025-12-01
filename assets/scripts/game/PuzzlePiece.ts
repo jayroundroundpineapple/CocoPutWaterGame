@@ -27,10 +27,10 @@ export class PuzzlePiece extends Component {
     private dragOffset: Vec3 = new Vec3();
     private originalPosition: Vec3 = new Vec3();
     // 边框配置
-    private readonly BORDER_WIDTH = 6;
+    private readonly BORDER_WIDTH = 3;
     private readonly BORDER_COLOR = new Color(30, 30, 30, 255);
-    private readonly CORNER_RADIUS = 6;
-    private readonly Puzzle_CORNER_RADIUS = 6;
+    private readonly CORNER_RADIUS = 5;
+    private readonly Puzzle_CORNER_RADIUS = 3;
 
 
     // 回调函数
