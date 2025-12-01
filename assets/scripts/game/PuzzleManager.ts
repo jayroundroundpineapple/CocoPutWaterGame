@@ -555,7 +555,6 @@ export class PuzzleManager extends Component {
             const status = this.pieces.map(p =>
                 `Piece${p.correctIndex}: current=${p.currentIndex}, correct=${p.isInCorrectPosition}`
             ).join(', ');
-            console.log('[PuzzleManager] 拼图未完成:', status);
         }
     }
 
