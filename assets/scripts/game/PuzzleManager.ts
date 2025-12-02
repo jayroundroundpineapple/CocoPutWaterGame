@@ -574,95 +574,91 @@ export class PuzzleManager extends Component {
     private onGroupDragEnd(touchPiece: PuzzlePiece, event: EventTouch): boolean {
         if (!this.currentDraggingGroup || !this.puzzleContainer) return false;
 
-        const { pieces: group, originalPositions, originalIndices } = this.currentDraggingGroup;
-        const containerTransform = this.puzzleContainer.getComponent(UITransform);
+    const { pieces: group, originalPositions, originalIndices } = this.currentDraggingGroup;
+    const groupSize = group.length;
+    const totalPieces = this.positions.length;
+    const containerTransform = this.puzzleContainer.getComponent(UITransform);
+    const snapThreshold = 60; // 吸附阈值（可根据需求调整）
 
-        // 步骤1：计算当前组中心（容器本地坐标）
-        const groupCenter = this.calculateGroupCenter(group);
+    // 步骤1：计算组当前中心（容器本地坐标）
+    const groupCenter = this.calculateGroupCenter(group);
 
-        // 步骤2：优化目标索引计算（基于组中心最近的网格，增加吸附阈值）
-        const snapThreshold = 50; // 50像素内自动吸附到网格
-        let referenceTargetIdx = -1;
-        let minDistance = Infinity;
-
-        for (let i = 0; i < this.positions.length; i++) {
-            const dist = Vec3.distance(groupCenter, this.positions[i]);
-            if (dist < minDistance && dist < snapThreshold) {
-                minDistance = dist;
-                referenceTargetIdx = i;
-            }
+    // 步骤2：找组中心最近的位置作为「目标起始索引」
+    let targetStartIdx = -1;
+    let minDistance = Infinity;
+    for (let i = 0; i < this.positions.length; i++) {
+        const dist = Vec3.distance(groupCenter, this.positions[i]);
+        if (dist < minDistance && dist < snapThreshold) {
+            minDistance = dist;
+            targetStartIdx = i;
         }
+    }
 
-        // 步骤3：如果没有找到合适的吸附位置，恢复原始位置（避免飞出去后无法复位）
-        if (referenceTargetIdx === -1) {
-            this.restoreGroupPosition();
-            return true;
-        }
+    // 步骤3：生成「连续目标索引」（组大小=N，目标索引为 [start, start+1, ..., start+N-1]）
+    let targetIndices: number[] = [];
+    if (targetStartIdx !== -1) {
+        targetIndices = Array.from({ length: groupSize }, (_, i) => targetStartIdx + i);
+    }
 
-        // 步骤4：计算组内所有块的目标索引（确保不超出容器边界）
-        const targetIndices = group.map((piece, idx) => {
-            const originalIdx = originalIndices[idx];
-            const indexOffset = referenceTargetIdx - originalIndices[0]; // 基于参考块的偏移
-            const targetIdx = originalIdx + indexOffset;
-            // 边界约束：目标索引必须在 0 ~ 总块数-1 之间
-            return Math.max(0, Math.min(this.positions.length - 1, targetIdx));
-        });
-
-        // 步骤5：校验目标索引是否唯一（避免重叠）
-        const uniqueIndices = new Set(targetIndices);
-        if (uniqueIndices.size !== targetIndices.length) {
-            this.restoreGroupPosition();
-            return true;
-        }
-
-        // 步骤6：移动组到目标位置（带吸附动画，避免生硬）
-        const moveSuccess = this.moveGroupToTarget(group, targetIndices);
-        if (!moveSuccess) {
-            this.restoreGroupPosition();
-        }
-
-        this.currentDraggingGroup = null;
+    // 步骤4：严格校验目标索引有效性（1. 不越界 2. 不重复 3. 连续完整）
+    const isValidTarget = targetIndices.every(idx => idx >= 0 && idx < totalPieces);
+    const uniqueTargets = new Set(targetIndices);
+    const isTargetComplete = uniqueTargets.size === targetIndices.length;
+    if (!isValidTarget || !isTargetComplete) {
+        this.restoreGroupPosition();
         return true;
     }
 
-    // 优化6：修正移动组到目标位置（动画时长缩短，避免拖沓）
-    private moveGroupToTarget(group: PuzzlePiece[], targetIndices: number[]): boolean {
-        if (group.length !== targetIndices.length) return false;
+    // 步骤5：收集目标区域的原有块（排除组内自身块，避免重复）
+    const targetPieces: (PuzzlePiece | null)[] = targetIndices.map(idx =>
+        // this.pieces.find(p => p.currentIndex === idx && !group.includes(p))
+        this.pieces.find(p => p.currentIndex === idx && !group.some(g => g === p))
+    );
 
-        const targetPieces: (PuzzlePiece | null)[] = targetIndices.map(idx =>
-            this.pieces.find(p => p?.currentIndex === idx && p !== group.find(g => g.currentIndex === idx))
-        );
+    // 步骤6：整体交换（组 → 目标区域，原有块 → 组原始区域）
+    const moveSuccess = this.moveGroupToTarget(group, targetIndices, targetPieces, originalIndices);
+    if (!moveSuccess) {
+        this.restoreGroupPosition();
+    }
 
-        const groupOriginalIndices = group.map(p => p.currentIndex);
+    this.currentDraggingGroup = null;
+    return true;
+    }
 
-        // 缩短动画时长（0.2秒，更跟手）
-        const moveDuration = 0.2;
-
-        // 1. 移动组到目标位置
+    private moveGroupToTarget(
+        group: PuzzlePiece[],
+        targetIndices: number[],
+        targetPieces: (PuzzlePiece | null)[],
+        groupOriginalIndices: number[]
+    ): boolean {
+        if (group.length !== targetIndices.length || group.length !== groupOriginalIndices.length) {
+            return false;
+        }
+    
+        const moveDuration = 0.2; // 快速交换，更跟手
+    
+        // 1. 组内块 → 目标连续区域（按顺序占据目标索引）
         for (let i = 0; i < group.length; i++) {
             const piece = group[i];
             const targetIdx = targetIndices[i];
             piece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
         }
-
-        // 2. 移动目标位置的原有块到组的原始位置
+    
+        // 2. 目标区域原有块 → 组原始连续区域（按顺序填充原始索引）
         for (let i = 0; i < targetPieces.length; i++) {
             const targetPiece = targetPieces[i];
-            if (targetPiece) {
-                targetPiece.moveToPosition(
-                    this.positions[groupOriginalIndices[i]],
-                    groupOriginalIndices[i],
-                    moveDuration
-                );
+            const originalIdx = groupOriginalIndices[i];
+            if (targetPiece) { // 非空块才移动（避免空位置报错）
+                targetPiece.moveToPosition(this.positions[originalIdx], originalIdx, moveDuration);
             }
         }
-
-        // 3. 延迟更新边框和组信息
+    
+        // 3. 交换后更新边框和组信息（等待动画完成）
         this.scheduleOnce(() => {
-            this.updatePieceBorders();
-            this.checkComplete();
+            this.updatePieceBorders(); // 重新计算相邻关系和边框
+            this.checkComplete();     // 检查是否完成拼图
         }, moveDuration);
-
+    
         return true;
     }
 
@@ -677,7 +673,7 @@ export class PuzzleManager extends Component {
         let targetPieces: PuzzlePiece[] = [];
         let useOriginalPos = false;
         let originalPositions: Vec3[] = [];
-
+    
         if (Array.isArray(group)) {
             targetPieces = group;
         } else {
@@ -685,20 +681,20 @@ export class PuzzleManager extends Component {
             useOriginalPos = !!group.originalPositions;
             originalPositions = group.originalPositions || [];
         }
-
-        // 计算所有块的平均位置（组中心）
+    
+        // 计算所有块的平均位置（确保上下组的中心在中间，方便吸附）
         targetPieces.forEach((piece, idx) => {
             const pos = useOriginalPos && originalPositions[idx]
                 ? originalPositions[idx].clone()
                 : piece.node.position.clone();
             Vec3.add(center, center, pos);
         });
-
+    
         const pieceCount = targetPieces.length;
         if (pieceCount > 0) {
             Vec3.multiplyScalar(center, center, 1 / pieceCount);
         }
-
+    
         return center;
     }
 
