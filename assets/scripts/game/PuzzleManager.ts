@@ -847,7 +847,7 @@ export class PuzzleManager extends Component {
     }
 
     /**
-     * 整体拼块推开非整体拼块群（递归推动逻辑）
+     * 整体拼块与非整体拼块群进行一对一链式交换
      * @param group 整体拼块
      * @param targetIndices 目标位置索引数组
      * @param targetPieces 目标位置的非整体拼图块数组
@@ -860,136 +860,84 @@ export class PuzzleManager extends Component {
         targetPieces: PuzzlePiece[],
         groupOriginalIndices: number[]
     ): boolean {
-        // 计算移动方向（基于第一个拼图块的位置变化）
-        const referenceOriginalIdx = groupOriginalIndices[0];
-        const referenceTargetIdx = targetIndices[0];
-        const originalRow = Math.floor(referenceOriginalIdx / this.currentCols);
-        const originalCol = referenceOriginalIdx % this.currentCols;
-        const targetRow = Math.floor(referenceTargetIdx / this.currentCols);
-        const targetCol = referenceTargetIdx % this.currentCols;
-        
-        const rowOffset = targetRow - originalRow;
-        const colOffset = targetCol - originalCol;
-        
-        // 确定推动方向
-        let pushDirection: 'left' | 'right' | 'up' | 'down' | null = null;
-        if (Math.abs(rowOffset) > Math.abs(colOffset)) {
-            pushDirection = rowOffset > 0 ? 'down' : 'up';
-        } else if (Math.abs(colOffset) > Math.abs(rowOffset)) {
-            pushDirection = colOffset > 0 ? 'right' : 'left';
-        } else if (rowOffset !== 0 || colOffset !== 0) {
-            // 斜向移动，优先处理列方向
-            pushDirection = colOffset > 0 ? 'right' : 'left';
-        }
-        
-        if (!pushDirection) {
-            return false;
-        }
-
-        // 计算整体拼块在推动方向上的长度
-        const groupShape = this.getGroupShape(group, groupOriginalIndices);
-        let pushDistance = 0;
-        if (pushDirection === 'left' || pushDirection === 'right') {
-            // 横向推动：计算横向最大跨度
-            const cols = groupShape.map(s => s.col);
-            pushDistance = Math.max(...cols) - Math.min(...cols) + 1;
-        } else {
-            // 纵向推动：计算纵向最大跨度
-            const rows = groupShape.map(s => s.row);
-            pushDistance = Math.max(...rows) - Math.min(...rows) + 1;
-        }
-
-        // 创建位置映射：目标位置 -> 需要被推开的拼图块
+        // 创建目标位置到拼图块的映射
         const targetIndexToPiece = new Map<number, PuzzlePiece>();
         for (const piece of targetPieces) {
             targetIndexToPiece.set(piece.currentIndex, piece);
         }
 
-        // 计算需要被推开的拼图块及其最终位置
-        const pushPlan = new Map<PuzzlePiece, number>(); // piece -> finalIndex
-        const processedPieces = new Set<PuzzlePiece>(); // 已处理的拼图块
+        // 创建交换计划：整体拼块的每个拼图块与目标位置的对应拼图块交换
+        // 使用链式交换：如果目标位置的拼图块要移动到的位置也被占用，需要递归交换
+        const swapPlan = new Map<PuzzlePiece, number>(); // piece -> targetIndex
+        const pieceToTargetIndex = new Map<PuzzlePiece, number>(); // piece -> 它应该移动到的目标索引
         
-        // 对目标位置的每个拼图块，计算它需要移动到的位置
-        for (const targetIdx of targetIndices) {
-            const piece = targetIndexToPiece.get(targetIdx);
-            if (piece && !processedPieces.has(piece)) {
-                processedPieces.add(piece);
-                
-                // 计算这个拼图块需要移动的方向和距离
-                const pieceCurrentRow = Math.floor(piece.currentIndex / this.currentCols);
-                const pieceCurrentCol = piece.currentIndex % this.currentCols;
-                
-                let finalRow = pieceCurrentRow;
-                let finalCol = pieceCurrentCol;
-                
-                // 根据推动方向计算最终位置
-                if (pushDirection === 'left') {
-                    // 整体向左移动：被推开的拼图块向右移动
-                    finalCol = pieceCurrentCol + pushDistance;
-                } else if (pushDirection === 'right') {
-                    // 整体向右移动：被推开的拼图块向左移动
-                    finalCol = pieceCurrentCol - pushDistance;
-                } else if (pushDirection === 'up') {
-                    // 整体向上移动：被推开的拼图块向下移动
-                    finalRow = pieceCurrentRow + pushDistance;
-                } else if (pushDirection === 'down') {
-                    // 整体向下移动：被推开的拼图块向上移动
-                    finalRow = pieceCurrentRow - pushDistance;
-                }
-                
-                // 检查最终位置是否在边界内
-                if (finalRow < 0 || finalRow >= this.currentRows || finalCol < 0 || finalCol >= this.currentCols) {
-                    console.log(`[PuzzleManager] 推动后位置超出边界: row=${finalRow}, col=${finalCol}`);
-                    return false;
-                }
-                
-                const finalIdx = finalRow * this.currentCols + finalCol;
-                
-                // 检查最终位置是否被其他拼图块占用（递归检查）
-                const finalPiece = this.pieces.find(p => 
-                    p.currentIndex === finalIdx && 
-                    !group.some(g => g === p) && 
-                    !targetPieces.some(tp => tp === p) &&
-                    !processedPieces.has(p)
-                );
-                
-                if (finalPiece) {
-                    // 最终位置被占用，需要递归推动
-                    const recursiveResult = this.recursivePush(
-                        finalPiece, 
-                        pushDirection, 
-                        pushDistance, 
-                        new Set([piece]),
-                        group,
-                        targetPieces
-                    );
-                    if (!recursiveResult) {
-                        return false;
-                    }
-                    // 合并递归推动计划
-                    for (const [p, idx] of recursiveResult) {
-                        pushPlan.set(p, idx);
-                        processedPieces.add(p);
-                    }
-                }
-                
-                pushPlan.set(piece, finalIdx);
-            }
-        }
-
-        // 执行移动
-        const moveDuration = 0.2;
-        
-        // 1. 整体拼块移动到目标位置
+        // 第一步：建立初始交换关系（整体拼块的每个拼图块与目标位置的对应拼图块）
         for (let i = 0; i < group.length; i++) {
             const groupPiece = group[i];
             const targetIdx = targetIndices[i];
-            groupPiece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
+            const targetPiece = targetIndexToPiece.get(targetIdx);
+            
+            if (targetPiece) {
+                // 整体拼图的拼图块要移动到目标位置
+                swapPlan.set(groupPiece, targetIdx);
+                // 目标位置的拼图块要移动到整体拼图块的原始位置
+                const originalIdx = groupOriginalIndices[i];
+                pieceToTargetIndex.set(targetPiece, originalIdx);
+            } else {
+                // 目标位置为空，直接移动
+                swapPlan.set(groupPiece, targetIdx);
+            }
+        }
+
+        // 第二步：处理链式交换（如果目标位置的拼图块要移动到的位置也被占用）
+        const finalSwapPlan = new Map<PuzzlePiece, number>();
+        const processed = new Set<PuzzlePiece>();
+        
+        // 先处理整体拼块的移动
+        for (const [piece, targetIdx] of swapPlan) {
+            finalSwapPlan.set(piece, targetIdx);
         }
         
-        // 2. 被推开的拼图块移动到新位置
-        for (const [piece, finalIdx] of pushPlan) {
-            piece.moveToPosition(this.positions[finalIdx], finalIdx, moveDuration);
+        // 处理目标位置拼图块的链式交换
+        for (const [targetPiece, originalIdx] of pieceToTargetIndex) {
+            if (processed.has(targetPiece)) continue;
+            
+            const chainResult = this.buildSwapChain(
+                targetPiece,
+                originalIdx,
+                group,
+                targetPieces,
+                processed,
+                finalSwapPlan
+            );
+            
+            if (!chainResult) {
+                console.log(`[PuzzleManager] 链式交换失败: piece=${targetPiece.correctIndex}, targetIdx=${originalIdx}`);
+                return false;
+            }
+            
+            // 合并链式交换结果
+            for (const [p, idx] of chainResult) {
+                finalSwapPlan.set(p, idx);
+                processed.add(p);
+            }
+        }
+
+        // 验证：检查是否有重叠（同一个位置被多个拼图块占用）
+        const positionToPiece = new Map<number, PuzzlePiece>();
+        for (const [piece, targetIdx] of finalSwapPlan) {
+            if (positionToPiece.has(targetIdx)) {
+                const existingPiece = positionToPiece.get(targetIdx);
+                console.error(`[PuzzleManager] 检测到重叠：位置 ${targetIdx} 被拼图块 ${piece.correctIndex} 和 ${existingPiece?.correctIndex} 同时占用`);
+                return false;
+            }
+            positionToPiece.set(targetIdx, piece);
+        }
+
+        // 执行交换
+        const moveDuration = 0.2;
+        for (const [piece, targetIdx] of finalSwapPlan) {
+            piece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
         }
 
         // 更新边框和组信息
@@ -1002,80 +950,126 @@ export class PuzzleManager extends Component {
     }
 
     /**
-     * 递归推动拼图块（当推动位置被占用时）
-     * @param piece 需要被推动的拼图块
-     * @param direction 推动方向
-     * @param distance 推动距离
-     * @param visited 已访问的拼图块（防止循环）
+     * 构建链式交换路径（递归处理）
+     * @param piece 需要移动的拼图块
+     * @param targetIdx 目标位置索引
      * @param group 整体拼块（排除）
      * @param targetPieces 目标位置的拼图块（排除）
-     * @returns 推动计划 Map<piece, finalIndex>，如果失败返回null
+     * @param processed 已处理的拼图块
+     * @param currentSwapPlan 当前的交换计划（用于查找已交换的拼图块）
+     * @returns 交换计划 Map<piece, targetIndex>，如果失败返回null
      */
-    private recursivePush(
+    private buildSwapChain(
         piece: PuzzlePiece,
-        direction: 'left' | 'right' | 'up' | 'down',
-        distance: number,
-        visited: Set<PuzzlePiece>,
+        targetIdx: number,
         group: PuzzlePiece[],
-        targetPieces: PuzzlePiece[]
+        targetPieces: PuzzlePiece[],
+        processed: Set<PuzzlePiece>,
+        currentSwapPlan: Map<PuzzlePiece, number>
     ): Map<PuzzlePiece, number> | null {
-        if (visited.has(piece)) {
+        if (processed.has(piece)) {
             // 检测到循环，失败
+            console.error(`[PuzzleManager] 检测到循环交换：拼图块 ${piece.correctIndex}`);
             return null;
         }
-        visited.add(piece);
+        processed.add(piece);
 
-        const pieceCurrentRow = Math.floor(piece.currentIndex / this.currentCols);
-        const pieceCurrentCol = piece.currentIndex % this.currentCols;
-        
-        let finalRow = pieceCurrentRow;
-        let finalCol = pieceCurrentCol;
-        
-        // 计算最终位置
-        if (direction === 'left') {
-            finalCol = pieceCurrentCol + distance;
-        } else if (direction === 'right') {
-            finalCol = pieceCurrentCol - distance;
-        } else if (direction === 'up') {
-            finalRow = pieceCurrentRow + distance;
-        } else if (direction === 'down') {
-            finalRow = pieceCurrentRow - distance;
-        }
-        
-        // 检查边界
-        if (finalRow < 0 || finalRow >= this.currentRows || finalCol < 0 || finalCol >= this.currentCols) {
+        // 检查目标位置是否在边界内
+        const targetRow = Math.floor(targetIdx / this.currentCols);
+        const targetCol = targetIdx % this.currentCols;
+        if (targetRow < 0 || targetRow >= this.currentRows || targetCol < 0 || targetCol >= this.currentCols) {
+            console.error(`[PuzzleManager] 目标位置超出边界：targetIdx=${targetIdx}`);
             return null;
         }
+
+        // 检查目标位置是否被占用
+        // 首先检查目标位置是否已经在currentSwapPlan中被分配（整体拼块要移动到的位置）
+        let occupyingPiece: PuzzlePiece | null = null;
         
-        const finalIdx = finalRow * this.currentCols + finalCol;
+        // 查找currentSwapPlan中是否有拼图块要移动到targetIdx
+        for (const [p, idx] of currentSwapPlan) {
+            if (idx === targetIdx && p !== piece) {
+                // 这个拼图块要移动到targetIdx（可能是整体拼块）
+                occupyingPiece = p;
+                break;
+            }
+        }
         
-        // 检查最终位置是否被占用（排除整体拼块和目标位置的拼图块）
-        const occupyingPiece = this.pieces.find(p => 
-            p.currentIndex === finalIdx && 
-            p !== piece &&
-            !group.some(g => g === p) &&
-            !targetPieces.some(tp => tp === p)
-        );
-        
-        if (occupyingPiece && !visited.has(occupyingPiece)) {
-            // 递归推动占用的拼图块
-            const recursiveResult = this.recursivePush(occupyingPiece, direction, distance, visited, group, targetPieces);
+        // 如果没找到，检查当前位置是否有其他拼图块（非整体拼块，且不在交换计划中）
+        if (!occupyingPiece) {
+            occupyingPiece = this.pieces.find(p => 
+                p.currentIndex === targetIdx && 
+                p !== piece &&
+                !group.some(g => g === p) &&
+                !targetPieces.some(tp => tp === p) &&
+                !currentSwapPlan.has(p) // 不在当前交换计划中
+            ) || null;
+        }
+
+        if (occupyingPiece) {
+            // 目标位置被占用
+            if (processed.has(occupyingPiece)) {
+                // 占用的拼图块已经被处理过，形成循环，失败
+                console.error(`[PuzzleManager] 检测到循环：拼图块 ${piece.correctIndex} 和 ${occupyingPiece.correctIndex}`);
+                return null;
+            }
+            
+            // 检查占用的拼图块是否已经在交换计划中
+            if (currentSwapPlan.has(occupyingPiece)) {
+                // 占用的拼图块已经在交换计划中（是整体拼块的一部分）
+                // 当前拼图块应该移动到占用的拼图块要移动到的位置（递归查找）
+                const occupyingPieceTargetIdx = currentSwapPlan.get(occupyingPiece)!;
+                
+                // 如果占用的拼图块要移动到的位置就是当前拼图块的原始位置，形成循环交换
+                const currentPieceOriginalIdx = piece.currentIndex;
+                if (occupyingPieceTargetIdx === currentPieceOriginalIdx) {
+                    // 这是合法的循环交换：piece ↔ occupyingPiece
+                    const result = new Map<PuzzlePiece, number>();
+                    result.set(piece, targetIdx);
+                    return result;
+                }
+                
+                // 否则，需要递归处理：当前拼图块移动到占用的拼图块的目标位置
+                const recursiveResult = this.buildSwapChain(
+                    piece,
+                    occupyingPieceTargetIdx,
+                    group,
+                    targetPieces,
+                    processed,
+                    currentSwapPlan
+                );
+                return recursiveResult;
+            }
+            
+            // 占用的拼图块不在交换计划中，需要递归处理
+            // 占用的拼图块应该移动到当前拼图块的原始位置
+            const currentPieceOriginalIdx = piece.currentIndex;
+            
+            const recursiveResult = this.buildSwapChain(
+                occupyingPiece,
+                currentPieceOriginalIdx,
+                group,
+                targetPieces,
+                processed,
+                currentSwapPlan
+            );
+            
             if (!recursiveResult) {
                 return null;
             }
             
             // 合并结果
             const result = new Map<PuzzlePiece, number>();
-            result.set(piece, finalIdx);
+            result.set(piece, targetIdx);
             for (const [p, idx] of recursiveResult) {
                 result.set(p, idx);
             }
             return result;
         }
-        
-        // 最终位置为空或被已访问的拼图块占用，直接移动
+
+        // 目标位置为空，直接移动
         const result = new Map<PuzzlePiece, number>();
-        result.set(piece, finalIdx);
+        result.set(piece, targetIdx);
         return result;
     }
 
