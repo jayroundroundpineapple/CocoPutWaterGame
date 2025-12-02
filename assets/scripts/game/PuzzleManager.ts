@@ -760,24 +760,38 @@ export class PuzzleManager extends Component {
             const targetGroupId = Array.from(targetGroupIds)[0];
             const targetGroupMembers = this.groupMap.get(targetGroupId);
             
-            // 检查个数是否匹配
-            if (!targetGroupMembers || targetGroupMembers.length !== group.length) {
-                console.log(`[PuzzleManager] 整体拼块个数不匹配: 当前${group.length}个，目标${targetGroupMembers?.length || 0}个`);
-                return false;
-            }
-
-            // 检查形状是否匹配（通过比较相对位置关系）
-            const currentGroupShape = this.getGroupShape(group, groupOriginalIndices);
-            const targetGroupIndices = targetGroupPieces.map(p => p.currentIndex);
-            const targetGroupShape = this.getGroupShape(targetGroupPieces, targetGroupIndices);
+            // 检查目标位置是否全部被整体拼块占用
+            const allTargetPiecesAreGroup = targetNonGroupPieces.length === 0;
             
-            if (!this.compareGroupShapes(currentGroupShape, targetGroupShape)) {
-                console.log(`[PuzzleManager] 整体拼块形状不匹配`);
-                return false;
-            }
+            if (allTargetPiecesAreGroup) {
+                // 目标位置全部是整体拼块：需要检查个数和形状匹配
+                if (!targetGroupMembers || targetGroupMembers.length !== group.length) {
+                    console.log(`[PuzzleManager] 整体拼块个数不匹配: 当前${group.length}个，目标${targetGroupMembers?.length || 0}个`);
+                    return false;
+                }
 
-            // 整体与整体置换：整体互换位置
-            this.swapGroupWithGroup(group, targetIndices, targetGroupPieces, groupOriginalIndices);
+                // 检查形状是否匹配（通过比较相对位置关系）
+                const currentGroupShape = this.getGroupShape(group, groupOriginalIndices);
+                const targetGroupIndices = targetGroupPieces.map(p => p.currentIndex);
+                const targetGroupShape = this.getGroupShape(targetGroupPieces, targetGroupIndices);
+                
+                if (!this.compareGroupShapes(currentGroupShape, targetGroupShape)) {
+                    console.log(`[PuzzleManager] 整体拼块形状不匹配`);
+                    return false;
+                }
+
+                // 整体与整体置换：整体互换位置
+                this.swapGroupWithGroup(group, targetIndices, targetGroupPieces, groupOriginalIndices);
+            } else {
+                // 目标位置是混合的（整体拼块 + 非整体拼块）：使用链式交换逻辑
+                // 不需要匹配形状和个数，直接进行一对一链式交换
+                const allTargetPieces = [...targetGroupPieces, ...targetNonGroupPieces];
+                const pushResult = this.pushPiecesWithGroup(group, targetIndices, allTargetPieces, groupOriginalIndices);
+                if (!pushResult) {
+                    console.log(`[PuzzleManager] 整体拼块与混合目标位置交换失败`);
+                    return false;
+                }
+            }
         } else {
             // 目标位置是非整体拼块群：使用"推开"逻辑
             // 整体拼块会推开目标位置的拼图块，被推开的拼图块会继续移动
@@ -867,9 +881,9 @@ export class PuzzleManager extends Component {
         }
 
         // 创建交换计划：整体拼块的每个拼图块与目标位置的对应拼图块交换
-        // 使用链式交换：如果目标位置的拼图块要移动到的位置也被占用，需要递归交换
         const swapPlan = new Map<PuzzlePiece, number>(); // piece -> targetIndex
         const pieceToTargetIndex = new Map<PuzzlePiece, number>(); // piece -> 它应该移动到的目标索引
+        const emptyIndices: number[] = []; // 记录空位置
         
         // 第一步：建立初始交换关系（整体拼块的每个拼图块与目标位置的对应拼图块）
         for (let i = 0; i < group.length; i++) {
@@ -884,42 +898,60 @@ export class PuzzleManager extends Component {
                 const originalIdx = groupOriginalIndices[i];
                 pieceToTargetIndex.set(targetPiece, originalIdx);
             } else {
-                // 目标位置为空，直接移动
+                // 目标位置为空，记录空位置
+                emptyIndices.push(groupOriginalIndices[i]);
                 swapPlan.set(groupPiece, targetIdx);
             }
         }
 
-        // 第二步：处理链式交换（如果目标位置的拼图块要移动到的位置也被占用）
+        // 第二步：优先使用空位置填补被替换的拼图块
         const finalSwapPlan = new Map<PuzzlePiece, number>();
         const processed = new Set<PuzzlePiece>();
+        const usedEmptyIndices = new Set<number>();
         
         // 先处理整体拼块的移动
         for (const [piece, targetIdx] of swapPlan) {
             finalSwapPlan.set(piece, targetIdx);
         }
         
-        // 处理目标位置拼图块的链式交换
+        // 优先将被替换的拼图块移动到空位置
         for (const [targetPiece, originalIdx] of pieceToTargetIndex) {
             if (processed.has(targetPiece)) continue;
             
-            const chainResult = this.buildSwapChain(
-                targetPiece,
-                originalIdx,
-                group,
-                targetPieces,
-                processed,
-                finalSwapPlan
-            );
-            
-            if (!chainResult) {
-                console.log(`[PuzzleManager] 链式交换失败: piece=${targetPiece.correctIndex}, targetIdx=${originalIdx}`);
-                return false;
+            // 检查是否有空位置可以使用
+            let foundEmpty = false;
+            for (const emptyIdx of emptyIndices) {
+                if (!usedEmptyIndices.has(emptyIdx)) {
+                    // 找到空位置，直接移动
+                    finalSwapPlan.set(targetPiece, emptyIdx);
+                    processed.add(targetPiece);
+                    usedEmptyIndices.add(emptyIdx);
+                    foundEmpty = true;
+                    break;
+                }
             }
             
-            // 合并链式交换结果
-            for (const [p, idx] of chainResult) {
-                finalSwapPlan.set(p, idx);
-                processed.add(p);
+            if (!foundEmpty) {
+                // 没有空位置，使用链式交换
+                const chainResult = this.buildSwapChain(
+                    targetPiece,
+                    originalIdx,
+                    group,
+                    targetPieces,
+                    processed,
+                    finalSwapPlan
+                );
+                
+                if (!chainResult) {
+                    console.log(`[PuzzleManager] 链式交换失败: piece=${targetPiece.correctIndex}, targetIdx=${originalIdx}`);
+                    return false;
+                }
+                
+                // 合并链式交换结果
+                for (const [p, idx] of chainResult) {
+                    finalSwapPlan.set(p, idx);
+                    processed.add(p);
+                }
             }
         }
 
@@ -969,7 +1001,7 @@ export class PuzzleManager extends Component {
     ): Map<PuzzlePiece, number> | null {
         if (processed.has(piece)) {
             // 检测到循环，失败
-            console.error(`[PuzzleManager] 检测到循环交换：拼图块 ${piece.correctIndex}`);
+            console.error(`[PuzzleManager] ：拼图块 ${piece.correctIndex}`);
             return null;
         }
         processed.add(piece);
