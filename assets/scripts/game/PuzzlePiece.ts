@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, Vec3, EventTouch, tween, Texture2D, Rect, Graphics, Color } from 'cc';
+import { PuzzleManager } from './PuzzleManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -35,16 +36,18 @@ export class PuzzlePiece extends Component {
 
     // 回调函数
     public onPositionChanged: (piece: PuzzlePiece, newIndex: number) => void = null;
-
+    public onGroupDragStart: (piece: PuzzlePiece, event: EventTouch) => void = null;
+    public onGroupDragMove: (piece: PuzzlePiece, event: EventTouch) => boolean = null;
+    public onGroupDragEnd: (piece: PuzzlePiece, event: EventTouch) => boolean = null;
     // 拼图网格信息（用于计算相邻关系）
     private rows: number = 0;
     private cols: number = 0;
 
     // 需要隐藏的边（true表示隐藏该边）
-    private hideTop: boolean = false;
-    private hideBottom: boolean = false;
-    private hideLeft: boolean = false;
-    private hideRight: boolean = false;
+    hideTop: boolean = false;
+    hideBottom: boolean = false;
+    hideLeft: boolean = false;
+    hideRight: boolean = false;
 
     /**
      * 初始化拼图块
@@ -372,6 +375,16 @@ export class PuzzlePiece extends Component {
      * 触摸开始
      */
     private onTouchStart(event: EventTouch) {
+        const manager = this.node.parent.getComponent(PuzzleManager);
+        const isInGroup = manager ? manager.isPieceInGroup(this) : false;
+        if(this.onGroupDragStart) {
+            this.onGroupDragStart(this, event);
+        }
+        if (isInGroup) {
+            this.isDragging = false; // 禁止单个拖动
+            return; // 直接返回，不执行后续拖动逻辑
+        }
+    
         this.isDragging = true;
         const touchPos = event.getUILocation();
         const worldPos = this.node.parent.getComponent(UITransform).convertToNodeSpaceAR(
@@ -392,8 +405,14 @@ export class PuzzlePiece extends Component {
      * 触摸移动
      */
     private onTouchMove(event: EventTouch) {
+        const manager = this.node.parent.getComponent(PuzzleManager);
+        const isInGroup = manager ? manager.isPieceInGroup(this) : false;
+        if(this.onGroupDragMove && this.onGroupDragMove(this, event)) {
+            return;
+        }
+        if (isInGroup) return;
         if (!this.isDragging) return;
-
+        
         const touchPos = event.getUILocation();
         const worldPos = this.node.parent.getComponent(UITransform).convertToNodeSpaceAR(
             new Vec3(touchPos.x, touchPos.y, 0)
@@ -410,9 +429,20 @@ export class PuzzlePiece extends Component {
      * 触摸结束
      */
     private onTouchEnd(event: EventTouch) {
+        const manager = this.node.parent.getComponent(PuzzleManager);
+        const isInGroup = manager ? manager.isPieceInGroup(this) : false;
+        if(this.onGroupDragEnd && this.onGroupDragEnd(this, event)) {
+            return;
+        }
+        if (isInGroup) {
+            this.isDragging = false;
+            return;
+        }
         if (!this.isDragging) return;
         this.isDragging = false;
-
+        if(this.onGroupDragEnd && this.onGroupDragEnd(this, event)) {
+            return;
+        }
         // 检查是否移动到其他拼图块位置
         const touchPos = event.getUILocation();
         const worldPos = this.node.parent.getComponent(UITransform).convertToNodeSpaceAR(
