@@ -726,15 +726,11 @@ export class PuzzleManager extends Component {
             this.pieces.find(p => p.currentIndex === idx && !group.some(g => g === p))
         );
 
-        // 步骤2：检查目标位置是否有足够的拼图块（个数匹配）
-        const targetPieceCount = targetPieces.filter(p => p !== null && p !== undefined).length;
-        if (targetPieceCount !== group.length) {
-            console.log(`[PuzzleManager] 目标位置拼图块数量不匹配: 需要${group.length}个，实际${targetPieceCount}个`);
-            return false;
-        }
-
-        // 步骤3：检查目标位置的拼图块是否也是整体
+        // 步骤2：检查目标位置的拼图块是否也是整体
         const targetGroupIds = new Set<number>();
+        const targetGroupPieces: PuzzlePiece[] = [];
+        const targetNonGroupPieces: PuzzlePiece[] = [];
+        
         for (const piece of targetPieces) {
             if (piece) {
                 const groupId = this.pieceToGroup.get(piece.correctIndex);
@@ -742,12 +738,17 @@ export class PuzzleManager extends Component {
                     const groupMembers = this.groupMap.get(groupId);
                     if (groupMembers && groupMembers.length > 1) {
                         targetGroupIds.add(groupId);
+                        targetGroupPieces.push(piece);
+                    } else {
+                        targetNonGroupPieces.push(piece);
                     }
+                } else {
+                    targetNonGroupPieces.push(piece);
                 }
             }
         }
 
-        // 步骤4：如果目标位置也是整体，需要检查个数和形状匹配
+        // 步骤3：如果目标位置包含整体拼块，需要检查个数和形状匹配
         if (targetGroupIds.size > 0) {
             // 目标位置包含整体拼块
             if (targetGroupIds.size > 1) {
@@ -767,7 +768,6 @@ export class PuzzleManager extends Component {
 
             // 检查形状是否匹配（通过比较相对位置关系）
             const currentGroupShape = this.getGroupShape(group, groupOriginalIndices);
-            const targetGroupPieces = targetPieces.filter(p => p !== null) as PuzzlePiece[];
             const targetGroupIndices = targetGroupPieces.map(p => p.currentIndex);
             const targetGroupShape = this.getGroupShape(targetGroupPieces, targetGroupIndices);
             
@@ -779,8 +779,13 @@ export class PuzzleManager extends Component {
             // 整体与整体置换：整体互换位置
             this.swapGroupWithGroup(group, targetIndices, targetGroupPieces, groupOriginalIndices);
         } else {
-            // 目标位置是非整体拼块群：一对一置换
-            this.swapGroupWithPieces(group, targetIndices, targetPieces as PuzzlePiece[], groupOriginalIndices);
+            // 目标位置是非整体拼块群：使用"推开"逻辑
+            // 整体拼块会推开目标位置的拼图块，被推开的拼图块会继续移动
+            const pushResult = this.pushPiecesWithGroup(group, targetIndices, targetNonGroupPieces, groupOriginalIndices);
+            if (!pushResult) {
+                console.log(`[PuzzleManager] 整体拼块推开拼图块失败`);
+                return false;
+            }
         }
 
         return true;
@@ -842,33 +847,149 @@ export class PuzzleManager extends Component {
     }
 
     /**
-     * 整体拼块与非整体拼块群置换
+     * 整体拼块推开非整体拼块群（递归推动逻辑）
+     * @param group 整体拼块
+     * @param targetIndices 目标位置索引数组
+     * @param targetPieces 目标位置的非整体拼图块数组
+     * @param groupOriginalIndices 整体拼块的原始位置索引数组
+     * @returns 是否成功
      */
-    private swapGroupWithPieces(
+    private pushPiecesWithGroup(
         group: PuzzlePiece[],
         targetIndices: number[],
         targetPieces: PuzzlePiece[],
         groupOriginalIndices: number[]
-    ): void {
-        const moveDuration = 0.2;
+    ): boolean {
+        // 计算移动方向（基于第一个拼图块的位置变化）
+        const referenceOriginalIdx = groupOriginalIndices[0];
+        const referenceTargetIdx = targetIndices[0];
+        const originalRow = Math.floor(referenceOriginalIdx / this.currentCols);
+        const originalCol = referenceOriginalIdx % this.currentCols;
+        const targetRow = Math.floor(referenceTargetIdx / this.currentCols);
+        const targetCol = referenceTargetIdx % this.currentCols;
+        
+        const rowOffset = targetRow - originalRow;
+        const colOffset = targetCol - originalCol;
+        
+        // 确定推动方向
+        let pushDirection: 'left' | 'right' | 'up' | 'down' | null = null;
+        if (Math.abs(rowOffset) > Math.abs(colOffset)) {
+            pushDirection = rowOffset > 0 ? 'down' : 'up';
+        } else if (Math.abs(colOffset) > Math.abs(rowOffset)) {
+            pushDirection = colOffset > 0 ? 'right' : 'left';
+        } else if (rowOffset !== 0 || colOffset !== 0) {
+            // 斜向移动，优先处理列方向
+            pushDirection = colOffset > 0 ? 'right' : 'left';
+        }
+        
+        if (!pushDirection) {
+            return false;
+        }
 
-        // 一对一置换：整体拼块的每个拼图块与目标位置的对应拼图块交换
+        // 计算整体拼块在推动方向上的长度
+        const groupShape = this.getGroupShape(group, groupOriginalIndices);
+        let pushDistance = 0;
+        if (pushDirection === 'left' || pushDirection === 'right') {
+            // 横向推动：计算横向最大跨度
+            const cols = groupShape.map(s => s.col);
+            pushDistance = Math.max(...cols) - Math.min(...cols) + 1;
+        } else {
+            // 纵向推动：计算纵向最大跨度
+            const rows = groupShape.map(s => s.row);
+            pushDistance = Math.max(...rows) - Math.min(...rows) + 1;
+        }
+
+        // 创建位置映射：目标位置 -> 需要被推开的拼图块
+        const targetIndexToPiece = new Map<number, PuzzlePiece>();
+        for (const piece of targetPieces) {
+            targetIndexToPiece.set(piece.currentIndex, piece);
+        }
+
+        // 计算需要被推开的拼图块及其最终位置
+        const pushPlan = new Map<PuzzlePiece, number>(); // piece -> finalIndex
+        const processedPieces = new Set<PuzzlePiece>(); // 已处理的拼图块
+        
+        // 对目标位置的每个拼图块，计算它需要移动到的位置
+        for (const targetIdx of targetIndices) {
+            const piece = targetIndexToPiece.get(targetIdx);
+            if (piece && !processedPieces.has(piece)) {
+                processedPieces.add(piece);
+                
+                // 计算这个拼图块需要移动的方向和距离
+                const pieceCurrentRow = Math.floor(piece.currentIndex / this.currentCols);
+                const pieceCurrentCol = piece.currentIndex % this.currentCols;
+                
+                let finalRow = pieceCurrentRow;
+                let finalCol = pieceCurrentCol;
+                
+                // 根据推动方向计算最终位置
+                if (pushDirection === 'left') {
+                    // 整体向左移动：被推开的拼图块向右移动
+                    finalCol = pieceCurrentCol + pushDistance;
+                } else if (pushDirection === 'right') {
+                    // 整体向右移动：被推开的拼图块向左移动
+                    finalCol = pieceCurrentCol - pushDistance;
+                } else if (pushDirection === 'up') {
+                    // 整体向上移动：被推开的拼图块向下移动
+                    finalRow = pieceCurrentRow + pushDistance;
+                } else if (pushDirection === 'down') {
+                    // 整体向下移动：被推开的拼图块向上移动
+                    finalRow = pieceCurrentRow - pushDistance;
+                }
+                
+                // 检查最终位置是否在边界内
+                if (finalRow < 0 || finalRow >= this.currentRows || finalCol < 0 || finalCol >= this.currentCols) {
+                    console.log(`[PuzzleManager] 推动后位置超出边界: row=${finalRow}, col=${finalCol}`);
+                    return false;
+                }
+                
+                const finalIdx = finalRow * this.currentCols + finalCol;
+                
+                // 检查最终位置是否被其他拼图块占用（递归检查）
+                const finalPiece = this.pieces.find(p => 
+                    p.currentIndex === finalIdx && 
+                    !group.some(g => g === p) && 
+                    !targetPieces.some(tp => tp === p) &&
+                    !processedPieces.has(p)
+                );
+                
+                if (finalPiece) {
+                    // 最终位置被占用，需要递归推动
+                    const recursiveResult = this.recursivePush(
+                        finalPiece, 
+                        pushDirection, 
+                        pushDistance, 
+                        new Set([piece]),
+                        group,
+                        targetPieces
+                    );
+                    if (!recursiveResult) {
+                        return false;
+                    }
+                    // 合并递归推动计划
+                    for (const [p, idx] of recursiveResult) {
+                        pushPlan.set(p, idx);
+                        processedPieces.add(p);
+                    }
+                }
+                
+                pushPlan.set(piece, finalIdx);
+            }
+        }
+
+        // 执行移动
+        const moveDuration = 0.2;
+        
+        // 1. 整体拼块移动到目标位置
         for (let i = 0; i < group.length; i++) {
             const groupPiece = group[i];
             const targetIdx = targetIndices[i];
-            const originalIdx = groupOriginalIndices[i];
-            
-            // 找到目标位置对应的拼图块
-            const targetPiece = targetPieces.find(p => p.currentIndex === targetIdx);
-            
-            if (targetPiece) {
-                // 交换位置
-                groupPiece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
-                targetPiece.moveToPosition(this.positions[originalIdx], originalIdx, moveDuration);
-            } else {
-                // 目标位置为空，直接移动
-                groupPiece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
-            }
+            groupPiece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
+        }
+        
+        // 2. 被推开的拼图块移动到新位置
+        for (const [piece, finalIdx] of pushPlan) {
+            piece.moveToPosition(this.positions[finalIdx], finalIdx, moveDuration);
         }
 
         // 更新边框和组信息
@@ -876,6 +997,86 @@ export class PuzzleManager extends Component {
             this.updatePieceBorders();
             this.checkComplete();
         }, moveDuration + 0.1);
+
+        return true;
+    }
+
+    /**
+     * 递归推动拼图块（当推动位置被占用时）
+     * @param piece 需要被推动的拼图块
+     * @param direction 推动方向
+     * @param distance 推动距离
+     * @param visited 已访问的拼图块（防止循环）
+     * @param group 整体拼块（排除）
+     * @param targetPieces 目标位置的拼图块（排除）
+     * @returns 推动计划 Map<piece, finalIndex>，如果失败返回null
+     */
+    private recursivePush(
+        piece: PuzzlePiece,
+        direction: 'left' | 'right' | 'up' | 'down',
+        distance: number,
+        visited: Set<PuzzlePiece>,
+        group: PuzzlePiece[],
+        targetPieces: PuzzlePiece[]
+    ): Map<PuzzlePiece, number> | null {
+        if (visited.has(piece)) {
+            // 检测到循环，失败
+            return null;
+        }
+        visited.add(piece);
+
+        const pieceCurrentRow = Math.floor(piece.currentIndex / this.currentCols);
+        const pieceCurrentCol = piece.currentIndex % this.currentCols;
+        
+        let finalRow = pieceCurrentRow;
+        let finalCol = pieceCurrentCol;
+        
+        // 计算最终位置
+        if (direction === 'left') {
+            finalCol = pieceCurrentCol + distance;
+        } else if (direction === 'right') {
+            finalCol = pieceCurrentCol - distance;
+        } else if (direction === 'up') {
+            finalRow = pieceCurrentRow + distance;
+        } else if (direction === 'down') {
+            finalRow = pieceCurrentRow - distance;
+        }
+        
+        // 检查边界
+        if (finalRow < 0 || finalRow >= this.currentRows || finalCol < 0 || finalCol >= this.currentCols) {
+            return null;
+        }
+        
+        const finalIdx = finalRow * this.currentCols + finalCol;
+        
+        // 检查最终位置是否被占用（排除整体拼块和目标位置的拼图块）
+        const occupyingPiece = this.pieces.find(p => 
+            p.currentIndex === finalIdx && 
+            p !== piece &&
+            !group.some(g => g === p) &&
+            !targetPieces.some(tp => tp === p)
+        );
+        
+        if (occupyingPiece && !visited.has(occupyingPiece)) {
+            // 递归推动占用的拼图块
+            const recursiveResult = this.recursivePush(occupyingPiece, direction, distance, visited, group, targetPieces);
+            if (!recursiveResult) {
+                return null;
+            }
+            
+            // 合并结果
+            const result = new Map<PuzzlePiece, number>();
+            result.set(piece, finalIdx);
+            for (const [p, idx] of recursiveResult) {
+                result.set(p, idx);
+            }
+            return result;
+        }
+        
+        // 最终位置为空或被已访问的拼图块占用，直接移动
+        const result = new Map<PuzzlePiece, number>();
+        result.set(piece, finalIdx);
+        return result;
     }
 
     /**
