@@ -748,7 +748,7 @@ export class PuzzleManager extends Component {
             }
         }
 
-        // 步骤3：如果目标位置包含整体拼块，需要检查个数和形状匹配
+        // 步骤3：处理整体拼块的置换（移除个数和形状匹配限制）
         if (targetGroupIds.size > 0) {
             // 目标位置包含整体拼块
             if (targetGroupIds.size > 1) {
@@ -757,31 +757,16 @@ export class PuzzleManager extends Component {
                 return false;
             }
 
-            const targetGroupId = Array.from(targetGroupIds)[0];
-            const targetGroupMembers = this.groupMap.get(targetGroupId);
-            
             // 检查目标位置是否全部被整体拼块占用
             const allTargetPiecesAreGroup = targetNonGroupPieces.length === 0;
             
             if (allTargetPiecesAreGroup) {
-                // 目标位置全部是整体拼块：需要检查个数和形状匹配
-                if (!targetGroupMembers || targetGroupMembers.length !== group.length) {
-                    console.log(`[PuzzleManager] 整体拼块个数不匹配: 当前${group.length}个，目标${targetGroupMembers?.length || 0}个`);
+                // 目标位置全部是整体拼块：直接使用链式交换，不需要匹配个数和形状
+                const pushResult = this.pushPiecesWithGroup(group, targetIndices, targetGroupPieces, groupOriginalIndices);
+                if (!pushResult) {
+                    console.log(`[PuzzleManager] 整体拼块与整体拼块交换失败`);
                     return false;
                 }
-
-                // 检查形状是否匹配（通过比较相对位置关系）
-                const currentGroupShape = this.getGroupShape(group, groupOriginalIndices);
-                const targetGroupIndices = targetGroupPieces.map(p => p.currentIndex);
-                const targetGroupShape = this.getGroupShape(targetGroupPieces, targetGroupIndices);
-                
-                if (!this.compareGroupShapes(currentGroupShape, targetGroupShape)) {
-                    console.log(`[PuzzleManager] 整体拼块形状不匹配`);
-                    return false;
-                }
-
-                // 整体与整体置换：整体互换位置
-                this.swapGroupWithGroup(group, targetIndices, targetGroupPieces, groupOriginalIndices);
             } else {
                 // 目标位置是混合的（整体拼块 + 非整体拼块）：使用链式交换逻辑
                 // 不需要匹配形状和个数，直接进行一对一链式交换
