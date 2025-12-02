@@ -65,6 +65,7 @@ export class PuzzleManager extends Component {
         originalPositions: Vec3[], // 原始位置（用于恢复）
         originalIndices: number[], // 原始索引（用于恢复）
         dragOffset: Vec3, // 触摸点相对于组中心的偏移
+        dragDirection: Vec3, // 拖拽方向（用于计算目标位置）
     } | null = null;
     private readonly GROUP_DRAG_THRESHOLD = 80; // 组拖动触发阈值
     private readonly GROUP_SNAP_THRESHOLD = 5; // 组吸附阈值（防止误触）
@@ -514,7 +515,8 @@ export class PuzzleManager extends Component {
             pieces: group,
             originalPositions,
             originalIndices,
-            dragOffset
+            dragOffset,
+            dragDirection: new Vec3(0, 0, 0) // 初始方向为0
         };
 
         // 提升层级（视觉上在最上层，避免被其他块遮挡）
@@ -542,11 +544,19 @@ export class PuzzleManager extends Component {
         targetCenter.x = Math.max(-containerHalfWidth - boundThreshold, Math.min(containerHalfWidth + boundThreshold, targetCenter.x));
         targetCenter.y = Math.max(-containerHalfHeight - boundThreshold, Math.min(containerHalfHeight + boundThreshold, targetCenter.y));
 
-        // 步骤4：基于原始组内偏移（确保组内块相对位置不变）
+        // 步骤4：计算拖拽方向（相对于原始中心）
         const originalCenter = this.calculateGroupCenter({
             pieces: group,
             originalPositions: this.currentDraggingGroup.originalPositions
         });
+        const dragDirection = new Vec3(
+            targetCenter.x - originalCenter.x,
+            targetCenter.y - originalCenter.y,
+            0
+        );
+        this.currentDraggingGroup.dragDirection = dragDirection;
+
+        // 步骤5：基于原始组内偏移（确保组内块相对位置不变）
         const pieceOffsets = group.map((piece, idx) => {
             const originalPos = this.currentDraggingGroup.originalPositions[idx];
             return new Vec3(
@@ -556,7 +566,7 @@ export class PuzzleManager extends Component {
             );
         });
 
-        // 步骤5：移动组内所有块（跟手优化，无延迟）
+        // 步骤6：移动组内所有块（跟手优化，无延迟）
         group.forEach((piece, idx) => {
             const offset = pieceOffsets[idx];
             const targetPos = new Vec3(
@@ -574,92 +584,350 @@ export class PuzzleManager extends Component {
     private onGroupDragEnd(touchPiece: PuzzlePiece, event: EventTouch): boolean {
         if (!this.currentDraggingGroup || !this.puzzleContainer) return false;
 
-    const { pieces: group, originalPositions, originalIndices } = this.currentDraggingGroup;
-    const groupSize = group.length;
-    const totalPieces = this.positions.length;
-    const containerTransform = this.puzzleContainer.getComponent(UITransform);
-    const snapThreshold = 60; // 吸附阈值（可根据需求调整）
+        const { pieces: group, originalPositions, originalIndices, dragDirection } = this.currentDraggingGroup;
+        const groupSize = group.length;
+        const totalPieces = this.positions.length;
+        const snapThreshold = 60; // 吸附阈值
 
-    // 步骤1：计算组当前中心（容器本地坐标）
-    const groupCenter = this.calculateGroupCenter(group);
+        // 步骤1：计算拖拽方向对应的网格偏移量
+        // 找到组内第一个拼图块的原始位置，计算它应该移动到的目标位置
+        const referencePiece = group[0];
+        const referenceOriginalIdx = originalIndices[0];
+        const referenceOriginalRow = Math.floor(referenceOriginalIdx / this.currentCols);
+        const referenceOriginalCol = referenceOriginalIdx % this.currentCols;
 
-    // 步骤2：找组中心最近的位置作为「目标起始索引」
-    let targetStartIdx = -1;
-    let minDistance = Infinity;
-    for (let i = 0; i < this.positions.length; i++) {
-        const dist = Vec3.distance(groupCenter, this.positions[i]);
-        if (dist < minDistance && dist < snapThreshold) {
-            minDistance = dist;
-            targetStartIdx = i;
+        // 计算拖拽方向（基于组中心移动）
+        const originalCenter = this.calculateGroupCenter({
+            pieces: group,
+            originalPositions: originalPositions
+        });
+        const currentCenter = this.calculateGroupCenter(group);
+        
+        // 计算网格偏移（根据移动距离判断移动了几个格子）
+        const cellWidth = this.puzzleContainer.getComponent(UITransform).width / this.currentCols;
+        const cellHeight = this.puzzleContainer.getComponent(UITransform).height / this.currentRows;
+        
+        const offsetX = currentCenter.x - originalCenter.x;
+        const offsetY = originalCenter.y - currentCenter.y; // Y轴向上为正，需要取反
+        
+        const colOffset = Math.round(offsetX / cellWidth);
+        const rowOffset = Math.round(offsetY / cellHeight);
+
+        // 如果移动距离太小，认为没有移动
+        if (Math.abs(colOffset) === 0 && Math.abs(rowOffset) === 0) {
+            // 检查是否在吸附范围内
+            const minDist = Math.min(...this.positions.map((pos, idx) => {
+                if (originalIndices.indexOf(idx) !== -1) return Infinity; // 跳过原始位置
+                return Vec3.distance(currentCenter, pos);
+            }));
+            if (minDist > snapThreshold) {
+                this.restoreGroupPosition();
+                this.currentDraggingGroup = null;
+                return true;
+            }
+            // 在吸附范围内，使用最近位置
+            let nearestIdx = -1;
+            let nearestDist = Infinity;
+            for (let i = 0; i < this.positions.length; i++) {
+                if (originalIndices.indexOf(i) !== -1) continue;
+                const dist = Vec3.distance(currentCenter, this.positions[i]);
+                if (dist < nearestDist && dist < snapThreshold) {
+                    nearestDist = dist;
+                    nearestIdx = i;
+                }
+            }
+            if (nearestIdx === -1) {
+                this.restoreGroupPosition();
+                this.currentDraggingGroup = null;
+                return true;
+            }
+            // 计算基于最近位置的偏移
+            const nearestRow = Math.floor(nearestIdx / this.currentCols);
+            const nearestCol = nearestIdx % this.currentCols;
+            const newRowOffset = nearestRow - referenceOriginalRow;
+            const newColOffset = nearestCol - referenceOriginalCol;
+            
+            // 计算目标索引
+            const targetIndices = group.map((piece, idx) => {
+                const originalIdx = originalIndices[idx];
+                const originalRow = Math.floor(originalIdx / this.currentCols);
+                const originalCol = originalIdx % this.currentCols;
+                const targetRow = originalRow + newRowOffset;
+                const targetCol = originalCol + newColOffset;
+                if (targetRow < 0 || targetRow >= this.currentRows || targetCol < 0 || targetCol >= this.currentCols) {
+                    return -1; // 无效
+                }
+                return targetRow * this.currentCols + targetCol;
+            });
+
+            if (targetIndices.some(idx => idx === -1)) {
+                this.restoreGroupPosition();
+                this.currentDraggingGroup = null;
+                return true;
+            }
+
+            // 检查目标位置并执行置换
+            const moveSuccess = this.validateAndSwapGroup(group, targetIndices, originalIndices);
+            if (!moveSuccess) {
+                this.restoreGroupPosition();
+            }
+            this.currentDraggingGroup = null;
+            return true;
         }
-    }
 
-    // 步骤3：生成「连续目标索引」（组大小=N，目标索引为 [start, start+1, ..., start+N-1]）
-    let targetIndices: number[] = [];
-    if (targetStartIdx !== -1) {
-        targetIndices = Array.from({ length: groupSize }, (_, i) => targetStartIdx + i);
-    }
+        // 步骤2：计算每个拼图块的目标索引（基于偏移量）
+        const targetIndices: number[] = [];
+        for (let i = 0; i < group.length; i++) {
+            const originalIdx = originalIndices[i];
+            const originalRow = Math.floor(originalIdx / this.currentCols);
+            const originalCol = originalIdx % this.currentCols;
+            
+            const targetRow = originalRow + rowOffset;
+            const targetCol = originalCol + colOffset;
+            
+            // 检查是否在边界内
+            if (targetRow < 0 || targetRow >= this.currentRows || targetCol < 0 || targetCol >= this.currentCols) {
+                this.restoreGroupPosition();
+                this.currentDraggingGroup = null;
+                return true;
+            }
+            
+            targetIndices.push(targetRow * this.currentCols + targetCol);
+        }
 
-    // 步骤4：严格校验目标索引有效性（1. 不越界 2. 不重复 3. 连续完整）
-    const isValidTarget = targetIndices.every(idx => idx >= 0 && idx < totalPieces);
-    const uniqueTargets = new Set(targetIndices);
-    const isTargetComplete = uniqueTargets.size === targetIndices.length;
-    if (!isValidTarget || !isTargetComplete) {
-        this.restoreGroupPosition();
+        // 步骤3：检查目标位置并执行置换
+        const moveSuccess = this.validateAndSwapGroup(group, targetIndices, originalIndices);
+        if (!moveSuccess) {
+            this.restoreGroupPosition();
+        }
+
+        this.currentDraggingGroup = null;
         return true;
     }
 
-    // 步骤5：收集目标区域的原有块（排除组内自身块，避免重复）
-    const targetPieces: (PuzzlePiece | null)[] = targetIndices.map(idx =>
-        // this.pieces.find(p => p.currentIndex === idx && !group.includes(p))
-        this.pieces.find(p => p.currentIndex === idx && !group.some(g => g === p))
-    );
-
-    // 步骤6：整体交换（组 → 目标区域，原有块 → 组原始区域）
-    const moveSuccess = this.moveGroupToTarget(group, targetIndices, targetPieces, originalIndices);
-    if (!moveSuccess) {
-        this.restoreGroupPosition();
-    }
-
-    this.currentDraggingGroup = null;
-    return true;
-    }
-
-    private moveGroupToTarget(
+    /**
+     * 验证并执行整体拼块的置换
+     * @param group 整体拼块
+     * @param targetIndices 目标位置索引数组
+     * @param groupOriginalIndices 整体拼块的原始位置索引数组
+     * @returns 是否成功
+     */
+    private validateAndSwapGroup(
         group: PuzzlePiece[],
         targetIndices: number[],
-        targetPieces: (PuzzlePiece | null)[],
         groupOriginalIndices: number[]
     ): boolean {
         if (group.length !== targetIndices.length || group.length !== groupOriginalIndices.length) {
             return false;
         }
-    
-        const moveDuration = 0.2; // 快速交换，更跟手
-    
-        // 1. 组内块 → 目标连续区域（按顺序占据目标索引）
-        for (let i = 0; i < group.length; i++) {
-            const piece = group[i];
-            const targetIdx = targetIndices[i];
-            piece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
+
+        // 步骤1：收集目标位置的拼图块（排除组内自身）
+        const targetPieces: (PuzzlePiece | null)[] = targetIndices.map(idx =>
+            this.pieces.find(p => p.currentIndex === idx && !group.some(g => g === p))
+        );
+
+        // 步骤2：检查目标位置是否有足够的拼图块（个数匹配）
+        const targetPieceCount = targetPieces.filter(p => p !== null && p !== undefined).length;
+        if (targetPieceCount !== group.length) {
+            console.log(`[PuzzleManager] 目标位置拼图块数量不匹配: 需要${group.length}个，实际${targetPieceCount}个`);
+            return false;
         }
-    
-        // 2. 目标区域原有块 → 组原始连续区域（按顺序填充原始索引）
-        for (let i = 0; i < targetPieces.length; i++) {
-            const targetPiece = targetPieces[i];
-            const originalIdx = groupOriginalIndices[i];
-            if (targetPiece) { // 非空块才移动（避免空位置报错）
-                targetPiece.moveToPosition(this.positions[originalIdx], originalIdx, moveDuration);
+
+        // 步骤3：检查目标位置的拼图块是否也是整体
+        const targetGroupIds = new Set<number>();
+        for (const piece of targetPieces) {
+            if (piece) {
+                const groupId = this.pieceToGroup.get(piece.correctIndex);
+                if (groupId !== undefined) {
+                    const groupMembers = this.groupMap.get(groupId);
+                    if (groupMembers && groupMembers.length > 1) {
+                        targetGroupIds.add(groupId);
+                    }
+                }
             }
         }
-    
-        // 3. 交换后更新边框和组信息（等待动画完成）
-        this.scheduleOnce(() => {
-            this.updatePieceBorders(); // 重新计算相邻关系和边框
-            this.checkComplete();     // 检查是否完成拼图
-        }, moveDuration);
-    
+
+        // 步骤4：如果目标位置也是整体，需要检查个数和形状匹配
+        if (targetGroupIds.size > 0) {
+            // 目标位置包含整体拼块
+            if (targetGroupIds.size > 1) {
+                // 目标位置有多个不同的整体，不允许置换
+                console.log(`[PuzzleManager] 目标位置包含多个不同的整体拼块，不允许置换`);
+                return false;
+            }
+
+            const targetGroupId = Array.from(targetGroupIds)[0];
+            const targetGroupMembers = this.groupMap.get(targetGroupId);
+            
+            // 检查个数是否匹配
+            if (!targetGroupMembers || targetGroupMembers.length !== group.length) {
+                console.log(`[PuzzleManager] 整体拼块个数不匹配: 当前${group.length}个，目标${targetGroupMembers?.length || 0}个`);
+                return false;
+            }
+
+            // 检查形状是否匹配（通过比较相对位置关系）
+            const currentGroupShape = this.getGroupShape(group, groupOriginalIndices);
+            const targetGroupPieces = targetPieces.filter(p => p !== null) as PuzzlePiece[];
+            const targetGroupIndices = targetGroupPieces.map(p => p.currentIndex);
+            const targetGroupShape = this.getGroupShape(targetGroupPieces, targetGroupIndices);
+            
+            if (!this.compareGroupShapes(currentGroupShape, targetGroupShape)) {
+                console.log(`[PuzzleManager] 整体拼块形状不匹配`);
+                return false;
+            }
+
+            // 整体与整体置换：整体互换位置
+            this.swapGroupWithGroup(group, targetIndices, targetGroupPieces, groupOriginalIndices);
+        } else {
+            // 目标位置是非整体拼块群：一对一置换
+            this.swapGroupWithPieces(group, targetIndices, targetPieces as PuzzlePiece[], groupOriginalIndices);
+        }
+
         return true;
+    }
+
+    /**
+     * 获取整体拼块的形状（相对位置关系）
+     * @param pieces 拼图块数组
+     * @param indices 位置索引数组
+     * @returns 形状描述（相对位置偏移）
+     */
+    private getGroupShape(pieces: PuzzlePiece[], indices: number[]): Array<{ row: number; col: number }> {
+        if (pieces.length === 0) return [];
+        
+        // 找到参考点（第一个拼图块的位置）
+        const referenceIdx = indices[0];
+        const referenceRow = Math.floor(referenceIdx / this.currentCols);
+        const referenceCol = referenceIdx % this.currentCols;
+
+        // 计算每个拼图块相对于参考点的偏移
+        return indices.map(idx => {
+            const row = Math.floor(idx / this.currentCols);
+            const col = idx % this.currentCols;
+            return {
+                row: row - referenceRow,
+                col: col - referenceCol
+            };
+        });
+    }
+
+    /**
+     * 比较两个整体拼块的形状是否相同
+     * @param shape1 形状1
+     * @param shape2 形状2
+     * @returns 是否相同
+     */
+    private compareGroupShapes(shape1: Array<{ row: number; col: number }>, shape2: Array<{ row: number; col: number }>): boolean {
+        if (shape1.length !== shape2.length) return false;
+
+        // 对形状进行排序（按行列顺序）
+        const sortShape = (shape: Array<{ row: number; col: number }>) => {
+            return [...shape].sort((a, b) => {
+                if (a.row !== b.row) return a.row - b.row;
+                return a.col - b.col;
+            });
+        };
+
+        const sorted1 = sortShape(shape1);
+        const sorted2 = sortShape(shape2);
+
+        // 比较每个相对位置
+        for (let i = 0; i < sorted1.length; i++) {
+            if (sorted1[i].row !== sorted2[i].row || sorted1[i].col !== sorted2[i].col) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * 整体拼块与非整体拼块群置换
+     */
+    private swapGroupWithPieces(
+        group: PuzzlePiece[],
+        targetIndices: number[],
+        targetPieces: PuzzlePiece[],
+        groupOriginalIndices: number[]
+    ): void {
+        const moveDuration = 0.2;
+
+        // 一对一置换：整体拼块的每个拼图块与目标位置的对应拼图块交换
+        for (let i = 0; i < group.length; i++) {
+            const groupPiece = group[i];
+            const targetIdx = targetIndices[i];
+            const originalIdx = groupOriginalIndices[i];
+            
+            // 找到目标位置对应的拼图块
+            const targetPiece = targetPieces.find(p => p.currentIndex === targetIdx);
+            
+            if (targetPiece) {
+                // 交换位置
+                groupPiece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
+                targetPiece.moveToPosition(this.positions[originalIdx], originalIdx, moveDuration);
+            } else {
+                // 目标位置为空，直接移动
+                groupPiece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
+            }
+        }
+
+        // 更新边框和组信息
+        this.scheduleOnce(() => {
+            this.updatePieceBorders();
+            this.checkComplete();
+        }, moveDuration + 0.1);
+    }
+
+    /**
+     * 整体拼块与整体拼块置换
+     */
+    private swapGroupWithGroup(
+        group1: PuzzlePiece[],
+        targetIndices: number[],
+        group2: PuzzlePiece[],
+        group1OriginalIndices: number[]
+    ): void {
+        const moveDuration = 0.2;
+
+        // 整体互换：group1移动到group2的位置，group2移动到group1的位置
+        // 需要保持各自的相对位置关系
+
+        // 计算group2的原始位置
+        const group2OriginalIndices = group2.map(p => p.currentIndex);
+
+        // group1移动到group2的位置（保持相对位置）
+        const group1ReferenceOffset = this.getGroupShape(group1, group1OriginalIndices);
+        const group2ReferenceRow = Math.floor(targetIndices[0] / this.currentCols);
+        const group2ReferenceCol = targetIndices[0] % this.currentCols;
+
+        for (let i = 0; i < group1.length; i++) {
+            const piece = group1[i];
+            const offset = group1ReferenceOffset[i];
+            const targetRow = group2ReferenceRow + offset.row;
+            const targetCol = group2ReferenceCol + offset.col;
+            const targetIdx = targetRow * this.currentCols + targetCol;
+            piece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
+        }
+
+        // group2移动到group1的位置（保持相对位置）
+        const group2ReferenceOffset = this.getGroupShape(group2, group2OriginalIndices);
+        const group1ReferenceRow = Math.floor(group1OriginalIndices[0] / this.currentCols);
+        const group1ReferenceCol = group1OriginalIndices[0] % this.currentCols;
+
+        for (let i = 0; i < group2.length; i++) {
+            const piece = group2[i];
+            const offset = group2ReferenceOffset[i];
+            const targetRow = group1ReferenceRow + offset.row;
+            const targetCol = group1ReferenceCol + offset.col;
+            const targetIdx = targetRow * this.currentCols + targetCol;
+            piece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
+        }
+
+        // 更新边框和组信息
+        this.scheduleOnce(() => {
+            this.updatePieceBorders();
+            this.checkComplete();
+        }, moveDuration + 0.1);
     }
 
     /**
