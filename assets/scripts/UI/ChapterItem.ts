@@ -73,7 +73,7 @@ export class ChapterItem extends Component {
             this.describeLabel.string = `${this.describe}`;
         }
 
-        this.unLockImage.active = false;
+        this.unLockImage.active = !this.isUnlocked;
         this.lockImage.active = !this.isUnlocked;
 
         // 更新通关节点显示状态（只有解锁且完成时才显示）
