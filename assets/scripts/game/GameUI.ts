@@ -430,6 +430,7 @@ export class GameUI extends Component {
                 this.hardTip.active = true;
                 this.scheduleOnce(() => {
                     this.hardMask.active = true;
+                    AudioManager.getInstance().playhardSound();
                 }, 0.1)
                 tween(this.hardTip).delay(0.2)
                     .to(0.5, { scale: new Vec3(1, 1, 1) })

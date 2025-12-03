@@ -1743,7 +1743,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 22.474,
+      "y": 16.474,
       "z": 0
     },
     "_lrot": {
@@ -1834,9 +1834,9 @@
     "_enableOutline": true,
     "_outlineColor": {
       "__type__": "cc.Color",
-      "r": 152,
-      "g": 93,
-      "b": 8,
+      "r": 4,
+      "g": 64,
+      "b": 133,
       "a": 255
     },
     "_outlineWidth": 5,
@@ -1878,7 +1878,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -30.213,
+      "y": -36.213,
       "z": 0
     },
     "_lrot": {
@@ -1969,9 +1969,9 @@
     "_enableOutline": true,
     "_outlineColor": {
       "__type__": "cc.Color",
-      "r": 152,
-      "g": 93,
-      "b": 8,
+      "r": 4,
+      "g": 64,
+      "b": 133,
       "a": 255
     },
     "_outlineWidth": 2,
@@ -2034,7 +2034,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "c6e841f9-51d9-41c2-b7ca-3c91e6bf32a3@f9941",
+      "__uuid__": "4b695ec4-7c8e-4dc0-90e9-c30d8c97a323@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -2095,7 +2095,7 @@
         "__id__": 77
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 80
