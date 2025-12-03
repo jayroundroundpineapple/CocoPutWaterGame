@@ -260,7 +260,14 @@ export class PuzzleManager extends Component {
         this.clearPieces();
         this.createPieces(spriteFrame, this.currentConfig.rows, this.currentConfig.cols);
         this.shufflePieces();
-        this.updatePieceBorders();
+        // 延迟更新边框，等待发牌动画完成
+        const totalPieces = this.currentRows * this.currentCols;
+        const dealDuration = 0.3;
+        const dealDelay = 0.05;
+        const totalAnimationTime = totalPieces * dealDelay + dealDuration;
+        this.scheduleOnce(() => {
+            this.updatePieceBorders();
+        }, totalAnimationTime + 0.1);
     }
 
     /**
@@ -352,6 +359,13 @@ export class PuzzleManager extends Component {
 
         const totalPieces = rows * cols;
 
+        // 计算右下角位置（所有拼图块初始堆叠在这里）
+        const stackPosition = new Vec3(
+            containerWidth / 2 - pieceWidth / 2,  // 右下角X
+            -containerHeight / 2 + pieceHeight / 2,  // 右下角Y
+            0
+        );
+
         // 创建所有拼图块
         for (let i = 0; i < totalPieces; i++) {
             const pieceNode = instantiate(this.piecePrefab);
@@ -366,6 +380,8 @@ export class PuzzleManager extends Component {
             const piece = pieceNode.getComponent(PuzzlePiece);
             if (piece) {
                 piece.init(spriteFrame, i, i, rows, cols);
+                // 初始位置设置为右下角（堆叠）
+                piece.setPosition(stackPosition, -1);  // -1 表示未分配位置
                 piece.onPositionChanged = (p, newIndex) => {
                     this.onPiecePositionChanged(p, newIndex);
                 };
@@ -382,7 +398,7 @@ export class PuzzleManager extends Component {
             }
         }
 
-        console.log(`[PuzzleManager] 创建了 ${totalPieces} 个拼图块 (${rows}x${cols})`);
+        console.log(`[PuzzleManager] 创建了 ${totalPieces} 个拼图块 (${rows}x${cols})，初始位置在右下角`);
     }
     private getDragBoundThreshold(): number {
         if (!this.puzzleContainer) return 100;
@@ -1220,7 +1236,7 @@ export class PuzzleManager extends Component {
     }
 
     /**
-     * 打乱拼图块位置
+     * 打乱拼图块位置（带发牌动画）
      */
     private shufflePieces() {
         if (!this.currentConfig || this.pieces.length === 0) return;
@@ -1238,11 +1254,26 @@ export class PuzzleManager extends Component {
             this.shuffleArray(indices);
             attempts++;
         }
-        // 将拼图块移动到随机位置
+        
+        // 播放发牌动画：依次将拼图块从右下角移动到目标位置
+        const dealDuration = 0.3;  // 每个拼图块的动画时长
+        const dealDelay = 0.05;    // 每个拼图块之间的延迟（发牌间隔）
+        
         for (let i = 0; i < this.pieces.length; i++) {
             const targetIndex = indices[i];
-            this.pieces[i].setPosition(this.positions[targetIndex], targetIndex);
+            const piece = this.pieces[i];
+            
+            // 计算延迟时间（按顺序发牌）
+            const delay = i * dealDelay;
+            
+            // 延迟后播放发牌动画
+            this.scheduleOnce(() => {
+                // 使用 moveToPosition 播放动画，不播放音效（发牌时不需要音效）
+                piece.moveToPosition(this.positions[targetIndex], targetIndex, dealDuration, false);
+            }, delay);
         }
+        
+        console.log(`[PuzzleManager] 开始发牌动画，共 ${totalPieces} 个拼图块`);
     }
     /**
      * 打乱数组

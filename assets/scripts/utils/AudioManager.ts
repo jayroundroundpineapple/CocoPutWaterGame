@@ -54,6 +54,9 @@ export class AudioManager {
         // 设置背景音乐循环播放
         this.bgmAudioSource.loop = true;
         
+        // 设置背景音乐默认音量（0.3 = 30%，可根据需要调整）
+        this.bgmAudioSource.volume = 0.3;
+        
         // 加载背景音乐并自动播放
         this.loadBGM();
         
@@ -142,6 +145,10 @@ export class AudioManager {
         }
         
         this.bgmAudioSource.clip = clip;
+        // 确保音量设置生效（如果之前没有设置过）
+        if (this.bgmAudioSource.volume > 0.3) {
+            this.bgmAudioSource.volume = 0.3;
+        }
         this.bgmAudioSource.play();
     }
     
