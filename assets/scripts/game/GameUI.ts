@@ -13,7 +13,7 @@ const { ccclass, property } = _decorator;
 @ccclass('GameUI')
 export class GameUI extends Component {
     @property(Node)
-    private testPraphics: Node = null;
+    private shoucangBtn: Node = null;
     @property(Node)
     private testBtn: Node = null;
     @property(Node)
@@ -65,32 +65,6 @@ export class GameUI extends Component {
         (window as any).gameUI = this;
         this.puzzleGameUI.active = this.testBtn.active = false;
         
-        //*测试绘图路径 */
-        // const ctx = this.testPraphics.getComponent(Graphics);
-        // const path: Array<{
-        //     type: 'move' | 'line' | 'arc';
-        //     x?: number; y?: number; cx?: number; cy?: number;
-        //     r?: number; startAngle?: number; endAngle?: number; anticlockwise?: boolean
-        // }> = [];
-        // path.push({ type: 'move', x: 0, y: 50 });
-        // path.push({ type: 'arc', cx: 0, cy: 0, r: 50, startAngle: 1 * Math.PI, endAngle: 0.5 * Math.PI, anticlockwise: false });
-        // path.push({ type: 'line', x: 200, y: 50 });
-        // for (const cmd of path) {
-        //     if (cmd.type === 'move') {
-        //         ctx.moveTo(cmd.x!, cmd.y!);
-        //     } else if (cmd.type === 'line') {
-        //         ctx.lineTo(cmd.x!, cmd.y!);
-        //     } else if (cmd.type === 'arc') {
-        //         ctx.arc(cmd.cx!, cmd.cy!, cmd.r!, cmd.startAngle!, cmd.endAngle!, cmd.anticlockwise!);
-        //     }
-        // }
-        // ctx.stroke();
-        // ctx.moveTo(100, 0);
-        // ctx.arc(0, 0, 50, 0, 1 * Math.PI, false); //true为逆时针，false顺时针
-        // ctx.stroke();
-        //*测试绘图路径 */
-
-
         // 初始状态：显示章节界面，隐藏关卡解锁界面
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
@@ -99,6 +73,9 @@ export class GameUI extends Component {
         if (this.hardTip) {
             this.hardTip.active = false;
         }
+        // 初始状态：禁用收藏按钮（只有进入LevelUnlockUI时才激活）
+        this.updateShoucangBtnState(false);
+        
         this.initButton.on(Node.EventType.TOUCH_END, this.onInitButtonClick, this);
         this.initTestButton();
         this.initLevelInputDialog();
@@ -417,6 +394,21 @@ export class GameUI extends Component {
     }
 
     /**
+     * 更新收藏按钮的激活状态
+     * @param isActive 是否激活
+     */
+    private updateShoucangBtnState(isActive: boolean): void {
+        if (this.shoucangBtn) {
+            const button = this.shoucangBtn.getComponent(Button);
+            if (button) {
+                button.interactable = isActive;
+            }
+            // 也可以控制节点的显示/隐藏
+            this.shoucangBtn.active = isActive;
+        }
+    }
+
+    /**
      * 更新困难模式提示的显示状态
      */
     private updateHardTipVisibility(): void {
@@ -508,6 +500,8 @@ export class GameUI extends Component {
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
+        // 禁用收藏按钮
+        this.updateShoucangBtnState(false);
         this.scheduleOnce(() => {
             this.enterChapter(this.currentChapter, this.currentStartLevel, this.currentEndLevel, true);
         }, 0.3);
@@ -544,6 +538,8 @@ export class GameUI extends Component {
             // 初始化关卡解锁UI，传入章节背景图
             this.levelUnlockUI.init(chapter, startLevel, endLevel, gridRows, gridCols, chapterBackgroundImage);
             this.levelUnlockUI.node.active = true;
+            // 激活收藏按钮
+            this.updateShoucangBtnState(true);
 
             if (showUnlockAnimation && this.justCompletedLevel > 0) {
                 this.scheduleOnce(() => {
@@ -564,6 +560,8 @@ export class GameUI extends Component {
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
+        // 禁用收藏按钮
+        this.updateShoucangBtnState(false);
 
         // 刷新章节UI状态（检查章节完成状态和解锁状态）
         if (this.chapterUI && this.chapterUI.node) {
@@ -598,6 +596,8 @@ export class GameUI extends Component {
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
+        // 禁用收藏按钮
+        this.updateShoucangBtnState(false);
 
         // 刷新章节UI状态（检查章节完成状态和解锁状态）
         if (this.chapterUI && this.chapterUI.node) {
@@ -625,6 +625,8 @@ export class GameUI extends Component {
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
+        // 禁用收藏按钮
+        this.updateShoucangBtnState(false);
 
         // 显示拼图游戏UI
         if (this.puzzleGameUI) {
@@ -651,6 +653,8 @@ export class GameUI extends Component {
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
+        // 禁用收藏按钮
+        this.updateShoucangBtnState(false);
 
         // 显示拼图游戏UI
         if (this.puzzleGameUI) {
@@ -790,6 +794,8 @@ export class GameUI extends Component {
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
+        // 禁用收藏按钮
+        this.updateShoucangBtnState(false);
 
         // 显示拼图游戏UI
         if (this.puzzleGameUI) {
@@ -828,6 +834,8 @@ export class GameUI extends Component {
         }
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = true;
+            // 激活收藏按钮
+            this.updateShoucangBtnState(true);
             // 更新关卡标签显示（确保显示最新状态）
             this.scheduleOnce(() => {
                 if (this.levelUnlockUI) {
