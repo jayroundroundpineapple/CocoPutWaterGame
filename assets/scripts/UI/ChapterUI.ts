@@ -9,8 +9,8 @@ interface ChapterConfig {
     chapter: number;  // 章节编号（从1开始）
     startLevel: number;  // 起始关卡
     endLevel: number;  // 结束关卡
-    imagePath: string;  // 章节解锁背景图路径
-    unlockImage: SpriteFrame;
+    chapterPassPic: SpriteFrame;  // 章节解锁背景图(大图进行分割)
+    unlockImage: SpriteFrame;  //item背景图
     describe:string
 }
 
@@ -28,9 +28,13 @@ export class ChapterUI extends Component {
     
     @property(SpriteFrame)
     private chapter1Image: SpriteFrame = null;  // 第一章背景图
+    @property(SpriteFrame)
+    private chapterPassPic1: SpriteFrame = null;  // 第一章解锁大图
     
     @property(SpriteFrame)
     private chapter2Image: SpriteFrame = null;  // 第二章背景图
+    @property(SpriteFrame)
+    private chapterPassPic2: SpriteFrame = null;  // 第二章解锁大图
 
     // 章节配置
     private chapters: ChapterConfig[] = [];
@@ -66,7 +70,7 @@ export class ChapterUI extends Component {
                 chapter: 1,
                 startLevel: 1,
                 endLevel: 25,
-                imagePath: 'chapter/chapter1/spriteFrame',
+                chapterPassPic: this.chapterPassPic1,
                 unlockImage: this.chapter1Image,
                 describe: 'Landmarks'
             },
@@ -74,7 +78,7 @@ export class ChapterUI extends Component {
                 chapter: 2,
                 startLevel: 26,
                 endLevel: 50,
-                imagePath: 'chapter/chapter2/spriteFrame',
+                chapterPassPic: this.chapterPassPic2,
                 unlockImage: this.chapter2Image,
                 describe: 'Cute Pets'
             }
@@ -127,7 +131,7 @@ export class ChapterUI extends Component {
         }
 
         // 清空容器
-        this.container.removeAllChildren();
+        // this.container.removeAllChildren();
         this.chapterNodes = [];
 
         const containerTransform = this.container.getComponent(UITransform);
@@ -292,7 +296,7 @@ export class ChapterUI extends Component {
         }
         
         const config = this.chapters[index];
-        return config.unlockImage || null;
+        return config.chapterPassPic || null;
     }
 
     /**
