@@ -44,8 +44,9 @@ export class AudioManager {
      * 初始化音频管理器
      * @param bgmNode 背景音乐节点（需要添加 AudioSource 组件）
      * @param sfxNode 音效节点（需要添加 AudioSource 组件）
+     * @param preloadSounds 是否预加载常用音效，默认 false
      */
-    public init(bgmNode: Node, sfxNode: Node): void {
+    public init(bgmNode: Node, sfxNode: Node, preloadSounds: boolean = false): void {
         // 获取或添加 AudioSource 组件
         this.bgmAudioSource = bgmNode.getComponent(AudioSource) || bgmNode.addComponent(AudioSource);
         this.sfxAudioSource = sfxNode.getComponent(AudioSource) || sfxNode.addComponent(AudioSource);
@@ -55,6 +56,11 @@ export class AudioManager {
         
         // 加载背景音乐并自动播放
         this.loadBGM();
+        
+        // 如果需要，预加载常用音效
+        if (preloadSounds) {
+            this.preloadCommonSounds();
+        }
     }
     
     /**
@@ -90,6 +96,30 @@ export class AudioManager {
             }
             this.audioClips.set(soundName, clip);
         });
+    }
+    
+    /**
+     * 批量预加载音效
+     * @param soundNames 音效名称数组
+     */
+    public preloadSounds(soundNames: string[]): void {
+        soundNames.forEach(soundName => {
+            this.preloadSound(soundName);
+        });
+    }
+    
+    /**
+     * 预加载常用音效（可在初始化时调用）
+     */
+    public preloadCommonSounds(): void {
+        const commonSounds = [
+            'click',      // 点击音效
+            'move',       // 移动音效
+            'reward',       // 交换音效
+            'trueTip',        // 胜利音效
+            'hardTip',       // 失败音效
+        ];
+        this.preloadSounds(commonSounds);
     }
     
     /**
@@ -185,6 +215,45 @@ export class AudioManager {
         this.playSound('click');
     }
     
+    /**
+     * 播放移动音效（快捷方法）
+     * @param volume 音量（0-1），默认 1
+     */
+    public playMoveSound(volume: number = 1): void {
+        this.playSound('move', volume);
+    }
+    
+    /**
+     * 播放hard音效（快捷方法）
+     * @param volume 音量（0-1），默认 1
+     */
+    public playhardSound(volume: number = 1): void {
+        this.playSound('hardTip', volume);
+    }
+    
+    /**
+     * 播放对的音效（快捷方法）
+     * @param volume 音量（0-1），默认 1
+     */
+    public playtrueSound(volume: number = 1): void {
+        this.playSound('trueTip', volume);
+    }
+    
+    /**
+     * 播放奖励音效（快捷方法）
+     * @param volume 音量（0-1），默认 1
+     */
+    public playRewardSound(volume: number = 1): void {
+        this.playSound('reward', volume);
+    }
+    
+    /**
+     * 播放完成音效（快捷方法）
+     * @param volume 音量（0-1），默认 1
+     */
+    public playCompleteSound(volume: number = 1): void {
+        this.playSound('complete', volume);
+    }
     /**
      * 设置音乐开关
      * @param enabled 是否开启

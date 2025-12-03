@@ -1352,7 +1352,7 @@
       "__expectedType__": "cc.SpriteFrame"
     },
     "chapterPassPic2": {
-      "__uuid__": "964f4931-f772-430f-a308-02e2c8faa49d@f9941",
+      "__uuid__": "a84a9dba-a7f8-42f0-bd98-cd119c410856@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_id": "a39mDixXNOkJ0Fvzm/RjMe"
@@ -6885,7 +6885,7 @@
     "component": "",
     "_componentId": "0cd5bUA8ehF46caPboLKdbt",
     "handler": "backToHome",
-    "customEventData": ""
+    "customEventData": "99"
   },
   {
     "__type__": "cc.Widget",

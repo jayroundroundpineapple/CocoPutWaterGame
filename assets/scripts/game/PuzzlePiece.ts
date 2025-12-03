@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, Vec3, EventTouch, tween, Texture2D, Rect, Graphics, Color } from 'cc';
 import { PuzzleManager } from './PuzzleManager';
+import { AudioManager } from '../utils/AudioManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -457,10 +458,22 @@ export class PuzzlePiece extends Component {
 
     /**
      * 移动到指定位置（带动画）
+     * @param position 目标位置
+     * @param index 目标索引
+     * @param duration 动画时长
+     * @param playSound 是否播放移动音效，默认 true
      */
-    public moveToPosition(position: Vec3, index: number, duration: number = 0.3) {
+    public moveToPosition(position: Vec3, index: number, duration: number = 0.3, playSound: boolean = true) {
+        // 检查位置是否真的改变了
+        const positionChanged = this.currentIndex !== index;
+        
         this.currentIndex = index;
         this.isInCorrectPosition = (index === this.correctIndex);
+
+        // 如果位置改变了且需要播放音效，播放移动音效
+        if (positionChanged && playSound) {
+            AudioManager.getInstance().playMoveSound();
+        }
 
         tween(this.node)
             .to(duration, { position: position }, { easing: 'sineOut' })

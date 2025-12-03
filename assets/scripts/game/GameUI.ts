@@ -583,9 +583,11 @@ export class GameUI extends Component {
     /**
      * 返回首页（从设置界面）
      */
-    private backToHome(): void {
+    private backToHome(event = null,custom = null): void {
         console.log('[GameUI] 返回首页');
-
+        if (event && custom && custom == 99) {
+            AudioManager.getInstance().playClickSound();
+        }
         // 隐藏拼图游戏UI
         if (this.puzzleGameUI) {
             this.puzzleGameUI.active = false;
