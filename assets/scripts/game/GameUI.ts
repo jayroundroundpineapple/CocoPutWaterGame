@@ -882,11 +882,11 @@ export class GameUI extends Component {
             const completedImage = this.puzzleManager.getCurrentLevelImage();
             if (completedImage) {
                 this.puzzleGameUI.active = false;
-                this.puzzleSuccessUI.show(completedImage);
+                this.puzzleSuccessUI.show(completedImage, 0.3, level);
             } else {
                 console.warn('[GameUI] 无法获取完成的拼图图片');
                 // 即使没有图片也显示弹窗
-                this.puzzleSuccessUI.show(null);
+                this.puzzleSuccessUI.show(null, 0.3, level);
             }
         } else {
             console.warn('[GameUI] PuzzleSuccessUI 或 PuzzleManager 未设置');

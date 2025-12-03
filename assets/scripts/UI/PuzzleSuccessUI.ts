@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, EventTouch, view, Color } from 'cc';
+import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, EventTouch, view, Color, Label, tween, Vec3, sys } from 'cc';
 import { Utils } from '../utils/Utils';
 import { AudioManager } from '../utils/AudioManager';
 const { ccclass, property } = _decorator;
@@ -11,7 +11,10 @@ const { ccclass, property } = _decorator;
 export class PuzzleSuccessUI extends Component {
     @property(Node)
     private nextLevelBtn: Node = null;  
-    
+    @property(Node)
+    private coinIcon: Node = null; 
+    @property(Label) 
+    private coinLabel: Label = null;
     @property(Node)
     private backgroundMask: Node = null;  // 背景遮罩层
     
@@ -26,6 +29,11 @@ export class PuzzleSuccessUI extends Component {
     
     // 当前显示的图片
     private currentImage: SpriteFrame = null;
+    
+    // 金币相关
+    private readonly COIN_STORAGE_KEY = 'puzzle_game_coins';  // 金币存储键
+    private readonly COIN_PER_LEVEL = 10;  // 每关获得的金币数量
+    private currentCoins: number = 0;  // 当前金币数量
 
     protected onLoad() {
         this.audioManager = AudioManager.getInstance();
@@ -34,6 +42,8 @@ export class PuzzleSuccessUI extends Component {
         } else {
             this.setupBackgroundMask(this.backgroundMask);
         }
+        // 加载金币数量
+        this.loadCoins();
     }
     
     protected start() {
@@ -48,8 +58,9 @@ export class PuzzleSuccessUI extends Component {
      * 显示成功弹窗
      * @param image 完成的拼图图片
      * @param duration 动画时长（秒），默认 0.3
+     * @param level 完成的关卡编号（可选，用于计算金币）
      */
-    public show(image: SpriteFrame, duration: number = 0.3): void {
+    public show(image: SpriteFrame, duration: number = 0.3, level: number = 1): void {
         if (this.isShowing) {
             console.warn('[PuzzleSuccessUI] 成功弹窗已经显示');
             return;
@@ -60,8 +71,15 @@ export class PuzzleSuccessUI extends Component {
             this.successImage.spriteFrame = image;
         }
         this.isShowing = true;
+        AudioManager.getInstance().playtrueSound();
+        
+        // 更新金币（每关获得金币）
+        this.addCoins(this.COIN_PER_LEVEL);
+        
         Utils.showPopup(this.node, duration, 'backOut', () => {
             console.log('[PuzzleSuccessUI] 成功弹窗显示完成');
+            // 弹窗显示完成后，播放金币动画
+            this.playCoinAnimation();
         });
     }
 
@@ -122,6 +140,108 @@ export class PuzzleSuccessUI extends Component {
         mask.on(Node.EventType.TOUCH_START, (event: EventTouch) => {
             event.propagationStopped = true;
         }, this);
+    }
+
+    /**
+     * 加载金币数量
+     */
+    private loadCoins(): void {
+        const saved = sys.localStorage.getItem(this.COIN_STORAGE_KEY);
+        if (saved) {
+            try {
+                this.currentCoins = parseInt(saved, 10) || 0;
+            } catch (e) {
+                console.error('[PuzzleSuccessUI] 加载金币数量失败:', e);
+                this.currentCoins = 0;
+            }
+        } else {
+            this.currentCoins = 0;
+        }
+        // 更新显示
+        this.updateCoinDisplay();
+    }
+
+    /**
+     * 保存金币数量
+     */
+    private saveCoins(): void {
+        try {
+            sys.localStorage.setItem(this.COIN_STORAGE_KEY, this.currentCoins.toString());
+        } catch (e) {
+            console.error('[PuzzleSuccessUI] 保存金币数量失败:', e);
+        }
+    }
+
+    /**
+     * 添加金币
+     * @param amount 金币数量
+     */
+    private addCoins(amount: number): void {
+        this.currentCoins += amount;
+        this.saveCoins();
+    }
+
+    /**
+     * 更新金币显示
+     */
+    private updateCoinDisplay(): void {
+        if (this.coinLabel) {
+            this.coinLabel.string = this.currentCoins.toString();
+        }
+    }
+
+    /**
+     * 播放金币动画（缩放效果）
+     */
+    private playCoinAnimation(): void {
+        if (!this.coinIcon || !this.coinLabel) {
+            return;
+        }
+
+        // 先更新金币数值
+        this.updateCoinDisplay();
+
+        // 保存原始缩放值
+        const originalScale = new Vec3(1, 1, 1);
+        
+        // 金币图标和标签同时播放缩放动画
+        const scaleSequence = [
+            { scale: new Vec3(1.1, 1.1, 1), duration: 0.3 },  // 放大
+            { scale: new Vec3(0.9, 0.9, 1), duration: 0.2 },  // 缩小
+            { scale: new Vec3(1.2, 1.2, 1), duration: 0.2 },  // 再放大
+            { scale: new Vec3(1, 1, 1), duration: 0.2 }        // 恢复
+        ];
+
+        // 金币图标动画
+        let iconTween = tween(this.coinIcon);
+        scaleSequence.forEach((step, index) => {
+            iconTween = iconTween.to(step.duration, { scale: step.scale });
+        });
+        iconTween.start();
+
+        // 金币标签动画
+        let labelTween = tween(this.coinLabel.node);
+        scaleSequence.forEach((step, index) => {
+            labelTween = labelTween.to(step.duration, { scale: step.scale });
+        });
+        labelTween.start();
+    }
+
+    /**
+     * 获取当前金币数量
+     */
+    public getCoins(): number {
+        return this.currentCoins;
+    }
+
+    /**
+     * 设置金币数量（用于测试或特殊场景）
+     * @param amount 金币数量
+     */
+    public setCoins(amount: number): void {
+        this.currentCoins = Math.max(0, amount);
+        this.saveCoins();
+        this.updateCoinDisplay();
     }
 
     protected onDestroy() {
