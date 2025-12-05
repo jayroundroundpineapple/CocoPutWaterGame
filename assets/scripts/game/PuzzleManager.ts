@@ -1982,13 +1982,10 @@ export class PuzzleManager extends Component {
         for (const config of this.levelConfigs) {
             resources.load(config.imagePath, SpriteFrame, (err, spriteFrame) => {
                 if (err) {
-                    console.error(`[PuzzleManager] 预加载关卡 ${config.level} 图片失败:`, err);
-                    console.error(`[PuzzleManager] 路径: ${config.imagePath}`);
                     failed++;
                 } else {
                     // 缓存图片资源
                     this.imageCache.set(config.level, spriteFrame);
-                    console.log(`[PuzzleManager] 预加载关卡 ${config.level} 图片成功`);
                 }
 
                 loaded++;
@@ -2003,7 +2000,6 @@ export class PuzzleManager extends Component {
 
                 // 所有资源加载完成
                 if (loaded === total) {
-                    console.log(`[PuzzleManager] 预加载完成！成功: ${total - failed}, 失败: ${failed}`);
                     if (onComplete) {
                         onComplete();
                     }
