@@ -117,17 +117,7 @@ export class PuzzlePiece extends Component {
 
         // 绘制边框（根据隐藏状态）
         this.updateBorder();
-        // this.updateMask();
     }
-    /**
-     * 更新遮罩形状（根据隐藏边动态调整圆角）
-     * 当相邻边隐藏时，对应的角应该变成方形
-     * 遮罩始终覆盖整个区域，只是圆角会根据隐藏状态调整
-     */
-    private updateMask(): void {
-        
-    }
-
     /**
      * 更新边框显示（根据隐藏的边重新绘制）
      */
@@ -171,16 +161,12 @@ export class PuzzlePiece extends Component {
         const getEdgeStart = (edge: string): { x: number; y: number } => {
             switch (edge) {
                 case 'top':
-                    // 顶边：如果左边隐藏，应该延伸到左上角；否则从圆角起点开始
                     return { x: this.hideLeft ? -halfW : -halfW + radius, y: halfH };
                 case 'right':
-                    // 右边：如果上边隐藏，应该延伸到右上角；否则从圆角起点开始
                     return { x: halfW, y: this.hideTop ? halfH : halfH - radius };
                 case 'bottom':
-                    // 底边：如果右边隐藏，应该延伸到右下角；否则从圆角起点开始
                     return { x: this.hideRight ? halfW : halfW - radius, y: -halfH };
                 case 'left':
-                    // 左边：如果下边隐藏，应该延伸到左下角；否则从圆角起点开始
                     return { x: -halfW, y: this.hideBottom ? -halfH : -halfH + radius };
                 default:
                     return { x: 0, y: 0 };
@@ -258,10 +244,6 @@ export class PuzzlePiece extends Component {
                     // 如果前一条边未隐藏，arc 已经将位置移到了正确位置，不需要额外操作
                 }
             }
-
-            // 绘制当前边
-            // 关键：当相邻边隐藏时，应该延伸到角落，用直线代替圆角
-            // 注意：顶边 y = halfH，底边 y = -halfH
             if (edgeName === 'top') {
                 // 顶边：如果右边隐藏，应该延伸到右上角；否则到圆角起点
                 const endX = this.hideRight ? halfW : halfW - radius;
@@ -327,7 +309,6 @@ export class PuzzlePiece extends Component {
         this.hideLeft = hideLeft;
         this.hideRight = hideRight;
         this.updateBorder();
-        // this.updateMask();
     }
 
     /**
