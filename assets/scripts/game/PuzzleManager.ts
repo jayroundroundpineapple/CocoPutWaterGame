@@ -112,7 +112,6 @@ export class PuzzleManager extends Component {
                 // 重试加载
                 if (this.loadRetryCount < this.MAX_RETRY_COUNT) {
                     this.loadRetryCount++;
-                    console.log(`[PuzzleManager] 重试加载关卡配置 (${this.loadRetryCount}/${this.MAX_RETRY_COUNT})`);
                     this.scheduleOnce(() => {
                         this.loadLevelConfigs();
                     }, 0.5);
@@ -127,7 +126,6 @@ export class PuzzleManager extends Component {
             if (data && data.levels && Array.isArray(data.levels)) {
                 this.levelConfigs = data.levels;
                 this.loadRetryCount = 0;  // 重置重试计数
-                console.log('[PuzzleManager] 加载关卡配置成功，共', this.levelConfigs.length, '关');
             } else {
                 console.error('[PuzzleManager] 关卡配置格式错误');
                 // 如果格式错误，也尝试重试
@@ -158,7 +156,6 @@ export class PuzzleManager extends Component {
             const data = jsonAsset.json as { levels: LevelConfig[] };
             if (data && data.levels && Array.isArray(data.levels) && data.levels.length > 0) {
                 this.levelConfigs = data.levels;
-                console.log('[PuzzleManager] 最终加载成功，共', this.levelConfigs.length, '关');
             } else {
                 console.error('[PuzzleManager] JSON格式错误或为空，使用空配置');
                 this.levelConfigs = [];
@@ -206,8 +203,6 @@ export class PuzzleManager extends Component {
                 this.adjacentMap.set(correctIndex, { top, bottom, left, right });
             }
         }
-
-        console.log(`[PuzzleManager] 初始化相邻关系映射: ${rows}x${cols}, 共${this.adjacentMap.size}个拼图块`);
     }
 
     private initPositions(rows: number, cols: number) {
@@ -234,8 +229,6 @@ export class PuzzleManager extends Component {
                 this.positions[index] = new Vec3(x, y, 0);
             }
         }
-
-        console.log(`[PuzzleManager] 初始化位置: ${rows}x${cols}, 共${this.positions.length}个位置`);
     }
 
     /**
@@ -275,16 +268,12 @@ export class PuzzleManager extends Component {
      * @param level 关卡编号（从1开始）
      */
     public startLevel(level: number): void {
-        console.log(`[PuzzleManager] 开始关卡 ${level}`);
-        // 设置当前关卡
         this.currentLevel = level;
-        this.isCompleted = false;  // 重置完成标志
-        // 如果配置为空，尝试重新加载
+        this.isCompleted = false;  
         if (this.levelConfigs.length === 0) {
             console.warn('[PuzzleManager] 关卡配置为空，尝试重新加载...');
-            this.loadRetryCount = 0;  // 重置重试计数
+            this.loadRetryCount = 0;  
             this.loadLevelConfigs();
-            // 延迟执行，等待配置加载完成
             this.scheduleOnce(() => {
                 this.tryStartLevel(level);
             }, 0.5);
@@ -301,7 +290,6 @@ export class PuzzleManager extends Component {
         const config = this.levelConfigs.find(c => c.level === level);
         if (!config) {
             console.error(`[PuzzleManager] 找不到关卡 ${level} 的配置`);
-            console.error(`[PuzzleManager] 当前配置数量: ${this.levelConfigs.length}`);
             if (this.levelConfigs.length > 0) {
                 console.error(`[PuzzleManager] 可用关卡: ${this.levelConfigs.map(c => c.level).join(', ')}`);
             }
@@ -309,8 +297,6 @@ export class PuzzleManager extends Component {
         }
 
         this.currentConfig = config;
-
-        // 先从缓存获取图片
         const cachedImage = this.getCachedImage(level);
         if (cachedImage) {
             console.log(`[PuzzleManager] 从缓存获取关卡 ${level} 图片`);
@@ -319,7 +305,6 @@ export class PuzzleManager extends Component {
         }
 
         // 如果缓存中没有，则加载图片
-        console.log(`[PuzzleManager] 加载关卡 ${level} 图片: ${config.imagePath}`);
         resources.load(config.imagePath, SpriteFrame, (err, spriteFrame) => {
             if (err) {
                 console.error(`[PuzzleManager] 加载关卡 ${level} 图片失败:`, err);
@@ -397,8 +382,6 @@ export class PuzzleManager extends Component {
                 this.pieces.push(piece);
             }
         }
-
-        console.log(`[PuzzleManager] 创建了 ${totalPieces} 个拼图块 (${rows}x${cols})，初始位置在右下角`);
     }
     private getDragBoundThreshold(): number {
         if (!this.puzzleContainer) return 100;
@@ -476,11 +459,9 @@ export class PuzzleManager extends Component {
             this.groupMap.get(gId)!.push(correctIdx);
             this.pieceToGroup.set(correctIdx, gId);
         }
-        // 调试日志
-        console.log("当前相邻组：");
-        this.groupMap.forEach((members, id) => {
-            console.log(`组${id}：${members.map(idx => `块${idx}`).join(', ')}`);
-        });
+        // this.groupMap.forEach((members, id) => {
+        //     console.log(`组${id}：${members.map(idx => `块${idx}`).join(', ')}`);
+        // });
     }
     // 新增：获取拼图块所在的组
     private getPieceGroup(piece: PuzzlePiece): PuzzlePiece[] | null {
@@ -538,23 +519,18 @@ export class PuzzleManager extends Component {
         // 提升层级（视觉上在最上层，避免被其他块遮挡）
         group.forEach(p => p.node.setSiblingIndex(this.puzzleContainer.children.length - 1));
     }
-
-    // 新增：组拖动中
     private onGroupDragMove(touchPiece: PuzzlePiece, event: EventTouch): boolean {
         if (!this.currentDraggingGroup || !this.puzzleContainer) return false;
         const { pieces: group, dragOffset } = this.currentDraggingGroup;
         const containerTransform = this.puzzleContainer.getComponent(UITransform);
         const boundThreshold = this.getDragBoundThreshold();
-        // 步骤1：实时转换触摸位置（每帧更新，确保准确性）
         const touchScreenPos = new Vec3(event.getUILocation().x, event.getUILocation().y, 0);
         const touchLocalPos = containerTransform.convertToNodeSpaceAR(touchScreenPos);
-        // 步骤2：计算目标组中心（触摸位置 - 偏移量 → 确保组跟着触摸点走）
         const targetCenter = new Vec3(
             touchLocalPos.x - dragOffset.x,
             touchLocalPos.y - dragOffset.y,
             0
         );
-        // 步骤3：范围约束（避免组拖出屏幕太远）
         const containerHalfWidth = containerTransform.width / 2;
         const containerHalfHeight = containerTransform.height / 2;
         targetCenter.x = Math.max(-containerHalfWidth - boundThreshold, Math.min(containerHalfWidth + boundThreshold, targetCenter.x));
@@ -596,7 +572,6 @@ export class PuzzleManager extends Component {
         return true;
     }
 
-    // 新增：组拖动结束
     private onGroupDragEnd(touchPiece: PuzzlePiece, event: EventTouch): boolean {
         if (!this.currentDraggingGroup || !this.puzzleContainer) return false;
 
@@ -605,21 +580,17 @@ export class PuzzleManager extends Component {
         const totalPieces = this.positions.length;
         const snapThreshold = 60; // 吸附阈值
 
-        // 步骤1：计算拖拽方向对应的网格偏移量
-        // 找到组内第一个拼图块的原始位置，计算它应该移动到的目标位置
         const referencePiece = group[0];
         const referenceOriginalIdx = originalIndices[0];
         const referenceOriginalRow = Math.floor(referenceOriginalIdx / this.currentCols);
         const referenceOriginalCol = referenceOriginalIdx % this.currentCols;
 
-        // 计算拖拽方向（基于组中心移动）
         const originalCenter = this.calculateGroupCenter({
             pieces: group,
             originalPositions: originalPositions
         });
         const currentCenter = this.calculateGroupCenter(group);
         
-        // 计算网格偏移（根据移动距离判断移动了几个格子）
         const cellWidth = this.puzzleContainer.getComponent(UITransform).width / this.currentCols;
         const cellHeight = this.puzzleContainer.getComponent(UITransform).height / this.currentRows;
         
@@ -691,7 +662,6 @@ export class PuzzleManager extends Component {
             return true;
         }
 
-        // 步骤2：计算每个拼图块的目标索引（基于偏移量）
         const targetIndices: number[] = [];
         for (let i = 0; i < group.length; i++) {
             const originalIdx = originalIndices[i];
@@ -701,7 +671,6 @@ export class PuzzleManager extends Component {
             const targetRow = originalRow + rowOffset;
             const targetCol = originalCol + colOffset;
             
-            // 检查是否在边界内
             if (targetRow < 0 || targetRow >= this.currentRows || targetCol < 0 || targetCol >= this.currentCols) {
                 this.restoreGroupPosition();
                 this.currentDraggingGroup = null;
@@ -711,7 +680,6 @@ export class PuzzleManager extends Component {
             targetIndices.push(targetRow * this.currentCols + targetCol);
         }
 
-        // 步骤3：检查目标位置并执行置换
         const moveSuccess = this.moveGroupToPositions(group, targetIndices, originalIndices);
         if (!moveSuccess) {
             this.restoreGroupPosition();
@@ -822,7 +790,6 @@ export class PuzzleManager extends Component {
             // 目标位置包含整体拼块
             if (targetGroupIds.size > 1) {
                 // 目标位置有多个不同的整体，不允许置换
-                console.log(`[PuzzleManager] 目标位置包含多个不同的整体拼块，不允许置换`);
                 return false;
             }
 
@@ -1325,8 +1292,6 @@ export class PuzzleManager extends Component {
                 piece.moveToPosition(this.positions[targetIndex], targetIndex, dealDuration, false);
             }, delay);
         }
-        
-        console.log(`[PuzzleManager] 开始发牌动画，共 ${totalPieces} 个拼图块`);
     }
     /**
      * 打乱数组
@@ -1973,8 +1938,6 @@ export class PuzzleManager extends Component {
         let loaded = 0;
         let failed = 0;
 
-        console.log(`[PuzzleManager] 开始预加载 ${total} 个关卡的图片资源...`);
-
         // 清空缓存
         this.imageCache.clear();
 
@@ -2078,12 +2041,8 @@ export class PuzzleManager extends Component {
                 console.warn(`[PuzzleManager] 找不到 correctIndex=${correctIndex} 的相邻关系映射`);
                 continue;
             }
-            console.log(`拼图块 ${correctIndex} 当前位置 ${currentIndex}, 相邻关系:`, adjacent);
-
-            // 计算当前拼图块在当前网格中的行列位置
             const currentRow = Math.floor(currentIndex / this.currentCols);
             const currentCol = currentIndex % this.currentCols;
-
             // 确保当前拼图块在 borderState 中
             if (!borderState.has(piece)) {
                 console.warn(`[PuzzleManager] 拼图块 correctIndex=${correctIndex} 不在 borderState 中，重新添加`);
@@ -2113,7 +2072,6 @@ export class PuzzleManager extends Component {
                 }
             }
 
-            // 检查下方相邻的拼图块
             if (adjacent.bottom !== -1 && currentRow < this.currentRows - 1) {
                 const bottomIndex = currentIndex + this.currentCols;
                 const bottomPiece = this.pieces.find(p => p?.currentIndex === bottomIndex);
@@ -2124,7 +2082,6 @@ export class PuzzleManager extends Component {
                         borderState.set(bottomPiece, { hideTop: false, hideBottom: false, hideLeft: false, hideRight: false });
                     }
 
-                    // 下方是正确的相邻拼图块，隐藏相邻边
                     const state1 = borderState.get(piece);
                     const state2 = borderState.get(bottomPiece);
                     if (state1 && state2) {
@@ -2136,7 +2093,6 @@ export class PuzzleManager extends Component {
                 }
             }
 
-            // 检查左侧相邻的拼图块
             if (adjacent.left !== -1 && currentCol > 0) {
                 const leftIndex = currentIndex - 1;
                 const leftPiece = this.pieces.find(p => p?.currentIndex === leftIndex);
@@ -2147,7 +2103,6 @@ export class PuzzleManager extends Component {
                         borderState.set(leftPiece, { hideTop: false, hideBottom: false, hideLeft: false, hideRight: false });
                     }
 
-                    // 左侧是正确的相邻拼图块，隐藏相邻边
                     const state1 = borderState.get(piece);
                     const state2 = borderState.get(leftPiece);
                     if (state1 && state2) {
@@ -2159,7 +2114,6 @@ export class PuzzleManager extends Component {
                 }
             }
 
-            // 检查右侧相邻的拼图块
             if (adjacent.right !== -1 && currentCol < this.currentCols - 1) {
                 const rightIndex = currentIndex + 1;
                 const rightPiece = this.pieces.find(p => p?.currentIndex === rightIndex);
@@ -2170,7 +2124,6 @@ export class PuzzleManager extends Component {
                         borderState.set(rightPiece, { hideTop: false, hideBottom: false, hideLeft: false, hideRight: false });
                     }
 
-                    // 右侧是正确的相邻拼图块，隐藏相邻边
                     const state1 = borderState.get(piece);
                     const state2 = borderState.get(rightPiece);
                     if (state1 && state2) {
@@ -2186,8 +2139,6 @@ export class PuzzleManager extends Component {
         // 应用边框状态到所有拼图块
         for (const [piece, state] of borderState) {
             piece.setHiddenEdges(state.hideTop, state.hideBottom, state.hideLeft, state.hideRight);
-            console.log(`拼图块当前位置：${piece.correctIndex},拼块正确位置:${piece.correctIndex},
-            隐藏边: top=${state.hideTop}, bottom=${state.hideBottom}, left=${state.hideLeft}, right=${state.hideRight}`);
         }
         // 更新边框后识别相邻组
         this.calculateConnectedGroups();

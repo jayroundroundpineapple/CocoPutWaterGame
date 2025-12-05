@@ -1,5 +1,4 @@
 import { _decorator, Button, Component, Node, SpriteFrame, AudioSource, sys, Tween, tween, Vec3, EditBox, Label, Graphics } from 'cc';
-import { AdManager } from './adManager';
 import { AdType } from './ad-enums';
 import { PuzzleManager } from './PuzzleManager';
 import { SettingUI } from '../UI/SettingUI';
@@ -16,8 +15,6 @@ export class GameUI extends Component {
     private shoucangBtn: Node = null;
     @property(Node)
     private testBtn: Node = null;
-    @property(Node)
-    private initButton: Node = null;
     @property(Node)
     private settingBtn: Node = null;
     @property(SettingUI)
@@ -75,10 +72,7 @@ export class GameUI extends Component {
         if (this.hardTip) {
             this.hardTip.active = false;
         }
-        // 初始状态：禁用收藏按钮（只有进入LevelUnlockUI时才激活）
         this.updateShoucangBtnState(false);
-        
-        this.initButton.on(Node.EventType.TOUCH_END, this.onInitButtonClick, this);
         this.initTestButton();
         this.initLevelInputDialog();
         this.initPuzzle();
@@ -935,26 +929,6 @@ export class GameUI extends Component {
             console.warn('[GameUI] PuzzleSuccessUI 或 PuzzleManager 未设置');
         }
     }
-
-    onInitButtonClick() {
-        console.log('onInitButtonClick');
-        AdManager.InitSdk(
-            (attributed: boolean, info: string) => {
-                console.log('User Attribute:', attributed, info);
-            },
-            (initialized: boolean) => {
-                console.log('Ad Init:', initialized);
-            }
-        );
-    }
-
-    onShowRewardButtonClick() {
-        console.log('onShowRewardButtonClick');
-        AdManager.ShowAd(AdType.AD_TYPE_Reward, 'reward_placement', (adtype, adevent, error) => {
-            console.log('Ad Event:', adtype, adevent, error);
-        });
-    }
-
     update(deltaTime: number) {
 
     }
@@ -964,10 +938,6 @@ export class GameUI extends Component {
         if (this.exitGameBtn) {
             this.exitGameBtn.off(Node.EventType.TOUCH_END, this.onExitGameBtnClick, this);
         }
-        if (this.initButton) {
-            this.initButton.off(Node.EventType.TOUCH_END, this.onInitButtonClick, this);
-        }
-
         if (this.testBtn) {
             this.testBtn.off(Node.EventType.TOUCH_END, this.onTestButtonClick, this);
         }
