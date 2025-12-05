@@ -1433,10 +1433,6 @@ export class PuzzleManager extends Component {
         const movePlan = new Map<PuzzlePiece, number>();
         const processed = new Set<PuzzlePiece>();
 
-        // 单个块移动到目标位置
-        movePlan.set(piece, targetIndex);
-        processed.add(piece);
-
         // 如果目标位置有块，需要处理交换
         if (targetPiece) {
             const isTargetInGroup = this.isPieceInGroup(targetPiece);
@@ -1445,21 +1441,14 @@ export class PuzzleManager extends Component {
                 // 目标块属于整体，需要与整体交换
                 const targetGroup = this.getPieceGroup(targetPiece);
                 if (targetGroup && targetGroup.length > 1) {
-                    // 计算整体块的目标位置（整体块移动到单个块的原始位置）
-                    const groupOriginalIndices = targetGroup.map(p => p.currentIndex);
+                    // 使用calculateGroupTargetIndicesForSwap计算整体块的目标位置
                     const groupTargetIndices = this.calculateGroupTargetIndicesForSwap(
-                        targetGroup, 
-                        originalIndex, 
-                        targetPiece.currentIndex
+                        targetGroup,
+                        originalIndex,
+                        targetIndex
                     );
-
-                    if (groupTargetIndices && groupTargetIndices.length === targetGroup.length) {
-                        // 整体块移动到目标位置
-                        for (let i = 0; i < targetGroup.length; i++) {
-                            movePlan.set(targetGroup[i], groupTargetIndices[i]);
-                            processed.add(targetGroup[i]);
-                        }
-                    } else {
+                    
+                    if (!groupTargetIndices || groupTargetIndices.length !== targetGroup.length) {
                         // 无法移动整体块（超出边界），恢复原位置
                         piece.moveToPosition(this.positions[originalIndex], originalIndex);
                         this.scheduleOnce(() => {
@@ -1468,20 +1457,164 @@ export class PuzzleManager extends Component {
                         }, 0.35);
                         return;
                     }
+                    
+                    // 检查整体块目标位置是否有冲突，并处理被推开的块
+                    const groupOriginalIndices = targetGroup.map(p => p.currentIndex);
+                    const piecesToPush: PuzzlePiece[] = [];
+                    const pushTargetIndices: number[] = [];
+                    const usedOriginalIndices = new Set<number>();
+                    
+                        for (let i = 0; i < groupTargetIndices.length; i++) {
+                            const targetIdx = groupTargetIndices[i];
+                            const originalGroupIdx = groupOriginalIndices[i];
+                            
+                            // 如果目标位置是整体块自己的原始位置，跳过
+                            if (groupOriginalIndices.indexOf(targetIdx) !== -1) {
+                                continue;
+                            }
+                            
+                            // 如果目标位置是单个块的原始位置，跳过（单个块会移动）
+                            if (targetIdx === originalIndex) {
+                                continue;
+                            }
+                            
+                            // 检查目标位置是否有其他块（不在整体块中，也不是单个块）
+                            const occupyingPiece = this.pieces.find(p => 
+                                p.currentIndex === targetIdx && 
+                                p !== piece && 
+                                targetGroup.indexOf(p) === -1
+                            );
+                        
+                        if (occupyingPiece) {
+                            // 这个块需要被推开，移动到整体块的原始位置
+                            // 优先使用对应的原始位置
+                            if (!usedOriginalIndices.has(originalGroupIdx)) {
+                                piecesToPush.push(occupyingPiece);
+                                pushTargetIndices.push(originalGroupIdx);
+                                usedOriginalIndices.add(originalGroupIdx);
+                            } else {
+                                // 如果对应的原始位置已被使用，找其他可用的原始位置
+                                let found = false;
+                                for (const origIdx of groupOriginalIndices) {
+                                    if (!usedOriginalIndices.has(origIdx)) {
+                                        piecesToPush.push(occupyingPiece);
+                                        pushTargetIndices.push(origIdx);
+                                        usedOriginalIndices.add(origIdx);
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found) {
+                                    // 没有可用的原始位置，恢复原位置
+                                    piece.moveToPosition(this.positions[originalIndex], originalIndex);
+                                    this.scheduleOnce(() => {
+                                        this.updatePieceBorders();
+                                        this.checkComplete();
+                                    }, 0.35);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // 将被推开的块移动到整体块的原始位置
+                    for (let i = 0; i < piecesToPush.length; i++) {
+                        movePlan.set(piecesToPush[i], pushTargetIndices[i]);
+                        processed.add(piecesToPush[i]);
+                    }
+                    
+                    // 整体块移动到目标位置
+                    for (let i = 0; i < targetGroup.length; i++) {
+                        movePlan.set(targetGroup[i], groupTargetIndices[i]);
+                        processed.add(targetGroup[i]);
+                    }
+                    
+                    // 单个块应该填补整体块移动后留下的空位
+                    // 找到整体块原始位置中最左边的位置（横向移动）或最上边的位置（纵向移动）
+                    const groupOriginalIndicesSorted = [...groupOriginalIndices].sort((a, b) => a - b);
+                    
+                    // 判断是横向移动还是纵向移动
+                    const originalRow = Math.floor(originalIndex / this.currentCols);
+                    const originalCol = originalIndex % this.currentCols;
+                    const targetRow = Math.floor(targetIndex / this.currentCols);
+                    const targetCol = targetIndex % this.currentCols;
+                    const isHorizontalMove = Math.abs(targetRow - originalRow) < Math.abs(targetCol - originalCol);
+                    
+                    // 找出所有已被占用的位置（在movePlan中）
+                    const usedIndices = new Set<number>();
+                    for (const [p, idx] of movePlan) {
+                        usedIndices.add(idx);
+                    }
+                    
+                    // 找出整体块原始位置中未被占用的位置
+                    const availableOriginalIndices = groupOriginalIndices.filter(idx => !usedIndices.has(idx));
+                    
+                    if (availableOriginalIndices.length === 0) {
+                        // 没有可用的原始位置，恢复原位置
+                        piece.moveToPosition(this.positions[originalIndex], originalIndex);
+                        this.scheduleOnce(() => {
+                            this.updatePieceBorders();
+                            this.checkComplete();
+                        }, 0.35);
+                        return;
+                    }
+                    
+                    // 从可用的原始位置中选择最合适的（最左边或最上边）
+                    let fillIndex: number;
+                    if (isHorizontalMove) {
+                        // 横向移动：填补最左边的位置
+                        fillIndex = Math.min(...availableOriginalIndices);
+                    } else {
+                        // 纵向移动：填补最上边的位置
+                        fillIndex = availableOriginalIndices.reduce((min, idx) => {
+                            const minRow = Math.floor(min / this.currentCols);
+                            const idxRow = Math.floor(idx / this.currentCols);
+                            return idxRow < minRow ? idx : min;
+                        }, availableOriginalIndices[0]);
+                    }
+                    
+                    // 单个块填补整体块移动后留下的空位
+                    movePlan.set(piece, fillIndex);
+                    processed.add(piece);
                 } else {
                     // 目标块不是整体，直接交换
+                    movePlan.set(piece, targetIndex);
                     movePlan.set(targetPiece, originalIndex);
+                    processed.add(piece);
                     processed.add(targetPiece);
                 }
             } else {
                 // 目标块不是整体，直接交换
+                movePlan.set(piece, targetIndex);
                 movePlan.set(targetPiece, originalIndex);
+                processed.add(piece);
                 processed.add(targetPiece);
             }
+        } else {
+            // 目标位置为空，单个块直接移动
+            movePlan.set(piece, targetIndex);
+            processed.add(piece);
         }
 
         // 填补空位置（如果有多个块需要移动，可能需要链式交换）
         this.fillEmptyPositions(movePlan, processed);
+
+        // 验证移动计划：检查是否有重叠
+        const positionToPiece = new Map<number, PuzzlePiece>();
+        for (const [p, idx] of movePlan) {
+            if (positionToPiece.has(idx)) {
+                const existingPiece = positionToPiece.get(idx);
+                console.error(`[PuzzleManager] 检测到重叠：位置 ${idx} 被拼图块 ${p.correctIndex} 和 ${existingPiece?.correctIndex} 同时占用`);
+                // 恢复原位置
+                piece.moveToPosition(this.positions[originalIndex], originalIndex);
+                this.scheduleOnce(() => {
+                    this.updatePieceBorders();
+                    this.checkComplete();
+                }, 0.35);
+                return;
+            }
+            positionToPiece.set(idx, p);
+        }
 
         // 执行移动
         const moveDuration = 0.2;
