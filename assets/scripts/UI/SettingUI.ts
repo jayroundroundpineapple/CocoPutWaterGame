@@ -12,6 +12,10 @@ export class SettingUI extends Component {
     @property(Node)
     private reloadBtn: Node = null;
     @property(Node)
+    private PolicyBtn: Node = null;
+    @property(Node)
+    private PolicyPanel: Node = null;
+    @property(Node)
     private homeBtn: Node = null;
     @property(Node)
     private closeBtn: Node = null;
@@ -55,10 +59,16 @@ export class SettingUI extends Component {
     }
 
     protected start() {
+        this.PolicyPanel.active = false;
         if (this.closeBtn) {
             this.closeBtn.on(Node.EventType.TOUCH_END, this.onCloseBtnClick, this);
         } else {
             console.warn('[SettingUI] 未设置关闭按钮');
+        }
+        if (this.PolicyBtn) {
+            this.PolicyBtn.on(Node.EventType.TOUCH_END, this.onPolicyBtnClick, this);
+        } else {
+            console.warn('[SettingUI] 未设置隐私政策按钮');
         }
         if (this.homeBtn) {
             this.homeBtn.on(Node.EventType.TOUCH_END, this.onHomeBtnClick, this);
@@ -76,7 +86,23 @@ export class SettingUI extends Component {
         }
         this.updateButtonStates();
     }
-
+    onPolicyBtnClick(){
+        this.audioManager.playClickSound();
+        Utils.setScale(this.PolicyBtn, 0.95, 0.1, () => {
+            Utils.showPopup(this.PolicyPanel, 0.3, 'backOut', () => {
+                console.log('PolicyPanel打开');
+            });
+        });
+        
+    }
+    closePolicyPanel(){
+        this.audioManager.playClickSound();
+        Utils.setScale(this.PolicyBtn, 0.95, 0.1, () => {
+            Utils.hidePopup(this.PolicyPanel, 0.3, 'linear', () => {
+                this.PolicyPanel.active = false;
+            });
+        });
+    }
     /**
      * 更新按钮状态（根据音频管理器）
      */
@@ -217,9 +243,11 @@ export class SettingUI extends Component {
             console.warn('SettingUI已经显示了');
             return;
         }
+        
         this.isShowing = true;
         this.isInGame = isInGame;
-
+        this.PolicyBtn.active = !isInGame;
+        this.reloadBtn.active = isInGame;
         // 更新按钮状态（包括 reloadBtn）
         this.updateButtonStates();
 
