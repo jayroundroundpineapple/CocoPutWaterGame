@@ -60,6 +60,8 @@ export class GameUI extends Component {
     private currentEndLevel: number = 25;
     // 刚刚通关的关卡编号（用于播放解锁动画）
     private justCompletedLevel: number = 0;
+    // 当前关卡编号（用于重新进入关卡）
+    private currentLevel: number = 1;
 
     start() {
         (window as any).gameUI = this;
@@ -373,8 +375,10 @@ export class GameUI extends Component {
             // 设置重置关卡回调
             this.settingUI.onReloadLevel = () => {
                 console.log('[GameUI] 重置当前关卡');
-                this.reloadCurrentLevel();
+                // 关闭设置界面
                 this.closeSetting();
+                // 重新进入当前关卡（reloadCurrentLevel 会处理关闭成功弹窗和显示游戏UI）
+                this.reloadCurrentLevel();
             };
         }
     }
@@ -383,10 +387,28 @@ export class GameUI extends Component {
      * 重置当前关卡
      */
     private reloadCurrentLevel(): void {
-        if (this.puzzleManager) {
+        // 如果成功弹窗正在显示，先关闭它
+        if (this.puzzleSuccessUI && this.puzzleSuccessUI.node && this.puzzleSuccessUI.node.active) {
+            this.puzzleSuccessUI.hide();
+        }
+        
+        // 显示拼图游戏UI
+        if (this.puzzleGameUI) {
+            this.puzzleGameUI.active = true;
+        }
+        
+        // 重新进入当前关卡
+        if (this.puzzleManager && this.currentLevel > 0) {
+            this.puzzleManager.startLevel(this.currentLevel);
+            console.log(`[GameUI] 重新进入关卡 ${this.currentLevel}`);
+            // 延迟更新困难模式提示显示（等待关卡加载完成）
+            this.scheduleOnce(() => {
+                this.updateHardTipVisibility();
+            }, 0.5);
+        } else if (this.puzzleManager) {
+            // 如果没有保存的关卡编号，使用 restartLevel
             this.puzzleManager.restartLevel();
             console.log('[GameUI] 关卡已重置');
-            // 更新困难模式提示显示
             this.updateHardTipVisibility();
         } else {
             console.error('[GameUI] PuzzleManager 未设置，无法重置关卡');
@@ -587,6 +609,17 @@ export class GameUI extends Component {
         if (event && custom && custom == 99) {
             AudioManager.getInstance().playClickSound();
         }
+        
+        // 关闭设置界面（hide 方法内部有检查，重复调用是安全的）
+        if (this.settingUI) {
+            this.settingUI.hide();
+        }
+        
+        // 关闭成功弹窗（hide 方法内部有检查，重复调用是安全的）
+        if (this.puzzleSuccessUI) {
+            this.puzzleSuccessUI.hide();
+        }
+        
         // 隐藏拼图游戏UI
         if (this.puzzleGameUI) {
             this.puzzleGameUI.active = false;
@@ -633,6 +666,9 @@ export class GameUI extends Component {
             this.puzzleGameUI.active = true;
         }
 
+        // 保存当前关卡编号
+        this.currentLevel = level;
+        
         // 开始指定关卡的拼图
         if (this.puzzleManager) {
             this.puzzleManager.startLevel(level);
@@ -757,9 +793,13 @@ export class GameUI extends Component {
 
             // 检查是否在游戏中（puzzleGameUI 是否激活）
             const isInGame = this.puzzleGameUI && this.puzzleGameUI.active;
+            // 检查是否在成功弹窗中（成功弹窗显示时也可以重新进入关卡）
+            const isInSuccessUI = this.puzzleSuccessUI && this.puzzleSuccessUI.node && this.puzzleSuccessUI.node.active;
+            // 如果是在游戏中或者在成功弹窗中，都允许重新加载关卡
+            const canReload = isInGame || isInSuccessUI;
 
-            // 显示设置界面，传递是否在游戏中的状态
-            this.settingUI.show(0.3, isInGame);
+            // 显示设置界面，传递是否可以重新加载关卡的状态
+            this.settingUI.show(0.3, canReload);
 
             // 禁用设置按钮，防止重复打开
             if (this.settingBtn) {
