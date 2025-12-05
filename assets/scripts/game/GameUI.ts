@@ -920,13 +920,16 @@ export class GameUI extends Component {
         // 显示成功弹窗（显示完成的拼图图片）
         if (this.puzzleSuccessUI && this.puzzleManager) {
             const completedImage = this.puzzleManager.getCurrentLevelImage();
+            // 检查关卡是否已通关过，如果已通关过，就不加金币；如果还没通关过，就加金币
+            const shouldAddCoins = !this.puzzleSuccessUI.isLevelCompleted(level);
+            
             if (completedImage) {
                 this.puzzleGameUI.active = false;
-                this.puzzleSuccessUI.show(completedImage, 0.3, level);
+                this.puzzleSuccessUI.show(completedImage, 0.3, level, shouldAddCoins);
             } else {
                 console.warn('[GameUI] 无法获取完成的拼图图片');
                 // 即使没有图片也显示弹窗
-                this.puzzleSuccessUI.show(null, 0.3, level);
+                this.puzzleSuccessUI.show(null, 0.3, level, shouldAddCoins);
             }
         } else {
             console.warn('[GameUI] PuzzleSuccessUI 或 PuzzleManager 未设置');
