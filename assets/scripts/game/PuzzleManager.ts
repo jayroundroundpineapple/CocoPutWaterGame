@@ -683,7 +683,7 @@ export class PuzzleManager extends Component {
             }
 
             // 检查目标位置并执行置换
-            const moveSuccess = this.validateAndSwapGroup(group, targetIndices, originalIndices);
+            const moveSuccess = this.moveGroupToPositions(group, targetIndices, originalIndices);
             if (!moveSuccess) {
                 this.restoreGroupPosition();
             }
@@ -712,12 +712,65 @@ export class PuzzleManager extends Component {
         }
 
         // 步骤3：检查目标位置并执行置换
-        const moveSuccess = this.validateAndSwapGroup(group, targetIndices, originalIndices);
+        const moveSuccess = this.moveGroupToPositions(group, targetIndices, originalIndices);
         if (!moveSuccess) {
             this.restoreGroupPosition();
         }
 
         this.currentDraggingGroup = null;
+        return true;
+    }
+
+    /**
+     * 移动整体块到目标位置（确保整体不被拆开，并填补空位置）
+     * @param group 整体块
+     * @param targetIndices 目标位置索引数组
+     * @param originalIndices 原始位置索引数组
+     * @returns 是否成功
+     */
+    private moveGroupToPositions(
+        group: PuzzlePiece[],
+        targetIndices: number[],
+        originalIndices: number[]
+    ): boolean {
+        if (group.length !== targetIndices.length || group.length !== originalIndices.length) {
+            return false;
+        }
+
+        // 检查所有目标位置是否在边界内
+        for (const idx of targetIndices) {
+            const row = Math.floor(idx / this.currentCols);
+            const col = idx % this.currentCols;
+            if (row < 0 || row >= this.currentRows || col < 0 || col >= this.currentCols) {
+                return false; // 超出边界
+            }
+        }
+
+        // 创建移动计划
+        const movePlan = new Map<PuzzlePiece, number>();
+        const processed = new Set<PuzzlePiece>();
+
+        // 整体块移动到目标位置
+        for (let i = 0; i < group.length; i++) {
+            movePlan.set(group[i], targetIndices[i]);
+            processed.add(group[i]);
+        }
+
+        // 填补空位置
+        this.fillEmptyPositions(movePlan, processed);
+
+        // 执行移动
+        const moveDuration = 0.2;
+        for (const [p, idx] of movePlan) {
+            p.moveToPosition(this.positions[idx], idx, moveDuration);
+        }
+
+        // 更新边框和检查完成
+        this.scheduleOnce(() => {
+            this.updatePieceBorders();
+            this.checkComplete();
+        }, moveDuration + 0.1);
+
         return true;
     }
 
@@ -1311,7 +1364,7 @@ export class PuzzleManager extends Component {
      * 检查拼图块是否移动到其他位置
      */
     private checkPiecePosition(piece: PuzzlePiece) {
-        // 新增：当前块属于组 → 直接恢复原位置，禁止单个操作
+        // 当前块属于组 → 直接恢复原位置，禁止单个操作
         const isCurrentPieceInGroup = this.isPieceInGroup(piece);
         if (isCurrentPieceInGroup) {
             piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
@@ -1321,6 +1374,7 @@ export class PuzzleManager extends Component {
             }, 0.35);
             return;
         }
+
         let nearestIndex = -1;
         let minDistance = Infinity;
 
@@ -1331,18 +1385,18 @@ export class PuzzleManager extends Component {
                 nearestIndex = i;
             }
         }
+
         // 计算到原位置的距离
         const distanceToOriginal = Vec3.distance(piece.node.position, this.positions[piece.currentIndex]);
-        // 设置一个较小的阈值，如果移动距离很小，直接返回原位置
         const snapThreshold = 5;  // 如果距离原位置小于这个值，直接返回原位置
-        // 设置一个检测阈值，用于判断是否应该交换或移动到新位置,小于这个值，才考虑交换或移动
-        const detectThreshold = 80;
+        const detectThreshold = 80;  // 检测阈值
 
-        if (nearestIndex >= 0 && minDistance < detectThreshold) {
-            const targetPiece = this.pieces.find(p => p?.currentIndex === nearestIndex && p !== piece);
-            // 新增：目标块属于组 → 禁止交换，恢复原位置
-            const isTargetPieceInGroup = targetPiece ? this.isPieceInGroup(targetPiece) : false;
-            if (isTargetPieceInGroup) {
+        if (nearestIndex >= 0 && minDistance < detectThreshold && nearestIndex !== piece.currentIndex) {
+            // 检查目标位置是否在边界内
+            const targetRow = Math.floor(nearestIndex / this.currentCols);
+            const targetCol = nearestIndex % this.currentCols;
+            if (targetRow < 0 || targetRow >= this.currentRows || targetCol < 0 || targetCol >= this.currentCols) {
+                // 超出边界，恢复原位置
                 piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
                 this.scheduleOnce(() => {
                     this.updatePieceBorders();
@@ -1350,50 +1404,269 @@ export class PuzzleManager extends Component {
                 }, 0.35);
                 return;
             }
-            if (targetPiece) {
-                // 交换位置（swapPieces 内部会处理边框更新）
-                this.swapPieces(piece, targetPiece);
-                // 延迟检查完成（等待动画完成）
-                this.scheduleOnce(() => {
-                    this.checkComplete();
-                }, 0.35);  // 略大于动画时长 0.3 秒
-            } else if (piece.currentIndex !== nearestIndex) {
-                // 移动到其他空位置
-                piece.moveToPosition(this.positions[nearestIndex], nearestIndex);
-                // 延迟更新边框和检查完成（等待动画完成）
-                this.scheduleOnce(() => {
-                    // this.updatePieceBorders();
-                    this.checkComplete();
-                }, 0.35);
-            } else {
-                // 最近位置就是当前位置
-                // 如果距离原位置超过阈值，移回原位置；否则保持不动
-                if (distanceToOriginal > snapThreshold) {
-                    piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
-                    this.scheduleOnce(() => {
-                        // this.updatePieceBorders();
-                        this.checkComplete();
-                    }, 0.35);
-                } else {
-                    // 距离很小，直接更新边框并检查完成（无需动画）
-                    // this.updatePieceBorders();
-                    this.checkComplete();
-                }
-            }
-        } else {
-            // 距离所有位置都很远，或者距离最近位置超过阈值，返回原位置
-            if (distanceToOriginal > snapThreshold) {
-                piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
-                this.scheduleOnce(() => {
-                    // this.updatePieceBorders();
-                    this.checkComplete();
-                }, 0.35);
-            } else {
-                // 距离原位置很近，直接更新边框并检查完成（无需动画）
-                // this.updatePieceBorders();
+
+            // 执行移动：单个块移动到目标位置，处理交换和空位置补全
+            this.moveSinglePieceToPosition(piece, nearestIndex);
+        } else if (distanceToOriginal > snapThreshold) {
+            // 距离原位置超过阈值，移回原位置
+            piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
+            this.scheduleOnce(() => {
+                this.updatePieceBorders();
                 this.checkComplete();
+            }, 0.35);
+        } else {
+            // 距离很小，直接检查完成
+            this.checkComplete();
+        }
+    }
+
+    /**
+     * 移动单个块到目标位置（处理交换和空位置补全）
+     * @param piece 要移动的单个块
+     * @param targetIndex 目标位置索引
+     */
+    private moveSinglePieceToPosition(piece: PuzzlePiece, targetIndex: number): void {
+        const originalIndex = piece.currentIndex;
+        const targetPiece = this.pieces.find(p => p?.currentIndex === targetIndex && p !== piece);
+
+        // 创建移动计划
+        const movePlan = new Map<PuzzlePiece, number>();
+        const processed = new Set<PuzzlePiece>();
+
+        // 单个块移动到目标位置
+        movePlan.set(piece, targetIndex);
+        processed.add(piece);
+
+        // 如果目标位置有块，需要处理交换
+        if (targetPiece) {
+            const isTargetInGroup = this.isPieceInGroup(targetPiece);
+            
+            if (isTargetInGroup) {
+                // 目标块属于整体，需要与整体交换
+                const targetGroup = this.getPieceGroup(targetPiece);
+                if (targetGroup && targetGroup.length > 1) {
+                    // 计算整体块的目标位置（整体块移动到单个块的原始位置）
+                    const groupOriginalIndices = targetGroup.map(p => p.currentIndex);
+                    const groupTargetIndices = this.calculateGroupTargetIndicesForSwap(
+                        targetGroup, 
+                        originalIndex, 
+                        targetPiece.currentIndex
+                    );
+
+                    if (groupTargetIndices && groupTargetIndices.length === targetGroup.length) {
+                        // 整体块移动到目标位置
+                        for (let i = 0; i < targetGroup.length; i++) {
+                            movePlan.set(targetGroup[i], groupTargetIndices[i]);
+                            processed.add(targetGroup[i]);
+                        }
+                    } else {
+                        // 无法移动整体块（超出边界），恢复原位置
+                        piece.moveToPosition(this.positions[originalIndex], originalIndex);
+                        this.scheduleOnce(() => {
+                            this.updatePieceBorders();
+                            this.checkComplete();
+                        }, 0.35);
+                        return;
+                    }
+                } else {
+                    // 目标块不是整体，直接交换
+                    movePlan.set(targetPiece, originalIndex);
+                    processed.add(targetPiece);
+                }
+            } else {
+                // 目标块不是整体，直接交换
+                movePlan.set(targetPiece, originalIndex);
+                processed.add(targetPiece);
             }
         }
+
+        // 填补空位置（如果有多个块需要移动，可能需要链式交换）
+        this.fillEmptyPositions(movePlan, processed);
+
+        // 执行移动
+        const moveDuration = 0.2;
+        for (const [p, idx] of movePlan) {
+            p.moveToPosition(this.positions[idx], idx, moveDuration);
+        }
+
+        // 更新边框和检查完成
+        this.scheduleOnce(() => {
+            this.updatePieceBorders();
+            this.checkComplete();
+        }, moveDuration + 0.1);
+    }
+
+    /**
+     * 计算整体块交换时的目标位置索引
+     * @param group 整体块
+     * @param singlePieceOriginalIndex 单个块的原始位置
+     * @param targetPieceIndex 目标块的位置（整体块中的一个块）
+     * @returns 整体块的目标位置索引数组，如果无法移动返回null
+     */
+    private calculateGroupTargetIndicesForSwap(
+        group: PuzzlePiece[],
+        singlePieceOriginalIndex: number,
+        targetPieceIndex: number
+    ): number[] | null {
+        // 计算偏移量
+        const targetPieceRow = Math.floor(targetPieceIndex / this.currentCols);
+        const targetPieceCol = targetPieceIndex % this.currentCols;
+        const singlePieceRow = Math.floor(singlePieceOriginalIndex / this.currentCols);
+        const singlePieceCol = singlePieceOriginalIndex % this.currentCols;
+
+        const rowOffset = singlePieceRow - targetPieceRow;
+        const colOffset = singlePieceCol - targetPieceCol;
+
+        // 计算整体块的目标位置
+        const targetIndices: number[] = [];
+        for (const groupPiece of group) {
+            const groupPieceOriginalIdx = groupPiece.currentIndex;
+            const groupPieceOriginalRow = Math.floor(groupPieceOriginalIdx / this.currentCols);
+            const groupPieceOriginalCol = groupPieceOriginalIdx % this.currentCols;
+
+            const targetRow = groupPieceOriginalRow + rowOffset;
+            const targetCol = groupPieceOriginalCol + colOffset;
+
+            // 检查是否在边界内
+            if (targetRow < 0 || targetRow >= this.currentRows || targetCol < 0 || targetCol >= this.currentCols) {
+                return null; // 超出边界
+            }
+
+            targetIndices.push(targetRow * this.currentCols + targetCol);
+        }
+
+        return targetIndices;
+    }
+
+    /**
+     * 填补空位置（链式交换）
+     * @param movePlan 移动计划
+     * @param processed 已处理的块
+     */
+    private fillEmptyPositions(movePlan: Map<PuzzlePiece, number>, processed: Set<PuzzlePiece>): void {
+        // 找出所有目标位置（movePlan中的目标位置）
+        const targetIndices = new Set<number>();
+        for (const [p, idx] of movePlan) {
+            targetIndices.add(idx);
+        }
+
+        // 找出所有空位置（被移动的块的原始位置，但不在目标位置中）
+        const emptyIndices: number[] = [];
+        for (const [p, targetIdx] of movePlan) {
+            const originalIdx = p.currentIndex;
+            if (!targetIndices.has(originalIdx)) {
+                emptyIndices.push(originalIdx);
+            }
+        }
+
+        // 找出需要填补的块（不在movePlan中，但当前位置在目标位置中）
+        const piecesToMove: PuzzlePiece[] = [];
+        for (const piece of this.pieces) {
+            if (processed.has(piece)) continue;
+            if (targetIndices.has(piece.currentIndex)) {
+                piecesToMove.push(piece);
+            }
+        }
+
+        // 将需要移动的块移动到空位置
+        let emptyIndexIdx = 0;
+        for (const piece of piecesToMove) {
+            if (emptyIndexIdx < emptyIndices.length) {
+                // 有空位置，直接移动
+                movePlan.set(piece, emptyIndices[emptyIndexIdx]);
+                processed.add(piece);
+                emptyIndexIdx++;
+            } else {
+                // 没有空位置了，使用链式交换
+                const originalIdx = piece.currentIndex;
+                const chainResult = this.buildSwapChainForFill(
+                    piece,
+                    originalIdx,
+                    movePlan,
+                    processed
+                );
+                if (chainResult) {
+                    for (const [p, idx] of chainResult) {
+                        movePlan.set(p, idx);
+                        processed.add(p);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 为填补空位置构建链式交换
+     */
+    private buildSwapChainForFill(
+        piece: PuzzlePiece,
+        targetIdx: number,
+        movePlan: Map<PuzzlePiece, number>,
+        processed: Set<PuzzlePiece>
+    ): Map<PuzzlePiece, number> | null {
+        if (processed.has(piece)) {
+            // 检测到循环，失败
+            return null;
+        }
+        processed.add(piece);
+
+        // 检查目标位置是否在边界内
+        const targetRow = Math.floor(targetIdx / this.currentCols);
+        const targetCol = targetIdx % this.currentCols;
+        if (targetRow < 0 || targetRow >= this.currentRows || targetCol < 0 || targetCol >= this.currentCols) {
+            return null;
+        }
+
+        // 检查目标位置是否被占用
+        let occupyingPiece: PuzzlePiece | null = null;
+        
+        // 检查movePlan中是否有块要移动到targetIdx
+        for (const [p, idx] of movePlan) {
+            if (idx === targetIdx && p !== piece) {
+                occupyingPiece = p;
+                break;
+            }
+        }
+
+        // 如果没找到，检查当前位置是否有其他块
+        if (!occupyingPiece) {
+            occupyingPiece = this.pieces.find(p => 
+                p.currentIndex === targetIdx && 
+                p !== piece &&
+                !processed.has(p) &&
+                !movePlan.has(p)
+            ) || null;
+        }
+
+        if (occupyingPiece) {
+            // 目标位置被占用，需要递归处理
+            // 占用的块应该移动到当前块的原始位置
+            const currentPieceOriginalIdx = piece.currentIndex;
+            
+            const recursiveResult = this.buildSwapChainForFill(
+                occupyingPiece,
+                currentPieceOriginalIdx,
+                movePlan,
+                processed
+            );
+
+            if (!recursiveResult) {
+                return null;
+            }
+
+            // 合并结果
+            const result = new Map<PuzzlePiece, number>();
+            result.set(piece, targetIdx);
+            for (const [p, idx] of recursiveResult) {
+                result.set(p, idx);
+            }
+            return result;
+        }
+
+        // 目标位置为空，直接移动
+        const result = new Map<PuzzlePiece, number>();
+        result.set(piece, targetIdx);
+        return result;
     }
 
     /**
