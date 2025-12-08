@@ -68,8 +68,8 @@ export class GameUI extends Component {
         const uiOpacity = this.loadPage.children[0].getComponent(UIOpacity);
         uiOpacity.opacity = 0;
         tween(uiOpacity)
-            .to(1.2, { opacity: 255 })
-            .delay(0.7)
+            .to(0.8, { opacity: 255 })
+            .delay(0.6)
             .to(0.3, { opacity: 0 })
             .call(()=>{
                 this.loadPage.active = false;

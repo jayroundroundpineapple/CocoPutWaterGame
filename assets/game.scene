@@ -5143,7 +5143,7 @@
         "__id__": 200
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 238
@@ -7492,7 +7492,7 @@
         "__id__": 214
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 217
@@ -7510,8 +7510,8 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 292.624,
-      "y": 48.21500000000003,
+      "x": 361.289,
+      "y": 48.214999999999975,
       "z": 0
     },
     "_lrot": {
@@ -7625,7 +7625,7 @@
       "r": 255,
       "g": 255,
       "b": 255,
-      "a": 0
+      "a": 255
     },
     "_spriteFrame": {
       "__uuid__": "afc47931-f066-46b0-90be-9fe61f213428@f9941",
@@ -7686,7 +7686,7 @@
       "r": 0,
       "g": 0,
       "b": 0,
-      "a": 0
+      "a": 255
     },
     "_spriteFrame": {
       "__uuid__": "ffb88a8f-af62-48f4-8f1d-3cb606443a43@f9941",
@@ -7720,9 +7720,9 @@
     "_alignFlags": 37,
     "_target": null,
     "_left": 0,
-    "_right": 32.375999999999976,
-    "_top": -48.215000000000025,
-    "_bottom": 48.215000000000025,
+    "_right": -36.28899999999999,
+    "_top": -48.214999999999996,
+    "_bottom": 48.214999999999996,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
     "_isAbsLeft": true,
@@ -7754,7 +7754,7 @@
       "__id__": 216
     },
     "_direction": 1,
-    "_enableAutoHide": true,
+    "_enableAutoHide": false,
     "_autoHideTime": 1,
     "_id": "f97lWWikdLeb2QmIE3HGq9"
   },
@@ -7771,10 +7771,10 @@
     "bounceDuration": 1,
     "brake": 0.75,
     "elastic": true,
-    "inertia": false,
+    "inertia": true,
     "horizontal": false,
     "vertical": true,
-    "cancelInnerEvents": true,
+    "cancelInnerEvents": false,
     "scrollEvents": [],
     "_content": {
       "__id__": 222
@@ -7913,7 +7913,7 @@
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 0,
+      "x": -5,
       "y": 417.108,
       "z": 0
     },
@@ -8400,6 +8400,9 @@
     },
     "policyRichlb": {
       "__id__": 233
+    },
+    "policyScrollView": {
+      "__id__": 221
     },
     "homeBtn": {
       "__id__": 177
