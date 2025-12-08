@@ -1,4 +1,4 @@
-import { _decorator, Button, Component, Node, SpriteFrame, AudioSource, sys, Tween, tween, Vec3, EditBox, Label, Graphics } from 'cc';
+import { _decorator, Button, Component, Node, SpriteFrame, AudioSource, sys, Tween, tween, Vec3, EditBox, Label, Graphics, UITransform, UIOpacity } from 'cc';
 import { AdType } from './ad-enums';
 import { PuzzleManager } from './PuzzleManager';
 import { SettingUI } from '../UI/SettingUI';
@@ -11,6 +11,8 @@ const { ccclass, property } = _decorator;
 
 @ccclass('GameUI')
 export class GameUI extends Component {
+    @property(Node)
+    private loadPage: Node = null;
     @property(Node)
     private shoucangBtn: Node = null;
     @property(Node)
@@ -63,7 +65,17 @@ export class GameUI extends Component {
     start() {
         (window as any).gameUI = this;
         this.puzzleGameUI.active = this.testBtn.active = false;
-        
+        this.loadPage.active = true;
+        const uiOpacity = this.loadPage.children[0].getComponent(UIOpacity);
+        uiOpacity.opacity = 0;
+        tween(uiOpacity)
+            .to(1.2, { opacity: 255 })
+            .delay(0.7)
+            .to(0.3, { opacity: 0 })
+            .call(()=>{
+                this.loadPage.active = false;
+            })
+            .start();
         // 初始状态：显示章节界面，隐藏关卡解锁界面
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
@@ -530,7 +542,7 @@ export class GameUI extends Component {
         console.log(`[GameUI] 进入章节 ${chapter}，关卡范围：${startLevel}-${endLevel}`);
 
         // 保存当前章节信息
-        this.testBtn.active = true;
+        // this.testBtn.active = true;
         this.currentChapter = chapter;
         this.currentStartLevel = startLevel;
         this.currentEndLevel = endLevel;
