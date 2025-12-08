@@ -52,6 +52,7 @@ export class SettingUI extends Component {
     public onReloadLevel: () => void = null;
 
     private isInGame: boolean = false;
+    private isPolicyTextLoaded: boolean = false; // 标记文本是否已加载
 
     protected onLoad() {
         this.audioManager = AudioManager.getInstance();
@@ -65,8 +66,9 @@ export class SettingUI extends Component {
 
     protected start() {
         this.PolicyPanel.active = false;
+        // 不在 start 中设置文本，延迟到面板打开时再加载，提升性能
         // this.policyLabel.string = Macro.policyTxt;
-        this.policyRichlb.string = Macro.policyTxt;
+        // this.policyRichlb.string = Macro.policyTxt;
         if (this.closeBtn) {
             this.closeBtn.on(Node.EventType.TOUCH_END, this.onCloseBtnClick, this);
         } else {
@@ -96,11 +98,37 @@ export class SettingUI extends Component {
     onPolicyBtnClick(){
         this.audioManager.playClickSound();
         Utils.setScale(this.PolicyBtn, 0.95, 0.1, () => {
+            // 显示面板动画
             Utils.showPopup(this.PolicyPanel, 0.3, 'backOut', () => {
                 console.log('PolicyPanel打开');
+                // 文本已经在设置面板打开时预加载了，这里不需要再加载
             });
         });
         
+    }
+
+    /**
+     * 异步加载隐私政策文本
+     * 在设置面板打开时预加载，这样点击隐私按钮时可以立即显示
+     */
+    private loadPolicyTextAsync(): void {
+        if (!this.policyRichlb) {
+            return;
+        }
+
+        // 如果文本已经加载过，直接返回
+        if (this.isPolicyTextLoaded) {
+            return;
+        }
+
+        // 延迟加载文本，避免阻塞设置面板的打开动画
+        this.scheduleOnce(() => {
+            if (this.policyRichlb && Macro.policyTxt) {
+                this.policyRichlb.string = Macro.policyTxt;
+                this.isPolicyTextLoaded = true;
+                console.log('[SettingUI] 隐私政策文本预加载完成');
+            }
+        }, 0.1); // 延迟 0.1 秒，确保设置面板动画已经开始
     }
     closePolicyPanel(){
         this.audioManager.playClickSound();
@@ -260,6 +288,11 @@ export class SettingUI extends Component {
 
         Utils.showPopup(this.node, duration, 'backOut', () => {
             console.log('SettingUI打开');
+            // 设置面板打开后，异步预加载隐私政策文本
+            // 这样当用户点击隐私按钮时，文本已经加载好了，可以立即显示
+            if (!isInGame && this.PolicyBtn.active) {
+                this.loadPolicyTextAsync();
+            }
         });
     }
 
