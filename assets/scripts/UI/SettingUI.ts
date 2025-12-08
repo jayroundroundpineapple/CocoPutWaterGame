@@ -290,9 +290,9 @@ export class SettingUI extends Component {
             console.log('SettingUI打开');
             // 设置面板打开后，异步预加载隐私政策文本
             // 这样当用户点击隐私按钮时，文本已经加载好了，可以立即显示
-            if (!isInGame && this.PolicyBtn.active) {
-                this.loadPolicyTextAsync();
-            }
+            // if (!isInGame && this.PolicyBtn.active) {
+            //     this.loadPolicyTextAsync();
+            // }
         });
     }
 
