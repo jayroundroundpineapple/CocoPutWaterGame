@@ -1,5 +1,4 @@
 import { _decorator, Button, Component, Node, SpriteFrame, AudioSource, sys, Tween, tween, Vec3, EditBox, Label, Graphics, UITransform, UIOpacity } from 'cc';
-import { AdType } from './ad-enums';
 import { PuzzleManager } from './PuzzleManager';
 import { SettingUI } from '../UI/SettingUI';
 import { LevelUnlockUI } from '../UI/LevelUnlockUI';
@@ -64,7 +63,7 @@ export class GameUI extends Component {
 
     start() {
         (window as any).gameUI = this;
-        this.puzzleGameUI.active = this.testBtn.active = false;
+        this.puzzleGameUI.active = this.testBtn.active = this.settingUI.node.active = false;
         this.loadPage.active = true;
         const uiOpacity = this.loadPage.children[0].getComponent(UIOpacity);
         uiOpacity.opacity = 0;
@@ -871,7 +870,7 @@ export class GameUI extends Component {
      */
     public backToLevelUnlock(): void {
         console.log('[GameUI] 返回关卡解锁界面');
-        this.testBtn.active = true;
+        // this.testBtn.active = true;
         if (this.puzzleGameUI) {
             this.puzzleGameUI.active = false;
         }

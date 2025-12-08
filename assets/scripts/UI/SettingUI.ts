@@ -1,6 +1,7 @@
-import { _decorator, Component, Node, director, UITransform, Color, Sprite, SpriteFrame, view, EventTouch, Button, utils } from 'cc';
+import { _decorator, Component, Node, director, UITransform, Color, Sprite, SpriteFrame, view, EventTouch, Button, utils, Label, RichText } from 'cc';
 import { Utils } from '../utils/Utils';
 import { AudioManager } from '../utils/AudioManager';
+import { Macro } from '../game/Macro';
 const { ccclass, property } = _decorator;
 
 /**
@@ -15,6 +16,10 @@ export class SettingUI extends Component {
     private PolicyBtn: Node = null;
     @property(Node)
     private PolicyPanel: Node = null;
+    @property(Label)
+    private policyLabel: Label = null;
+    @property(RichText)
+    private policyRichlb: RichText = null;
     @property(Node)
     private homeBtn: Node = null;
     @property(Node)
@@ -60,6 +65,8 @@ export class SettingUI extends Component {
 
     protected start() {
         this.PolicyPanel.active = false;
+        // this.policyLabel.string = Macro.policyTxt;
+        this.policyRichlb.string = Macro.policyTxt;
         if (this.closeBtn) {
             this.closeBtn.on(Node.EventType.TOUCH_END, this.onCloseBtnClick, this);
         } else {
