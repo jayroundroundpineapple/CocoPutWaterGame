@@ -358,6 +358,12 @@ export class PuzzlePiece extends Component {
      */
     private onTouchStart(event: EventTouch) {
         const manager = this.node.parent.getComponent(PuzzleManager);
+        // 如果正在动画中，禁止开始新的拖拽
+        if (manager && manager.isAnimatingNow()) {
+            this.isDragging = false;
+            return;
+        }
+        
         const isInGroup = manager ? manager.isPieceInGroup(this) : false;
         if(this.onGroupDragStart) {
             this.onGroupDragStart(this, event);
@@ -444,7 +450,7 @@ export class PuzzlePiece extends Component {
      * @param duration 动画时长
      * @param playSound 是否播放移动音效，默认 true
      */
-    public moveToPosition(position: Vec3, index: number, duration: number = 0.3, playSound: boolean = true) {
+    public moveToPosition(position: Vec3, index: number, duration: number = 0.3, playSound: boolean = true, cb: () => void = null) {
         // 检查位置是否真的改变了
         const positionChanged = this.currentIndex !== index;
         
@@ -458,6 +464,9 @@ export class PuzzlePiece extends Component {
 
         tween(this.node)
             .to(duration, { position: position }, { easing: 'sineOut' })
+            .call(()=>{
+                cb && cb();
+            })
             .start();
     }
 

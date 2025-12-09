@@ -56,7 +56,6 @@ export class PuzzleManager extends Component {
     public onPreloadProgress: (loaded: number, total: number) => void = null;
     // 预加载完成回调
     public onPreloadComplete: () => void = null;
-
     private unionFind: UnionFind | null = null; // 并查集实例
     private groupMap: Map<number, number[]> = new Map(); // groupId -> [correctIndex1, correctIndex2, ...]
     private pieceToGroup: Map<number, number> = new Map(); // correctIndex -> groupId
@@ -69,6 +68,89 @@ export class PuzzleManager extends Component {
     } | null = null;
     private readonly GROUP_DRAG_THRESHOLD = 80; // 组拖动触发阈值
     private readonly GROUP_SNAP_THRESHOLD = 5; // 组吸附阈值（防止误触）
+    // 动画锁定：正在进行的动画数量，用于防止频繁点击导致位置错乱
+    private animatingPieceCount: number = 0;
+    /**
+     * 检查是否有动画正在进行
+     */
+    private isAnimating(): boolean {
+        return this.animatingPieceCount > 0;
+    }
+    /**
+     * 公共方法：检查是否有动画正在进行（供外部调用）
+     */
+    public isAnimatingNow(): boolean {
+        return this.isAnimating();
+    }
+    /**
+     * 增加动画计数
+     */
+    private incrementAnimatingCount(): void {
+        this.animatingPieceCount++;
+    }
+    /**
+     * 减少动画计数
+     */
+    private decrementAnimatingCount(): void {
+        this.animatingPieceCount = Math.max(0, this.animatingPieceCount - 1);
+    }
+    /**
+     * 安全地移动拼图块（带动画计数管理）
+     * @param piece 拼图块
+     * @param position 目标位置
+     * @param index 目标索引
+     * @param duration 动画时长
+     * @param playSound 是否播放音效
+     */
+    private safeMoveToPosition(piece: PuzzlePiece, position: Vec3, index: number, duration: number = 0.2, playSound: boolean = true): void {
+        this.incrementAnimatingCount();
+        piece.moveToPosition(position, index, duration, playSound,(()=>{
+            // 动画结束后减少计数
+            this.decrementAnimatingCount();
+        }));
+    }
+    /**
+     * 批量移动拼图块，并在所有动画和边框更新完成后解锁
+     * @param movePlan 移动计划 Map<PuzzlePiece, number>
+     * @param duration 动画时长
+     * @param updateBorders 是否更新边框，默认 true
+     * @param checkComplete 是否检查完成，默认 true
+     */
+    private safeMovePiecesWithBorderUpdate(
+        movePlan: Map<PuzzlePiece, number>,
+        duration: number = 0.2,
+        updateBorders: boolean = true,
+        checkComplete: boolean = true
+    ): void {
+        if (movePlan.size === 0) return;
+        
+        // 增加动画计数（所有拼图块共享一个计数）
+        this.incrementAnimatingCount();
+        
+        let completedCount = 0;
+        const totalCount = movePlan.size;
+        
+        // 执行所有移动
+        for (const [piece, idx] of movePlan) {
+            piece.moveToPosition(this.positions[idx], idx, duration, true, () => {
+                completedCount++;
+                // 当所有动画都完成后，更新边框并解锁
+                if (completedCount === totalCount) {
+                    // 延迟一小段时间确保所有位置都已更新，然后更新边框
+                    this.scheduleOnce(() => {
+                        if (updateBorders) {
+                            this.updatePieceBorders();
+                        }
+                        if (checkComplete) {
+                            this.checkComplete();
+                        }
+                        // 边框更新完成后才减少计数，解锁操作
+                        this.decrementAnimatingCount();
+                    }, 0.1);
+                }
+            });
+        }
+    }
     /**
      * 获取当前关卡编号
      */
@@ -481,6 +563,12 @@ export class PuzzleManager extends Component {
 
     // 新增：组拖动开始
     private onGroupDragStart(touchPiece: PuzzlePiece, event: EventTouch): void {
+        // 如果正在动画中，禁止开始新的拖拽
+        if (this.isAnimating()) {
+            this.currentDraggingGroup = null;
+            return;
+        }
+        
         const group = this.getPieceGroup(touchPiece);
         if (!group || group.length <= 1) {
             this.currentDraggingGroup = null;
@@ -574,6 +662,13 @@ export class PuzzleManager extends Component {
 
     private onGroupDragEnd(touchPiece: PuzzlePiece, event: EventTouch): boolean {
         if (!this.currentDraggingGroup || !this.puzzleContainer) return false;
+
+        // 如果正在动画中，恢复组位置并忽略此次操作
+        if (this.isAnimating()) {
+            this.restoreGroupPosition();
+            this.currentDraggingGroup = null;
+            return true;
+        }
 
         const { pieces: group, originalPositions, originalIndices, dragDirection } = this.currentDraggingGroup;
         const groupSize = group.length;
@@ -727,17 +822,9 @@ export class PuzzleManager extends Component {
         // 填补空位置
         this.fillEmptyPositions(movePlan, processed);
 
-        // 执行移动
+        // 执行移动（统一处理动画和边框更新）
         const moveDuration = 0.2;
-        for (const [p, idx] of movePlan) {
-            p.moveToPosition(this.positions[idx], idx, moveDuration);
-        }
-
-        // 更新边框和检查完成
-        this.scheduleOnce(() => {
-            this.updatePieceBorders();
-            this.checkComplete();
-        }, moveDuration + 0.1);
+        this.safeMovePiecesWithBorderUpdate(movePlan, moveDuration, true, true);
 
         return true;
     }
@@ -987,17 +1074,9 @@ export class PuzzleManager extends Component {
             positionToPiece.set(targetIdx, piece);
         }
 
-        // 执行交换
+        // 执行交换（统一处理动画和边框更新）
         const moveDuration = 0.2;
-        for (const [piece, targetIdx] of finalSwapPlan) {
-            piece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
-        }
-
-        // 更新边框和组信息
-        this.scheduleOnce(() => {
-            this.updatePieceBorders();
-            this.checkComplete();
-        }, moveDuration + 0.1);
+        this.safeMovePiecesWithBorderUpdate(finalSwapPlan, moveDuration, true, true);
 
         return true;
     }
@@ -1143,6 +1222,9 @@ export class PuzzleManager extends Component {
         // 计算group2的原始位置
         const group2OriginalIndices = group2.map(p => p.currentIndex);
 
+        // 构建移动计划
+        const movePlan = new Map<PuzzlePiece, number>();
+
         // group1移动到group2的位置（保持相对位置）
         const group1ReferenceOffset = this.getGroupShape(group1, group1OriginalIndices);
         const group2ReferenceRow = Math.floor(targetIndices[0] / this.currentCols);
@@ -1154,7 +1236,7 @@ export class PuzzleManager extends Component {
             const targetRow = group2ReferenceRow + offset.row;
             const targetCol = group2ReferenceCol + offset.col;
             const targetIdx = targetRow * this.currentCols + targetCol;
-            piece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
+            movePlan.set(piece, targetIdx);
         }
 
         // group2移动到group1的位置（保持相对位置）
@@ -1168,14 +1250,11 @@ export class PuzzleManager extends Component {
             const targetRow = group1ReferenceRow + offset.row;
             const targetCol = group1ReferenceCol + offset.col;
             const targetIdx = targetRow * this.currentCols + targetCol;
-            piece.moveToPosition(this.positions[targetIdx], targetIdx, moveDuration);
+            movePlan.set(piece, targetIdx);
         }
 
-        // 更新边框和组信息
-        this.scheduleOnce(() => {
-            this.updatePieceBorders();
-            this.checkComplete();
-        }, moveDuration + 0.1);
+        // 统一执行移动和边框更新
+        this.safeMovePiecesWithBorderUpdate(movePlan, moveDuration, true, true);
     }
 
     /**
@@ -1249,10 +1328,14 @@ export class PuzzleManager extends Component {
         const { pieces, originalPositions, originalIndices } = this.currentDraggingGroup;
         const restoreDuration = 0.2; // 快速恢复，避免飞出去后拖沓
 
+        // 构建移动计划
+        const movePlan = new Map<PuzzlePiece, number>();
         for (let i = 0; i < pieces.length; i++) {
-            pieces[i].moveToPosition(originalPositions[i], originalIndices[i], restoreDuration);
+            movePlan.set(pieces[i], originalIndices[i]);
         }
-        this.scheduleOnce(() => this.updatePieceBorders(), restoreDuration);
+
+        // 统一执行移动和边框更新
+        this.safeMovePiecesWithBorderUpdate(movePlan, restoreDuration, true, false);
     }
 
     /**
@@ -1321,18 +1404,23 @@ export class PuzzleManager extends Component {
             // 需要检查是否移动到其他位置
             this.checkPiecePosition(piece);
         }
-        // 注意：不在这里立即更新边框，因为位置可能还在变化中
-        // 边框更新会在 checkPiecePosition 或 swapPieces 中统一处理
     }
 
     /**
      * 检查拼图块是否移动到其他位置
      */
     private checkPiecePosition(piece: PuzzlePiece) {
+        // 如果正在动画中，忽略新的移动请求
+        if (this.isAnimating()) {
+            // 恢复原位置，但不播放动画（因为已经在动画中）
+            piece.setPosition(this.positions[piece.currentIndex], piece.currentIndex);
+            return;
+        }
+        
         // 当前块属于组 → 直接恢复原位置，禁止单个操作
         const isCurrentPieceInGroup = this.isPieceInGroup(piece);
         if (isCurrentPieceInGroup) {
-            piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
+            this.safeMoveToPosition(piece, this.positions[piece.currentIndex], piece.currentIndex, 0.2);
             this.scheduleOnce(() => {
                 this.updatePieceBorders();
                 this.checkComplete();
@@ -1362,7 +1450,7 @@ export class PuzzleManager extends Component {
             const targetCol = nearestIndex % this.currentCols;
             if (targetRow < 0 || targetRow >= this.currentRows || targetCol < 0 || targetCol >= this.currentCols) {
                 // 超出边界，恢复原位置
-                piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
+                this.safeMoveToPosition(piece, this.positions[piece.currentIndex], piece.currentIndex, 0.2);
                 this.scheduleOnce(() => {
                     this.updatePieceBorders();
                     this.checkComplete();
@@ -1374,7 +1462,7 @@ export class PuzzleManager extends Component {
             this.moveSinglePieceToPosition(piece, nearestIndex);
         } else if (distanceToOriginal > snapThreshold) {
             // 距离原位置超过阈值，移回原位置
-            piece.moveToPosition(this.positions[piece.currentIndex], piece.currentIndex);
+            this.safeMoveToPosition(piece, this.positions[piece.currentIndex], piece.currentIndex, 0.2);
             this.scheduleOnce(() => {
                 this.updatePieceBorders();
                 this.checkComplete();
@@ -1415,7 +1503,7 @@ export class PuzzleManager extends Component {
                     
                     if (!groupTargetIndices || groupTargetIndices.length !== targetGroup.length) {
                         // 无法移动整体块（超出边界），恢复原位置
-                        piece.moveToPosition(this.positions[originalIndex], originalIndex);
+                        this.safeMoveToPosition(piece, this.positions[originalIndex], originalIndex, 0.2);
                         this.scheduleOnce(() => {
                             this.updatePieceBorders();
                             this.checkComplete();
@@ -1471,7 +1559,7 @@ export class PuzzleManager extends Component {
                                 }
                                 if (!found) {
                                     // 没有可用的原始位置，恢复原位置
-                                    piece.moveToPosition(this.positions[originalIndex], originalIndex);
+                                    this.safeMoveToPosition(piece, this.positions[originalIndex], originalIndex, 0.2);
                                     this.scheduleOnce(() => {
                                         this.updatePieceBorders();
                                         this.checkComplete();
@@ -1516,7 +1604,7 @@ export class PuzzleManager extends Component {
                     
                     if (availableOriginalIndices.length === 0) {
                         // 没有可用的原始位置，恢复原位置
-                        piece.moveToPosition(this.positions[originalIndex], originalIndex);
+                        this.safeMoveToPosition(piece, this.positions[originalIndex], originalIndex, 0.2);
                         this.scheduleOnce(() => {
                             this.updatePieceBorders();
                             this.checkComplete();
@@ -1571,7 +1659,7 @@ export class PuzzleManager extends Component {
                 const existingPiece = positionToPiece.get(idx);
                 console.error(`[PuzzleManager] 检测到重叠：位置 ${idx} 被拼图块 ${p.correctIndex} 和 ${existingPiece?.correctIndex} 同时占用`);
                 // 恢复原位置
-                piece.moveToPosition(this.positions[originalIndex], originalIndex);
+                this.safeMoveToPosition(piece, this.positions[originalIndex], originalIndex, 0.2);
                 this.scheduleOnce(() => {
                     this.updatePieceBorders();
                     this.checkComplete();
@@ -1581,17 +1669,9 @@ export class PuzzleManager extends Component {
             positionToPiece.set(idx, p);
         }
 
-        // 执行移动
+        // 执行移动（统一处理动画和边框更新）
         const moveDuration = 0.2;
-        for (const [p, idx] of movePlan) {
-            p.moveToPosition(this.positions[idx], idx, moveDuration);
-        }
-
-        // 更新边框和检查完成
-        this.scheduleOnce(() => {
-            this.updatePieceBorders();
-            this.checkComplete();
-        }, moveDuration + 0.1);
+        this.safeMovePiecesWithBorderUpdate(movePlan, moveDuration, true, true);
     }
 
     /**
@@ -1780,13 +1860,13 @@ export class PuzzleManager extends Component {
         const index1 = piece1.currentIndex;
         const index2 = piece2.currentIndex;
 
-        piece1.moveToPosition(this.positions[index2], index2);
-        piece2.moveToPosition(this.positions[index1], index1);
+        // 构建移动计划
+        const movePlan = new Map<PuzzlePiece, number>();
+        movePlan.set(piece1, index2);
+        movePlan.set(piece2, index1);
 
-        // 延迟更新边框（等待动画完成）
-        this.scheduleOnce(() => {
-            this.updatePieceBorders();
-        }, 0.35);
+        // 统一执行移动和边框更新
+        this.safeMovePiecesWithBorderUpdate(movePlan, 0.2, true, false);
     }
 
     /**
@@ -1830,11 +1910,12 @@ export class PuzzleManager extends Component {
             console.log('[PuzzleManager] 拼图完成检测通过！');
             this.isCompleted = true;
             this.handlePuzzleComplete();
-        } else {
-            const status = this.pieces.map(p =>
-                `Piece${p.correctIndex}: current=${p.currentIndex}, correct=${p.isInCorrectPosition}`
-            ).join(', ');
-        }
+        } 
+        // else {
+        //     const status = this.pieces.map(p =>
+        //         `Piece${p.correctIndex}: current=${p.currentIndex}, correct=${p.isInCorrectPosition}`
+        //     ).join(', ');
+        // }
     }
 
     /**

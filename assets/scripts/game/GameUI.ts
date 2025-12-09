@@ -304,9 +304,6 @@ export class GameUI extends Component {
         if (!this.puzzleManager) {
             return;
         }
-
-        console.log('[GameUI] 开始预加载所有关卡图片资源...');
-
         // 设置预加载进度回调
         this.puzzleManager.onPreloadProgress = (loaded: number, total: number) => {
             const progress = Math.floor((loaded / total) * 100);
@@ -317,7 +314,7 @@ export class GameUI extends Component {
 
         // 设置预加载完成回调
         this.puzzleManager.onPreloadComplete = () => {
-            console.log('[GameUI] ✅ 所有关卡图片预加载完成！游戏可以流畅运行了');
+            console.log('所有关卡图片预加载完成');
         };
 
         // 开始预加载
@@ -331,7 +328,7 @@ export class GameUI extends Component {
             },
             () => {
                 // 完成回调
-                console.log('[GameUI] ✅ 所有关卡图片预加载完成！游戏可以流畅运行了');
+                console.log('所有关卡图片预加载完成');
             }
         );
     }
@@ -355,10 +352,8 @@ export class GameUI extends Component {
             this.sfxNode.parent = this.node;
             this.sfxNode.addComponent(AudioSource);
         }
-
         // 初始化音频管理器（会自动播放背景音乐）
         this.audioManager.init(this.bgmNode, this.sfxNode);
-
         console.log('[GameUI] 音频系统初始化完成，背景音乐已开始播放');
     }
 
@@ -369,17 +364,14 @@ export class GameUI extends Component {
         if (this.settingUI) {
             // 设置关闭回调
             this.settingUI.onClose = () => {
-                console.log('[GameUI] 设置界面已关闭');
                 this.restoreSettingButton();
             };
             // 设置返回首页回调
             this.settingUI.onHome = () => {
-                console.log('[GameUI] 从设置界面返回首页');
                 this.backToHome();
             };
             // 设置重置关卡回调
             this.settingUI.onReloadLevel = () => {
-                console.log('[GameUI] 重置当前关卡');
                 // 关闭设置界面
                 this.closeSetting();
                 // 重新进入当前关卡（reloadCurrentLevel 会处理关闭成功弹窗和显示游戏UI）
@@ -405,7 +397,6 @@ export class GameUI extends Component {
         // 重新进入当前关卡
         if (this.puzzleManager && this.currentLevel > 0) {
             this.puzzleManager.startLevel(this.currentLevel);
-            console.log(`[GameUI] 重新进入关卡 ${this.currentLevel}`);
             // 延迟更新困难模式提示显示（等待关卡加载完成）
             this.scheduleOnce(() => {
                 this.updateHardTipVisibility();
@@ -413,7 +404,6 @@ export class GameUI extends Component {
         } else if (this.puzzleManager) {
             // 如果没有保存的关卡编号，使用 restartLevel
             this.puzzleManager.restartLevel();
-            console.log('[GameUI] 关卡已重置');
             this.updateHardTipVisibility();
         } else {
             console.error('[GameUI] PuzzleManager 未设置，无法重置关卡');
@@ -539,7 +529,6 @@ export class GameUI extends Component {
      */
     private enterChapter(chapter: number, startLevel: number, endLevel: number, showUnlockAnimation: boolean = false): void {
         console.log(`[GameUI] 进入章节 ${chapter}，关卡范围：${startLevel}-${endLevel}`);
-
         // 保存当前章节信息
         this.testBtn.active = true;
         this.currentChapter = chapter;
