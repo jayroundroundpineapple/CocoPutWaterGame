@@ -10,11 +10,11 @@ const { ccclass, property } = _decorator;
 @ccclass('LevelUnlockUI')
 export class LevelUnlockUI extends Component {
     @property(Node)
-    private container: Node = null;  // 容器节点
+    private container: Node = null; 
     @property(Prefab)
-    private piecePrefab: Prefab = null;  // 小块预制体
+    private piecePrefab: Prefab = null;  
     @property(SpriteFrame)
-    private backgroundImage: SpriteFrame = null;  // 完整的通关背景图
+    private backgroundImage: SpriteFrame = null; 
     @property(SpriteFrame)
     private cardSprite: SpriteFrame = null;  
     @property(Prefab)
@@ -24,49 +24,40 @@ export class LevelUnlockUI extends Component {
     @property(Label) 
     private levelLb:Label = null;
     @property(Node)
-    private backBtn: Node = null;  // 返回章节界面按钮
+    private backBtn: Node = null;  
 
-    // 关卡配置
-    private totalLevels: number;  // 总关卡数
-    private gridRows: number;  // 网格行数
-    private gridCols: number;  // 网格列数
-    private startLevel: number = 1;  // 起始关卡（章节内的起始关卡）
-    private endLevel: number = 1;  // 结束关卡（章节内的结束关卡）
-    private chapter: number = 1;  // 当前章节编号
+    private totalLevels: number;  
+    private gridRows: number;  
+    private gridCols: number;  
+    private startLevel: number = 1;  
+    private endLevel: number = 1;  
+    private chapter: number = 1;  
 
-    // 开始游戏回调
     public onStartGame: () => void = null;
 
-    // 进入关卡回调（点击卡牌时触发）
     public onEnterLevel: (level: number) => void = null;
     
-    // 返回章节界面回调
     public onBackToChapter: () => void = null;
 
-    // 小块节点数组
     private pieceNodes: Node[] = [];
     // 扑克牌节点数组
     private cardNodes: Node[] = [];
     // 解锁状态数组
     private unlockStates: boolean[] = [];
 
-    // 存储键名（按章节存储）
     private getStorageKey(): string {
         return `puzzle_unlock_states_chapter_${this.chapter}`;
     }
 
     protected start() {
-        // 绑定开始游戏按钮事件
         if (this.startGameBtn) {
             this.startGameBtn.on(Node.EventType.TOUCH_END, this.onStartGameBtnClick, this);
         } else {
             console.warn('[LevelUnlockUI] 未设置开始游戏按钮');
         }
         
-        // 绑定返回按钮事件
         if (this.backBtn) {
             this.backBtn.on(Node.EventType.TOUCH_END, this.onBackBtnClick, this);
-            // 初始状态：返回按钮隐藏（章节未完成时）
             this.backBtn.active = false;
         }
     }
@@ -83,12 +74,12 @@ export class LevelUnlockUI extends Component {
 
     /**
      * 初始化关卡解锁UI
-     * @param chapter 章节编号（从1开始）
-     * @param startLevel 章节起始关卡（从1开始，全局关卡编号）
-     * @param endLevel 章节结束关卡（全局关卡编号）
-     * @param gridRows 网格行数（用于分割图片）
-     * @param gridCols 网格列数（用于分割图片）
-     * @param backgroundImage 章节背景图（可选，如果不传则使用默认的backgroundImage）
+     * @param chapter 章节编号
+     * @param startLevel 章节起始关卡
+     * @param endLevel 章节结束关卡
+     * @param gridRows 网格行数
+     * @param gridCols 网格列数
+     * @param backgroundImage 章节背景图
      */
     public init(chapter: number, startLevel: number, endLevel: number, gridRows: number, gridCols: number, backgroundImage?: SpriteFrame): void {
         this.chapter = chapter;
@@ -101,16 +92,12 @@ export class LevelUnlockUI extends Component {
             this.backgroundImage = backgroundImage;
         }
 
-        // 加载解锁状态
         this.loadUnlockStates();
 
-        // 创建UI
         this.createUnlockUI();
         
-        // 检查章节是否已完成，更新按钮状态
         this.updateButtonsState();
         
-        // 更新关卡标签显示
         this.updateLevelLabel();
     }
     
@@ -122,10 +109,8 @@ export class LevelUnlockUI extends Component {
             return;
         }
         
-        // 找到当前章节中已解锁的最高关卡
-        let highestUnlockedLevel = -1;  // -1 表示没有已解锁的关卡
+        let highestUnlockedLevel = -1;  
         
-        // 从后往前查找已解锁的最高关卡
         for (let i = this.totalLevels - 1; i >= 0; i--) {
             if (this.unlockStates[i]) {
                 highestUnlockedLevel = this.startLevel + i;
@@ -133,18 +118,14 @@ export class LevelUnlockUI extends Component {
             }
         }
         
-        // 确定要显示的关卡（下一关，即可玩的关卡）
         let displayLevel: number;
         if (highestUnlockedLevel === -1) {
-            // 如果所有关卡都未解锁，显示第一关
             displayLevel = this.startLevel;
         } else {
-            // 如果找到了已解锁的关卡，显示下一关（如果下一关存在）
             const nextLevel = highestUnlockedLevel + 1;
             if (nextLevel <= this.endLevel) {
                 displayLevel = nextLevel;
             } else {
-                // 如果下一关不存在（已经是最后一关），显示最后一关
                 displayLevel = this.endLevel;
             }
         }
@@ -159,7 +140,6 @@ export class LevelUnlockUI extends Component {
         const allCompleted = this.unlockStates.every(state => state === true);
         
         if (allCompleted) {
-            // 章节已完成：隐藏开始游戏按钮，显示返回按钮
             if (this.startGameBtn) {
                 this.startGameBtn.active = false;
             }
@@ -167,7 +147,6 @@ export class LevelUnlockUI extends Component {
                 this.backBtn.active = true;
             }
         } else {
-            // 章节未完成：显示开始游戏按钮，隐藏返回按钮
             if (this.startGameBtn) {
                 this.startGameBtn.active = true;
             }
@@ -181,12 +160,8 @@ export class LevelUnlockUI extends Component {
      * 开始游戏按钮点击事件
      */
     private onStartGameBtnClick(): void {
-        console.log('[LevelUnlockUI] 点击开始游戏按钮');
+        let highestUnlockedLevel = -1;  
         
-        // 找到当前章节中已解锁的最高关卡
-        let highestUnlockedLevel = -1;  // -1 表示没有已解锁的关卡
-        
-        // 从后往前查找已解锁的最高关卡
         for (let i = this.totalLevels - 1; i >= 0; i--) {
             if (this.unlockStates[i]) {
                 highestUnlockedLevel = this.startLevel + i;
@@ -197,22 +172,16 @@ export class LevelUnlockUI extends Component {
         // 确定目标关卡
         let targetLevel: number;
         if (highestUnlockedLevel === -1) {
-            // 如果所有关卡都未解锁，进入第一关
             targetLevel = this.startLevel;
         } else {
-            // 如果找到了已解锁的关卡，进入下一关（如果下一关存在）
             const nextLevel = highestUnlockedLevel + 1;
             if (nextLevel <= this.endLevel) {
                 targetLevel = nextLevel;
             } else {
-                // 如果下一关不存在（已经是最后一关），进入最后一关
                 targetLevel = this.endLevel;
             }
         }
         
-        console.log(`[LevelUnlockUI] 进入关卡 ${targetLevel}（已解锁最高关卡：${highestUnlockedLevel === -1 ? '无' : highestUnlockedLevel}）`);
-        
-        // 触发进入关卡回调
         if (this.onEnterLevel) {
             Utils.setScale(this.startGameBtn, 0.95, 0.1, () => {
                 this.onEnterLevel(targetLevel);
@@ -292,26 +261,23 @@ export class LevelUnlockUI extends Component {
                 pieceWidth, pieceHeight
             );
             this.cardNodes.push(cardNode);
-            // 设置卡牌初始状态
-            const localLevel = i + 1;  // 章节内的关卡编号（从1开始）
-            const globalLevel = this.startLevel + i;  // 全局关卡编号
+            const localLevel = i + 1;  
+            const globalLevel = this.startLevel + i;  
             const isUnlocked = this.unlockStates[i];
-            // 计算是否可以玩：章节内第一关默认可以玩，或者上一关已解锁
             let canPlay = false;
             if (localLevel === 1) {
-                // 如果是第一章的第一关，或者上一章节已完成
                 if (this.chapter === 1) {
                     canPlay = true; 
                 } else {
                     canPlay = this.isPreviousChapterCompleted();
                 }
             } else {
-                const prevLevelIndex = localLevel - 2;  // 上一关的索引
+                const prevLevelIndex = localLevel - 2;  
                 canPlay = prevLevelIndex >= 0 && this.unlockStates[prevLevelIndex] === true;
             }
             const cardItem = cardNode.getComponent(CardItem);
             if (cardItem) {
-                cardItem.init(globalLevel, isUnlocked, canPlay);  // 使用全局关卡编号
+                cardItem.init(globalLevel, isUnlocked, canPlay);  
                 cardItem.onClick = (levelNum: number) => {
                     this.onCardItemClick(levelNum);
                 };
@@ -344,10 +310,6 @@ export class LevelUnlockUI extends Component {
             console.warn(`[LevelUnlockUI] 关卡 ${level} 未解锁，无法播放动画`);
             return;
         }
-        
-        console.log(`[LevelUnlockUI] 播放关卡 ${level} 的解锁动画`);
-        
-        // 先设置初始状态：cardNode显示，pieceNode隐藏
         const cardNode = this.cardNodes[index];
         const pieceNode = this.pieceNodes[index];
         
@@ -361,9 +323,7 @@ export class LevelUnlockUI extends Component {
             pieceNode.setScale(0, 1, 1);
         }
         
-        // 延迟一下，然后播放动画
         this.scheduleOnce(() => {
-            // 显示pieceNode并播放动画
             if (pieceNode && pieceNode.isValid) {
                 pieceNode.setScale(0, 1, 1);
                 pieceNode.active = true;
@@ -372,7 +332,6 @@ export class LevelUnlockUI extends Component {
                     .start();
             }
             
-            // 隐藏cardNode并播放翻牌动画
             if (cardNode && cardNode.isValid) {
                 tween(cardNode)
                     .to(0.3, { scale: new Vec3(0, 1, 1) })

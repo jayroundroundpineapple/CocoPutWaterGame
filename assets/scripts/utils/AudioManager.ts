@@ -47,20 +47,15 @@ export class AudioManager {
      * @param preloadSounds 是否预加载常用音效，默认 false
      */
     public init(bgmNode: Node, sfxNode: Node, preloadSounds: boolean = false): void {
-        // 获取或添加 AudioSource 组件
         this.bgmAudioSource = bgmNode.getComponent(AudioSource) || bgmNode.addComponent(AudioSource);
         this.sfxAudioSource = sfxNode.getComponent(AudioSource) || sfxNode.addComponent(AudioSource);
         
-        // 设置背景音乐循环播放
         this.bgmAudioSource.loop = true;
         
-        // 设置背景音乐默认音量（0.3 = 30%，可根据需要调整）
         this.bgmAudioSource.volume = 0.3;
         
-        // 加载背景音乐并自动播放
         this.loadBGM();
         
-        // 如果需要，预加载常用音效
         if (preloadSounds) {
             this.preloadCommonSounds();
         }
@@ -76,7 +71,6 @@ export class AudioManager {
                 return;
             }
             this.audioClips.set('bgm', clip);
-            // 如果音乐开关是开启的，自动播放
             if (this.musicEnabled) {
                 this.playBGM();
             }
@@ -85,11 +79,11 @@ export class AudioManager {
     
     /**
      * 预加载音效（可选，按需加载）
-     * @param soundName 音效名称（resources/audio/ 下的文件名，不含扩展名）
+     * @param soundName 音效名称
      */
     public preloadSound(soundName: string): void {
         if (this.audioClips.has(soundName)) {
-            return; // 已加载
+            return; 
         }
         
         resources.load(`audio/${soundName}`, AudioClip, (err, clip) => {
@@ -116,11 +110,11 @@ export class AudioManager {
      */
     public preloadCommonSounds(): void {
         const commonSounds = [
-            'click',      // 点击音效
-            'move',       // 移动音效
-            'reward',       // 交换音效
-            'trueTip',        // 胜利音效
-            'hardTip',       // 失败音效
+            'click',      
+            'move',      
+            'reward',      
+            'trueTip',       
+            'hardTip',      
         ];
         this.preloadSounds(commonSounds);
     }
@@ -145,7 +139,6 @@ export class AudioManager {
         }
         
         this.bgmAudioSource.clip = clip;
-        // 确保音量设置生效（如果之前没有设置过）
         if (this.bgmAudioSource.volume > 0.3) {
             this.bgmAudioSource.volume = 0.3;
         }
@@ -186,7 +179,7 @@ export class AudioManager {
      */
     public playSound(soundName: string, volume: number = 1): void {
         if (!this.soundEnabled) {
-            return; // 音效关闭，不播放
+            return; 
         }
         
         if (!this.sfxAudioSource) {
@@ -194,22 +187,17 @@ export class AudioManager {
             return;
         }
         
-        // 检查缓存
         let clip = this.audioClips.get(soundName);
         
         if (clip) {
-            // 已加载，直接播放
             this.sfxAudioSource.playOneShot(clip, volume);
         } else {
-            // 未加载，动态加载并播放
             resources.load(`audio/${soundName}`, AudioClip, (err, audioClip) => {
                 if (err) {
                     console.error(`[AudioManager] 加载音效 ${soundName} 失败:`, err);
                     return;
                 }
-                // 缓存音效
                 this.audioClips.set(soundName, audioClip);
-                // 播放音效
                 this.sfxAudioSource.playOneShot(audioClip, volume);
             });
         }

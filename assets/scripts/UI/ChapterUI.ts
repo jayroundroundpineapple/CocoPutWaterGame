@@ -204,13 +204,9 @@ export class ChapterUI extends Component {
      */
     private onChapterClick(chapter: number, index: number): void {
         if (!this.chapterUnlockStates[index]) {
-            console.log(`章节 ${chapter} 未解锁`);
             return;
         }
-
         const config = this.chapters[index];
-        console.log(`点击章节 ${chapter}，进入关卡 ${config.startLevel}-${config.endLevel}`);
-
         // 触发回调
         if (this.onEnterChapter) {
             this.onEnterChapter(config.chapter, config.startLevel, config.endLevel);
@@ -231,7 +227,6 @@ export class ChapterUI extends Component {
         }
 
         if (this.chapterUnlockStates[index]) {
-            console.log(`[ChapterUI] 章节 ${chapter} 已经解锁`);
             return;
         }
 
@@ -268,8 +263,6 @@ export class ChapterUI extends Component {
                 .to(0.2, { scale: new Vec3(1, 1, 1) })
                 .start();
         }
-
-        console.log(`[ChapterUI] 章节 ${chapter} 已解锁`);
     }
 
     /**

@@ -145,7 +145,7 @@ export class ChapterItem extends Component {
         AudioManager.getInstance().playClickSound();
         Utils.setScale(this.node, 0.95, 0.1, () => {
             if (!this.isUnlocked) {
-                console.log(`[ChapterItem] 章节 ${this.chapter} 未解锁，无法进入`);
+                // console.log(`[ChapterItem] 章节 ${this.chapter} 未解锁，无法进入`);
                 return;
             }
             // 触发回调

@@ -191,8 +191,6 @@ export class GameUI extends Component {
         if (this.levelInputDialog) {
             this.levelInputDialog.active = false;
         }
-
-        console.log(`[GameUI] 快速解锁并跳转到关卡 ${level}`);
         this.quickUnlockAndJumpToLevel(level);
     }
 
@@ -211,9 +209,6 @@ export class GameUI extends Component {
      * @param level 目标关卡编号（全局关卡编号）
      */
     public quickUnlockAndJumpToLevel(level: number): void {
-        console.log(`[GameUI] 快速解锁并跳转到关卡 ${level}`);
-
-        // 1. 确定目标关卡所在的章节
         let targetChapter = 1;
         let targetStartLevel = 1;
         let targetEndLevel = 25;
@@ -308,13 +303,13 @@ export class GameUI extends Component {
         this.puzzleManager.onPreloadProgress = (loaded: number, total: number) => {
             const progress = Math.floor((loaded / total) * 100);
             if (loaded % 10 === 0 || loaded === total) {
-                console.log(`[GameUI] 预加载进度: ${loaded}/${total} (${progress}%)`);
+                // console.log(`预加载进度: ${loaded}/${total} (${progress}%)`);
             }
         };
 
         // 设置预加载完成回调
         this.puzzleManager.onPreloadComplete = () => {
-            console.log('所有关卡图片预加载完成');
+            // console.log('所有关卡图片预加载完成');
         };
 
         // 开始预加载
@@ -323,12 +318,12 @@ export class GameUI extends Component {
                 // 进度回调
                 const progress = Math.floor((loaded / total) * 100);
                 if (loaded % 10 === 0 || loaded === total) {
-                    console.log(`[GameUI] 预加载进度: ${loaded}/${total} (${progress}%)`);
+                    // console.log(`[GameUI] 预加载进度: ${loaded}/${total} (${progress}%)`);
                 }
             },
             () => {
                 // 完成回调
-                console.log('所有关卡图片预加载完成');
+                // console.log('所有关卡图片预加载完成');
             }
         );
     }
@@ -354,7 +349,6 @@ export class GameUI extends Component {
         }
         // 初始化音频管理器（会自动播放背景音乐）
         this.audioManager.init(this.bgmNode, this.sfxNode);
-        console.log('[GameUI] 音频系统初始化完成，背景音乐已开始播放');
     }
 
     /**
@@ -450,8 +444,6 @@ export class GameUI extends Component {
                         this.hardMask.active = false;
                     })
                     .start();
-            } else {
-                console.log('[GameUI] 当前关卡为普通模式，隐藏困难提示');
             }
         }
     }
@@ -513,7 +505,6 @@ export class GameUI extends Component {
      * 返回章节界面并显示解锁动画
      */
     private backToChapterWithUnlockAnimation(): void {
-        console.log('[GameUI] 返回章节界面并显示解锁动画');
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
         }
@@ -528,7 +519,6 @@ export class GameUI extends Component {
      * 进入指定章节
      */
     private enterChapter(chapter: number, startLevel: number, endLevel: number, showUnlockAnimation: boolean = false): void {
-        console.log(`[GameUI] 进入章节 ${chapter}，关卡范围：${startLevel}-${endLevel}`);
         // 保存当前章节信息
         // this.testBtn.active = true;
         this.currentChapter = chapter;
@@ -570,8 +560,6 @@ export class GameUI extends Component {
      * 返回章节界面
      */
     private backToChapter(): void {
-        console.log('[GameUI] 返回章节界面');
-
         // 隐藏关卡解锁UI
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
@@ -599,7 +587,6 @@ export class GameUI extends Component {
      * 返回首页（从设置界面）
      */
     private backToHome(event = null,custom = null): void {
-        console.log('[GameUI] 返回首页');
         if (event && custom && custom == 99) {
             AudioManager.getInstance().playClickSound();
         }
@@ -646,8 +633,6 @@ export class GameUI extends Component {
      * 进入指定关卡
      */
     private enterLevel(level: number): void {
-        console.log(`[GameUI] 进入关卡 ${level}`);
-
         // 隐藏关卡解锁UI
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
@@ -677,8 +662,6 @@ export class GameUI extends Component {
      * 进入当前章节的最新关卡
      */
     private startPuzzleGameFromButton(): void {
-        console.log('[GameUI] 从开始游戏按钮进入最新关卡');
-
         // 隐藏关卡解锁UI
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
@@ -723,7 +706,6 @@ export class GameUI extends Component {
             if (nextLevel <= endLevel) {
                 targetLevel = nextLevel;
             }
-            console.log(`[GameUI] 进入最新关卡: ${targetLevel}`);
             // 开始指定关卡的拼图
             this.puzzleManager.startLevel(targetLevel);
             // 延迟检查困难模式（等待关卡加载完成）
@@ -822,8 +804,6 @@ export class GameUI extends Component {
      * 开始拼图游戏
      */
     public startPuzzleGame(): void {
-        console.log('[GameUI] 开始拼图游戏');
-
         // 隐藏关卡解锁UI
         if (this.levelUnlockUI && this.levelUnlockUI.node) {
             this.levelUnlockUI.node.active = false;
@@ -840,7 +820,6 @@ export class GameUI extends Component {
         if (this.puzzleManager && this.puzzleImage) {
             // 这里可以加载第一关的图片
             // 或者让 PuzzleManager 自己从配置加载
-            console.log('[GameUI] 准备开始拼图游戏');
         }
     }
 
@@ -858,7 +837,6 @@ export class GameUI extends Component {
      * 返回关卡解锁界面
      */
     public backToLevelUnlock(): void {
-        console.log('[GameUI] 返回关卡解锁界面');
         // this.testBtn.active = true;
         if (this.puzzleGameUI) {
             this.puzzleGameUI.active = false;
@@ -883,8 +861,6 @@ export class GameUI extends Component {
      * 拼图完成回调
      */
     private onPuzzleComplete(level: number) {
-        console.log(`恭喜！完成第 ${level} 关拼图！`);
-
         // 记录刚刚通关的关卡
         this.justCompletedLevel = level;
 
@@ -895,8 +871,6 @@ export class GameUI extends Component {
             // 检查章节是否全部完成
             if (this.levelUnlockUI.isChapterCompleted()) {
                 const currentChapter = this.levelUnlockUI.getChapter();
-                console.log(`[GameUI] 章节 ${currentChapter} 全部完成！`);
-
                 // 更新章节完成状态
                 if (this.chapterUI) {
                     this.chapterUI.updateChapterCompleted(currentChapter);
@@ -906,7 +880,6 @@ export class GameUI extends Component {
                 if (this.chapterUI && currentChapter < 2) {
                     const nextChapter = currentChapter + 1;
                     this.chapterUI.unlockChapter(nextChapter);
-                    console.log(`[GameUI] 章节 ${nextChapter} 已解锁！`);
                 }
             }
         }
