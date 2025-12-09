@@ -29,7 +29,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 310
+      "__id__": 313
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -60,7 +60,7 @@
     },
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 329
+      "__id__": 332
     },
     "_id": "30c5af41-e954-47fe-a5b7-ce59a31408d8"
   },
@@ -267,22 +267,22 @@
         "__id__": 10
       },
       {
-        "__id__": 297
+        "__id__": 300
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 306
-      },
-      {
-        "__id__": 307
-      },
-      {
-        "__id__": 308
-      },
-      {
         "__id__": 309
+      },
+      {
+        "__id__": 310
+      },
+      {
+        "__id__": 311
+      },
+      {
+        "__id__": 312
       }
     ],
     "_prefab": null,
@@ -434,31 +434,31 @@
         "__id__": 154
       },
       {
-        "__id__": 241
+        "__id__": 244
       },
       {
-        "__id__": 247
+        "__id__": 250
       },
       {
-        "__id__": 253
+        "__id__": 256
       },
       {
-        "__id__": 261
+        "__id__": 264
       },
       {
-        "__id__": 291
+        "__id__": 294
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 294
+        "__id__": 297
       },
       {
-        "__id__": 295
+        "__id__": 298
       },
       {
-        "__id__": 296
+        "__id__": 299
       }
     ],
     "_prefab": null,
@@ -5143,16 +5143,16 @@
         "__id__": 200
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
-        "__id__": 238
+        "__id__": 241
       },
       {
-        "__id__": 239
+        "__id__": 242
       },
       {
-        "__id__": 240
+        "__id__": 243
       }
     ],
     "_prefab": null,
@@ -6965,10 +6965,10 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 236
+        "__id__": 239
       },
       {
-        "__id__": 237
+        "__id__": 240
       }
     ],
     "_prefab": null,
@@ -7440,10 +7440,10 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 234
+        "__id__": 237
       },
       {
-        "__id__": 235
+        "__id__": 238
       },
       {
         "__id__": 221
@@ -7559,7 +7559,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -11,
-      "y": 254.38080000000002,
+      "y": 210.4651532349602,
       "z": 0
     },
     "_lrot": {
@@ -7598,7 +7598,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 10,
-      "height": 142.22222222222223
+      "height": 181.61180476730988
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -7787,7 +7787,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "itemlb",
+    "_name": "policy32",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -7797,17 +7797,17 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 232
+        "__id__": 235
       },
       {
-        "__id__": 233
+        "__id__": 236
       }
     ],
     "_prefab": null,
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -307.752,
-      "y": 2,
+      "x": 0,
+      "y": -1744.207,
       "z": 0
     },
     "_lrot": {
@@ -7831,7 +7831,7 @@
       "y": 0,
       "z": 0
     },
-    "_id": "9aOUW3005IWI3Uv8+e9qsM"
+    "_id": "39j5dvzABHdL7IrEL3UwZO"
   },
   {
     "__type__": "cc.Node",
@@ -7847,12 +7847,15 @@
       },
       {
         "__id__": 228
+      },
+      {
+        "__id__": 231
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 231
+        "__id__": 234
       }
     ],
     "_prefab": null,
@@ -8020,7 +8023,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "richtxt",
+    "_name": "itemlb",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -8034,6 +8037,141 @@
       },
       {
         "__id__": 230
+      }
+    ],
+    "_prefab": null,
+    "_lpos": {
+      "__type__": "cc.Vec3",
+      "x": -307.752,
+      "y": 2,
+      "z": 0
+    },
+    "_lrot": {
+      "__type__": "cc.Quat",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "w": 1
+    },
+    "_lscale": {
+      "__type__": "cc.Vec3",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "_mobility": 0,
+    "_layer": 33554432,
+    "_euler": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_id": "9aOUW3005IWI3Uv8+e9qsM"
+  },
+  {
+    "__type__": "cc.UITransform",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 228
+    },
+    "_enabled": true,
+    "__prefab": null,
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 620,
+      "height": 2379.12
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 1
+    },
+    "_id": "d3y7y5BDBE3LnBHROaYa7q"
+  },
+  {
+    "__type__": "cc.Label",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 228
+    },
+    "_enabled": true,
+    "__prefab": null,
+    "_customMaterial": null,
+    "_srcBlendFactor": 2,
+    "_dstBlendFactor": 4,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 255
+    },
+    "_string": "Updated Date: 1 Dec 2025\n\nWe take the protection of your privacy seriously and have developed this Privacy Policy, which covers how we collect, use, disclose, share and store your information.\n\nWhen you use our Services, we may collect and use your information. Through this Privacy Policy, we would like to explain how we collect, use, store and share this information when you use our Services, and how we can help you access, update, manage and protect this information. This Privacy Policy applies to your interactions with this Game and your registration and use of the Game Services. We encourage you to read this Policy carefully to understand how to maintain your privacy rights.\n\nBy using or continuing to use our Services, you agree to our collection, use, storage and sharing of your relevant information in accordance with this Privacy Policy.\n\nIf you have any questions about this Privacy Policy or related matters, please contact us.\n\nInformation We May Collect\n\nWhen we provide services, we may collect, store and use the following information about you. If you do not provide relevant information, you may not be able to register as our user or enjoy certain services we provide, or achieve the expected results of related services.\n\nYour information is shared by others\n\nShared information about you provided by others when they use our services.\n\nWe have obtained your information\n\nWhen you use the Services, we may collect the following information:\n\nLog information refers to technical information that the system may automatically collect through cookies, web beans or other means when you use our services, including:\n\nDevice or software information, such as configuration information provided by your mobile device, web browser or other programs used to access our services , your IP address, and the version and device identifier used by your mobile device;\n\nLocation information refers to information about your location collected when you turn on the device positioning function and use our location-based services, including:\n\nYour geographic location information collected through GPS or WiFi when you use our services on a mobile device with positioning capabilities;\n\nReal-time information containing your geographic location provided by you or other users, such as account information you provide containing information about your location, shared information uploaded by you or others showing your current or past geographic location, and geotag information contained in photos shared by you or others;\n\nYou can stop collecting your location information by turning off the location feature.\n\nHow we use your information\n\nWe may use the information collected in the process of providing you with services for the following purposes:\n\nTo provide you with services;\n\nWhen we provide services, we use it for identity verification, customer service, security prevention, fraud monitoring, archiving and backup purposes to ensure the security of the products and services we provide to you;\n\nHelp us design new services and improve existing ones;\n\nTo enable us to better understand how you access and use our services so that we can respond to your personalized needs, such as language settings, location settings, personalized help services and instructions, or provide you with other responses;\n\nProvide you with ads that are more relevant to you instead of generic ads\n\nEvaluate the effectiveness of advertising and other promotional activities in our services and make improvements accordingly;\n\nSoftware certification or management software upgrades;\n\nAllow you to participate in surveys about our products and services.\n\nIn order to provide you with a better experience, improve our services, or for other purposes you agree to, and subject to compliance with relevant laws and regulations, we may use the information collected through a service to aggregate information or personalize it for our other services. For example, information collected when you use one of our services may be used in another service to provide you with specific content or to display non-generally pushed information related to you . If we provide corresponding options in the relevant service, you can also authorize us to use the information provided and stored by the service for our other services.\n\nHow you can access and control your personal information\n\nWe will try our best to take appropriate technical measures to ensure that you can access, update, and correct your registration information or other personal information provided when using our services. When accessing, updating, correcting, and deleting the aforementioned information, we may ask you to authenticate your identity to ensure the security of your account.\n\nHow We Share Your Information\n\nWe and our affiliates will not share your personal information with any third party without your consent, except in the following circumstances:\n\nWe and our affiliates may share your personal information with our affiliates, partners, and third-party service providers, contractors, and agents (such as communication service providers that send emails or push notifications on our behalf, and map services that provide us with location data).\n\nsuppliers) (who may not be located in your jurisdiction) for the following purposes:\n\nTo provide you with our services;\n\nTo fulfill the purposes described in the “How We Use Information” section;\n\nour obligations and exercise our rights under this Privacy Policy or other agreements reached between this Game and you ;\n\nUnderstand, maintain, and improve our Services.\n\nIf we or our affiliates share your personal information with any of the above third parties, we will do our best to ensure that the third party abides by this Privacy Policy and other appropriate confidentiality and security measures we require it to comply with when using your personal information.\n\nAs our business continues to develop, we and our affiliates may conduct mergers, acquisitions, asset transfers or similar transactions, and your personal information may be transferred as part of such transactions. We will notify you before the transfer.\n\nWe or our affiliates may also retain, store or disclose your personal information for the following purposes:\n\nYou authorize or agree to the disclosure of this game;\n\nComply with applicable laws and regulations;\n\ncomply with a court order or other legal process;\n\nComply with the requirements of relevant government agencies;\n\nIt is reasonably necessary to comply with applicable laws and regulations, safeguard the public interest, or protect the personal and property safety or legal rights of our customers, us or our group companies, other users or employees;\n\nAccording to the relevant provisions of the terms of service and statement of this game, or other circumstances deemed necessary by this game.\n\nInformation Security\n\nWe will only retain your personal information for the period necessary for the purposes stated in this Privacy Policy and as required by laws and regulations.\n\nWe use a variety of security technologies and procedures to prevent information loss, improper use, unauthorized reading or disclosure. For example, in some services, we use encryption technology (such as SSL) to protect the personal information you provide. However, please understand that due to technical limitations and various possible malicious means, even if we have tried our best to strengthen security measures, we cannot always guarantee 100% security of information. You need to understand that the system and communication network you use to access our services may have problems due to factors beyond our control.\n\nHow We Collect Information\n\nWe or our third-party partners may collect, use, and store your information through cookies and web beans.\n\nWe use our own cookies and web beans to provide you with a more personalized user experience and service, and for the following purposes:\n\nRemember your identity. For example, cookies and web beacons help us identify you as our registered user, or save your preferences or other information you provide to us;\n\nAnalyze your use of our services. For example, we may use cookies and web beacons to understand what activities you perform using our services, or which web pages or services are most popular with you;\n\nthat are relevant to you based on your information , rather than conducting general advertising campaigns.\n\nWhile using cookies and web beans for the above purposes, we may provide non-personally identifiable information collected through cookies and web beans to advertisers or other partners after statistical processing for the purpose of analyzing how users use our services and for advertising services.\n\nOur products and services may contain cookies and web beacons placed by advertisers or other partners. These cookies and web beacons may collect non-personally identifiable information related to you, which is used to analyze how users use these services, send you advertisements that may be of interest to you, or evaluate the effectiveness of advertising services. The collection and use of this information by these third-party cookies and web beacons is not subject to this Privacy Policy, but is subject to the privacy policy of the relevant users. We do not assume any responsibility for third-party cookies or web beacons.\n\nYou can reject or manage cookies or webbeans through your browser settings. However, please note that if you disable cookies or webbeans, you may not be able to enjoy the best service experience and some services may not work properly. At the same time, you will receive the same number of advertisements, but their relevance to you will be reduced.\n\nAdvertise with us\n\nIn the future, we may use information about you to provide you with advertising that is more relevant to you.\n\nWe may also use your information to send you marketing information through our services, email or other means to offer or promote our or third parties’ goods and services as follows:\n\nOur products or services, including instant messaging services, online media services, interactive entertainment services, social networking services, payment services, Internet search services, location and mapping services, application software and services, data management software and services, online advertising services, Internet finance, and other social media, entertainment, e-commerce information and communication software or services (collectively, \"Internet Services\");\n\nThird-party goods or services, including, but not limited to: internet services, food and dining, sports, music, movies, television, live performances and other arts and entertainment, books, magazines and other publications, apparel and accessories, jewelry, cosmetics, personal health and hygiene, electronics, collectibles, housewares, appliances, home decor and furnishings, pets, automobiles, hotels, transportation and travel .\n\nHow To Reach Us\nIf necessary, please contact us by email at deliesundefeat@gmail.com. We will be ready to help you with any problem in one week.\n",
+    "_horizontalAlign": 0,
+    "_verticalAlign": 0,
+    "_actualFontSize": 12,
+    "_fontSize": 12,
+    "_fontFamily": "Arial",
+    "_lineHeight": 12,
+    "_overflow": 3,
+    "_enableWrapText": false,
+    "_font": {
+      "__uuid__": "0ed97c56-390e-4dd1-96b7-e7f2d93a98ed",
+      "__expectedType__": "cc.TTFFont"
+    },
+    "_isSystemFontUsed": false,
+    "_spacingX": 0,
+    "_isItalic": false,
+    "_isBold": false,
+    "_isUnderline": false,
+    "_underlineHeight": 2,
+    "_cacheMode": 1,
+    "_enableOutline": false,
+    "_outlineColor": {
+      "__type__": "cc.Color",
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 255
+    },
+    "_outlineWidth": 2,
+    "_enableShadow": false,
+    "_shadowColor": {
+      "__type__": "cc.Color",
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 255
+    },
+    "_shadowOffset": {
+      "__type__": "cc.Vec2",
+      "x": 2,
+      "y": 2
+    },
+    "_shadowBlur": 2,
+    "_id": "7bCXeAYTFDPIuFUPT68quu"
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "richtxt",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "_parent": {
+      "__id__": 223
+    },
+    "_children": [],
+    "_active": false,
+    "_components": [
+      {
+        "__id__": 232
+      },
+      {
+        "__id__": 233
       }
     ],
     "_prefab": null,
@@ -8072,7 +8210,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 228
+      "__id__": 231
     },
     "_enabled": true,
     "__prefab": null,
@@ -8094,7 +8232,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 228
+      "__id__": 231
     },
     "_enabled": true,
     "__prefab": null,
@@ -8160,18 +8298,18 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 635,
-      "height": 4200
+      "width": 620,
+      "height": 3524
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
-      "x": 0,
-      "y": 1
+      "x": 0.5,
+      "y": 0.5
     },
-    "_id": "d3y7y5BDBE3LnBHROaYa7q"
+    "_id": "0ftFY0W51DroveAGuEguTU"
   },
   {
-    "__type__": "cc.Label",
+    "__type__": "cc.Sprite",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -8185,55 +8323,29 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 0,
-      "g": 0,
-      "b": 0,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
-    "_string": "Updated Date: 1 Dec 2025\n\nWe take the protection of your privacy seriously and have developed this Privacy Policy, which covers how we collect, use, disclose, share and store your information.\n\nWhen you use our Services, we may collect and use your information. Through this Privacy Policy, we would like to explain how we collect, use, store and share this information when you use our Services, and how we can help you access, update, manage and protect this information. This Privacy Policy applies to your interactions with this Game and your registration and use of the Game Services. We encourage you to read this Policy carefully to understand how to maintain your privacy rights.\n\nBy using or continuing to use our Services, you agree to our collection, use, storage and sharing of your relevant information in accordance with this Privacy Policy.\n\nIf you have any questions about this Privacy Policy or related matters, please contact us.\n\nInformation We May Collect\n\nWhen we provide services, we may collect, store and use the following information about you. If you do not provide relevant information, you may not be able to register as our user or enjoy certain services we provide, or achieve the expected results of related services.\n\nYour information is shared by others\n\nShared information about you provided by others when they use our services.\n\nWe have obtained your information\n\nWhen you use the Services, we may collect the following information:\n\nLog information refers to technical information that the system may automatically collect through cookies, web beans or other means when you use our services, including:\n\nDevice or software information, such as configuration information provided by your mobile device, web browser or other programs used to access our services , your IP address, and the version and device identifier used by your mobile device;\n\nLocation information refers to information about your location collected when you turn on the device positioning function and use our location-based services, including:\n\nYour geographic location information collected through GPS or WiFi when you use our services on a mobile device with positioning capabilities;\n\nReal-time information containing your geographic location provided by you or other users, such as account information you provide containing information about your location, shared information uploaded by you or others showing your current or past geographic location, and geotag information contained in photos shared by you or others;\n\nYou can stop collecting your location information by turning off the location feature.\n\nHow we use your information\n\nWe may use the information collected in the process of providing you with services for the following purposes:\n\nTo provide you with services;\n\nWhen we provide services, we use it for identity verification, customer service, security prevention, fraud monitoring, archiving and backup purposes to ensure the security of the products and services we provide to you;\n\nHelp us design new services and improve existing ones;\n\nTo enable us to better understand how you access and use our services so that we can respond to your personalized needs, such as language settings, location settings, personalized help services and instructions, or provide you with other responses;\n\nProvide you with ads that are more relevant to you instead of generic ads\n\nEvaluate the effectiveness of advertising and other promotional activities in our services and make improvements accordingly;\n\nSoftware certification or management software upgrades;\n\nAllow you to participate in surveys about our products and services.\n\nIn order to provide you with a better experience, improve our services, or for other purposes you agree to, and subject to compliance with relevant laws and regulations, we may use the information collected through a service to aggregate information or personalize it for our other services. For example, information collected when you use one of our services may be used in another service to provide you with specific content or to display non-generally pushed information related to you . If we provide corresponding options in the relevant service, you can also authorize us to use the information provided and stored by the service for our other services.\n\nHow you can access and control your personal information\n\nWe will try our best to take appropriate technical measures to ensure that you can access, update, and correct your registration information or other personal information provided when using our services. When accessing, updating, correcting, and deleting the aforementioned information, we may ask you to authenticate your identity to ensure the security of your account.\n\nHow We Share Your Information\n\nWe and our affiliates will not share your personal information with any third party without your consent, except in the following circumstances:\n\nWe and our affiliates may share your personal information with our affiliates, partners, and third-party service providers, contractors, and agents (such as communication service providers that send emails or push notifications on our behalf, and map services that provide us with location data).\n\nsuppliers) (who may not be located in your jurisdiction) for the following purposes:\n\nTo provide you with our services;\n\nTo fulfill the purposes described in the “How We Use Information” section;\n\nour obligations and exercise our rights under this Privacy Policy or other agreements reached between this Game and you ;\n\nUnderstand, maintain, and improve our Services.\n\nIf we or our affiliates share your personal information with any of the above third parties, we will do our best to ensure that the third party abides by this Privacy Policy and other appropriate confidentiality and security measures we require it to comply with when using your personal information.\n\nAs our business continues to develop, we and our affiliates may conduct mergers, acquisitions, asset transfers or similar transactions, and your personal information may be transferred as part of such transactions. We will notify you before the transfer.\n\nWe or our affiliates may also retain, store or disclose your personal information for the following purposes:\n\nYou authorize or agree to the disclosure of this game;\n\nComply with applicable laws and regulations;\n\ncomply with a court order or other legal process;\n\nComply with the requirements of relevant government agencies;\n\nIt is reasonably necessary to comply with applicable laws and regulations, safeguard the public interest, or protect the personal and property safety or legal rights of our customers, us or our group companies, other users or employees;\n\nAccording to the relevant provisions of the terms of service and statement of this game, or other circumstances deemed necessary by this game.\n\nInformation Security\n\nWe will only retain your personal information for the period necessary for the purposes stated in this Privacy Policy and as required by laws and regulations.\n\nWe use a variety of security technologies and procedures to prevent information loss, improper use, unauthorized reading or disclosure. For example, in some services, we use encryption technology (such as SSL) to protect the personal information you provide. However, please understand that due to technical limitations and various possible malicious means, even if we have tried our best to strengthen security measures, we cannot always guarantee 100% security of information. You need to understand that the system and communication network you use to access our services may have problems due to factors beyond our control.\n\nHow We Collect Information\n\nWe or our third-party partners may collect, use, and store your information through cookies and web beans.\n\nWe use our own cookies and web beans to provide you with a more personalized user experience and service, and for the following purposes:\n\nRemember your identity. For example, cookies and web beacons help us identify you as our registered user, or save your preferences or other information you provide to us;\n\nAnalyze your use of our services. For example, we may use cookies and web beacons to understand what activities you perform using our services, or which web pages or services are most popular with you;\n\nthat are relevant to you based on your information , rather than conducting general advertising campaigns.\n\nWhile using cookies and web beans for the above purposes, we may provide non-personally identifiable information collected through cookies and web beans to advertisers or other partners after statistical processing for the purpose of analyzing how users use our services and for advertising services.\n\nOur products and services may contain cookies and web beacons placed by advertisers or other partners. These cookies and web beacons may collect non-personally identifiable information related to you, which is used to analyze how users use these services, send you advertisements that may be of interest to you, or evaluate the effectiveness of advertising services. The collection and use of this information by these third-party cookies and web beacons is not subject to this Privacy Policy, but is subject to the privacy policy of the relevant users. We do not assume any responsibility for third-party cookies or web beacons.\n\nYou can reject or manage cookies or webbeans through your browser settings. However, please note that if you disable cookies or webbeans, you may not be able to enjoy the best service experience and some services may not work properly. At the same time, you will receive the same number of advertisements, but their relevance to you will be reduced.\n\nAdvertise with us\n\nIn the future, we may use information about you to provide you with advertising that is more relevant to you.\n\nWe may also use your information to send you marketing information through our services, email or other means to offer or promote our or third parties’ goods and services as follows:\n\nOur products or services, including instant messaging services, online media services, interactive entertainment services, social networking services, payment services, Internet search services, location and mapping services, application software and services, data management software and services, online advertising services, Internet finance, and other social media, entertainment, e-commerce information and communication software or services (collectively, \"Internet Services\");\n\nThird-party goods or services, including, but not limited to: internet services, food and dining, sports, music, movies, television, live performances and other arts and entertainment, books, magazines and other publications, apparel and accessories, jewelry, cosmetics, personal health and hygiene, electronics, collectibles, housewares, appliances, home decor and furnishings, pets, automobiles, hotels, transportation and travel .\n\nHow To Reach Us\nIf necessary, please contact us by email at deliesundefeat@gmail.com. We will be ready to help you with any problem in one week.",
-    "_horizontalAlign": 0,
-    "_verticalAlign": 0,
-    "_actualFontSize": 11,
-    "_fontSize": 10,
-    "_fontFamily": "Arial",
-    "_lineHeight": 8,
-    "_overflow": 2,
-    "_enableWrapText": true,
-    "_font": {
-      "__uuid__": "3c4e7e4b-42d0-4672-8618-63c5617ec1ab",
-      "__expectedType__": "cc.TTFFont"
+    "_spriteFrame": {
+      "__uuid__": "cb33a1f1-3f4d-4e9e-8f5a-474cb9f75726@f9941",
+      "__expectedType__": "cc.SpriteFrame"
     },
-    "_isSystemFontUsed": false,
-    "_spacingX": 0,
-    "_isItalic": false,
-    "_isBold": false,
-    "_isUnderline": false,
-    "_underlineHeight": 2,
-    "_cacheMode": 1,
-    "_enableOutline": false,
-    "_outlineColor": {
-      "__type__": "cc.Color",
-      "r": 0,
-      "g": 0,
-      "b": 0,
-      "a": 255
-    },
-    "_outlineWidth": 2,
-    "_enableShadow": false,
-    "_shadowColor": {
-      "__type__": "cc.Color",
-      "r": 0,
-      "g": 0,
-      "b": 0,
-      "a": 255
-    },
-    "_shadowOffset": {
+    "_type": 0,
+    "_fillType": 0,
+    "_sizeMode": 1,
+    "_fillCenter": {
       "__type__": "cc.Vec2",
-      "x": 2,
-      "y": 2
+      "x": 0,
+      "y": 0
     },
-    "_shadowBlur": 2,
-    "_id": "7bCXeAYTFDPIuFUPT68quu"
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_useGrayscale": false,
+    "_atlas": null,
+    "_id": "004CpvSnJBSbNRKlMSDXgj"
   },
   {
     "__type__": "cc.UITransform",
@@ -8396,10 +8508,10 @@
       "__id__": 200
     },
     "policyLabel": {
-      "__id__": 233
+      "__id__": 230
     },
     "policyRichlb": {
-      "__id__": 230
+      "__id__": 233
     },
     "homeBtn": {
       "__id__": 177
@@ -8476,16 +8588,16 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 242
-      },
-      {
-        "__id__": 243
-      },
-      {
-        "__id__": 244
+        "__id__": 245
       },
       {
         "__id__": 246
+      },
+      {
+        "__id__": 247
+      },
+      {
+        "__id__": 249
       }
     ],
     "_prefab": null,
@@ -8524,7 +8636,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 241
+      "__id__": 244
     },
     "_enabled": true,
     "__prefab": null,
@@ -8546,7 +8658,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 241
+      "__id__": 244
     },
     "_enabled": true,
     "__prefab": null,
@@ -8585,13 +8697,13 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 241
+      "__id__": 244
     },
     "_enabled": true,
     "__prefab": null,
     "clickEvents": [
       {
-        "__id__": 245
+        "__id__": 248
       }
     ],
     "_interactable": true,
@@ -8631,7 +8743,7 @@
     "_duration": 0.1,
     "_zoomScale": 1.2,
     "_target": {
-      "__id__": 241
+      "__id__": 244
     },
     "_id": "bahIC+0B5AlJqsm/vuRZ2R"
   },
@@ -8651,7 +8763,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 241
+      "__id__": 244
     },
     "_enabled": true,
     "__prefab": null,
@@ -8687,16 +8799,16 @@
     "_active": false,
     "_components": [
       {
-        "__id__": 248
-      },
-      {
-        "__id__": 249
-      },
-      {
-        "__id__": 250
+        "__id__": 251
       },
       {
         "__id__": 252
+      },
+      {
+        "__id__": 253
+      },
+      {
+        "__id__": 255
       }
     ],
     "_prefab": null,
@@ -8735,7 +8847,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 247
+      "__id__": 250
     },
     "_enabled": true,
     "__prefab": null,
@@ -8757,7 +8869,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 247
+      "__id__": 250
     },
     "_enabled": true,
     "__prefab": null,
@@ -8796,13 +8908,13 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 247
+      "__id__": 250
     },
     "_enabled": true,
     "__prefab": null,
     "clickEvents": [
       {
-        "__id__": 251
+        "__id__": 254
       }
     ],
     "_interactable": true,
@@ -8842,7 +8954,7 @@
     "_duration": 0.1,
     "_zoomScale": 1.2,
     "_target": {
-      "__id__": 247
+      "__id__": 250
     },
     "_id": "99L/kRxjBAzr81l7Qogl47"
   },
@@ -8862,7 +8974,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 247
+      "__id__": 250
     },
     "_enabled": true,
     "__prefab": null,
@@ -8896,22 +9008,22 @@
     },
     "_children": [
       {
-        "__id__": 254
+        "__id__": 257
       }
     ],
     "_active": false,
     "_components": [
       {
-        "__id__": 257
-      },
-      {
-        "__id__": 258
-      },
-      {
-        "__id__": 259
-      },
-      {
         "__id__": 260
+      },
+      {
+        "__id__": 261
+      },
+      {
+        "__id__": 262
+      },
+      {
+        "__id__": 263
       }
     ],
     "_prefab": null,
@@ -8950,16 +9062,16 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 253
+      "__id__": 256
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 255
+        "__id__": 258
       },
       {
-        "__id__": 256
+        "__id__": 259
       }
     ],
     "_prefab": null,
@@ -8998,7 +9110,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 254
+      "__id__": 257
     },
     "_enabled": true,
     "__prefab": null,
@@ -9020,7 +9132,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 254
+      "__id__": 257
     },
     "_enabled": true,
     "__prefab": null,
@@ -9082,7 +9194,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 253
+      "__id__": 256
     },
     "_enabled": true,
     "__prefab": null,
@@ -9104,7 +9216,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 253
+      "__id__": 256
     },
     "_enabled": true,
     "__prefab": null,
@@ -9143,7 +9255,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 253
+      "__id__": 256
     },
     "_enabled": true,
     "__prefab": null,
@@ -9197,7 +9309,7 @@
     "_duration": 0.1,
     "_zoomScale": 1.2,
     "_target": {
-      "__id__": 253
+      "__id__": 256
     },
     "_id": "99SeezUsRGYJ9XL2V6RsBQ"
   },
@@ -9207,7 +9319,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 253
+      "__id__": 256
     },
     "_enabled": true,
     "__prefab": null,
@@ -9241,25 +9353,25 @@
     },
     "_children": [
       {
-        "__id__": 262
-      },
-      {
         "__id__": 265
       },
       {
-        "__id__": 275
+        "__id__": 268
       },
       {
-        "__id__": 282
+        "__id__": 278
+      },
+      {
+        "__id__": 285
       }
     ],
     "_active": false,
     "_components": [
       {
-        "__id__": 289
+        "__id__": 292
       },
       {
-        "__id__": 290
+        "__id__": 293
       }
     ],
     "_prefab": null,
@@ -9298,16 +9410,16 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 261
+      "__id__": 264
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 263
+        "__id__": 266
       },
       {
-        "__id__": 264
+        "__id__": 267
       }
     ],
     "_prefab": null,
@@ -9346,7 +9458,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 262
+      "__id__": 265
     },
     "_enabled": true,
     "__prefab": null,
@@ -9368,7 +9480,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 262
+      "__id__": 265
     },
     "_enabled": true,
     "__prefab": null,
@@ -9430,26 +9542,26 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 261
+      "__id__": 264
     },
     "_children": [
       {
-        "__id__": 266
+        "__id__": 269
       },
       {
-        "__id__": 269
+        "__id__": 272
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 272
+        "__id__": 275
       },
       {
-        "__id__": 273
+        "__id__": 276
       },
       {
-        "__id__": 274
+        "__id__": 277
       }
     ],
     "_prefab": null,
@@ -9488,16 +9600,16 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 265
+      "__id__": 268
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 267
+        "__id__": 270
       },
       {
-        "__id__": 268
+        "__id__": 271
       }
     ],
     "_prefab": null,
@@ -9536,7 +9648,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 266
+      "__id__": 269
     },
     "_enabled": true,
     "__prefab": null,
@@ -9558,7 +9670,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 266
+      "__id__": 269
     },
     "_enabled": true,
     "__prefab": null,
@@ -9620,16 +9732,16 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 265
+      "__id__": 268
     },
     "_children": [],
     "_active": false,
     "_components": [
       {
-        "__id__": 270
+        "__id__": 273
       },
       {
-        "__id__": 271
+        "__id__": 274
       }
     ],
     "_prefab": null,
@@ -9668,7 +9780,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 269
+      "__id__": 272
     },
     "_enabled": true,
     "__prefab": null,
@@ -9690,7 +9802,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 269
+      "__id__": 272
     },
     "_enabled": true,
     "__prefab": null,
@@ -9752,7 +9864,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 265
+      "__id__": 268
     },
     "_enabled": true,
     "__prefab": null,
@@ -9774,7 +9886,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 265
+      "__id__": 268
     },
     "_enabled": true,
     "__prefab": null,
@@ -9813,7 +9925,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 265
+      "__id__": 268
     },
     "_enabled": true,
     "__prefab": null,
@@ -9822,10 +9934,10 @@
     "editingDidEnded": [],
     "editingReturn": [],
     "_textLabel": {
-      "__id__": 268
+      "__id__": 271
     },
     "_placeholderLabel": {
-      "__id__": 271
+      "__id__": 274
     },
     "_returnType": 0,
     "_string": "请输入关卡",
@@ -9845,23 +9957,23 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 261
+      "__id__": 264
     },
     "_children": [
       {
-        "__id__": 276
+        "__id__": 279
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 279
+        "__id__": 282
       },
       {
-        "__id__": 280
+        "__id__": 283
       },
       {
-        "__id__": 281
+        "__id__": 284
       }
     ],
     "_prefab": null,
@@ -9900,16 +10012,16 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 275
+      "__id__": 278
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 277
+        "__id__": 280
       },
       {
-        "__id__": 278
+        "__id__": 281
       }
     ],
     "_prefab": null,
@@ -9948,7 +10060,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 276
+      "__id__": 279
     },
     "_enabled": true,
     "__prefab": null,
@@ -9970,7 +10082,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 276
+      "__id__": 279
     },
     "_enabled": true,
     "__prefab": null,
@@ -10032,7 +10144,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 275
+      "__id__": 278
     },
     "_enabled": true,
     "__prefab": null,
@@ -10054,7 +10166,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 275
+      "__id__": 278
     },
     "_enabled": true,
     "__prefab": null,
@@ -10093,7 +10205,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 275
+      "__id__": 278
     },
     "_enabled": true,
     "__prefab": null,
@@ -10147,7 +10259,7 @@
     "_duration": 0.1,
     "_zoomScale": 1.2,
     "_target": {
-      "__id__": 275
+      "__id__": 278
     },
     "_id": "e8fobEfxtBhqHjAE4HtVAk"
   },
@@ -10157,23 +10269,23 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 261
+      "__id__": 264
     },
     "_children": [
       {
-        "__id__": 283
+        "__id__": 286
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 286
+        "__id__": 289
       },
       {
-        "__id__": 287
+        "__id__": 290
       },
       {
-        "__id__": 288
+        "__id__": 291
       }
     ],
     "_prefab": null,
@@ -10212,16 +10324,16 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 282
+      "__id__": 285
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 284
+        "__id__": 287
       },
       {
-        "__id__": 285
+        "__id__": 288
       }
     ],
     "_prefab": null,
@@ -10260,7 +10372,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 283
+      "__id__": 286
     },
     "_enabled": true,
     "__prefab": null,
@@ -10282,7 +10394,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 283
+      "__id__": 286
     },
     "_enabled": true,
     "__prefab": null,
@@ -10344,7 +10456,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 282
+      "__id__": 285
     },
     "_enabled": true,
     "__prefab": null,
@@ -10366,7 +10478,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 282
+      "__id__": 285
     },
     "_enabled": true,
     "__prefab": null,
@@ -10405,7 +10517,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 282
+      "__id__": 285
     },
     "_enabled": true,
     "__prefab": null,
@@ -10459,7 +10571,7 @@
     "_duration": 0.1,
     "_zoomScale": 1.2,
     "_target": {
-      "__id__": 282
+      "__id__": 285
     },
     "_id": "0dT1Rx09JGgaPbs9wziuo5"
   },
@@ -10469,7 +10581,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 261
+      "__id__": 264
     },
     "_enabled": true,
     "__prefab": null,
@@ -10491,7 +10603,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 261
+      "__id__": 264
     },
     "_enabled": true,
     "__prefab": null,
@@ -10536,10 +10648,10 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 292
+        "__id__": 295
       },
       {
-        "__id__": 293
+        "__id__": 296
       }
     ],
     "_prefab": null,
@@ -10578,7 +10690,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 291
+      "__id__": 294
     },
     "_enabled": true,
     "__prefab": null,
@@ -10600,7 +10712,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 291
+      "__id__": 294
     },
     "_enabled": true,
     "__prefab": null,
@@ -10735,19 +10847,19 @@
     },
     "_children": [
       {
-        "__id__": 298
+        "__id__": 301
       }
     ],
     "_active": false,
     "_components": [
       {
-        "__id__": 303
+        "__id__": 306
       },
       {
-        "__id__": 304
+        "__id__": 307
       },
       {
-        "__id__": 305
+        "__id__": 308
       }
     ],
     "_prefab": null,
@@ -10786,22 +10898,22 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
-      "__id__": 297
+      "__id__": 300
     },
     "_children": [],
     "_active": true,
     "_components": [
       {
-        "__id__": 299
-      },
-      {
-        "__id__": 300
-      },
-      {
-        "__id__": 301
-      },
-      {
         "__id__": 302
+      },
+      {
+        "__id__": 303
+      },
+      {
+        "__id__": 304
+      },
+      {
+        "__id__": 305
       }
     ],
     "_prefab": null,
@@ -10840,7 +10952,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 298
+      "__id__": 301
     },
     "_enabled": true,
     "__prefab": null,
@@ -10862,7 +10974,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 298
+      "__id__": 301
     },
     "_enabled": true,
     "__prefab": null,
@@ -10901,7 +11013,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 298
+      "__id__": 301
     },
     "_enabled": true,
     "__prefab": null,
@@ -10914,7 +11026,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 298
+      "__id__": 301
     },
     "_enabled": true,
     "__prefab": null,
@@ -10944,7 +11056,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 297
+      "__id__": 300
     },
     "_enabled": true,
     "__prefab": null,
@@ -10966,7 +11078,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 297
+      "__id__": 300
     },
     "_enabled": true,
     "__prefab": null,
@@ -11005,7 +11117,7 @@
     "_objFlags": 0,
     "__editorExtras__": {},
     "node": {
-      "__id__": 297
+      "__id__": 300
     },
     "_enabled": true,
     "__prefab": null,
@@ -11108,19 +11220,19 @@
     "_enabled": true,
     "__prefab": null,
     "loadPage": {
-      "__id__": 297
+      "__id__": 300
     },
     "shoucangBtn": {
-      "__id__": 247
+      "__id__": 250
     },
     "testBtn": {
-      "__id__": 253
+      "__id__": 256
     },
     "settingBtn": {
-      "__id__": 241
+      "__id__": 244
     },
     "settingUI": {
-      "__id__": 239
+      "__id__": 242
     },
     "puzzleManager": {
       "__id__": 90
@@ -11147,16 +11259,16 @@
       "__id__": 104
     },
     "levelInputDialog": {
-      "__id__": 261
+      "__id__": 264
     },
     "levelInputEditBox": {
-      "__id__": 274
+      "__id__": 277
     },
     "levelInputConfirmBtn": {
-      "__id__": 288
+      "__id__": 291
     },
     "levelInputCancelBtn": {
-      "__id__": 281
+      "__id__": 284
     },
     "puzzleImage": {
       "__uuid__": "b32d89e6-44f2-44e9-9049-d247af6f2cb7@f9941",
@@ -11172,9 +11284,6 @@
     "instance": null,
     "targetOverrides": [
       {
-        "__id__": 311
-      },
-      {
         "__id__": 314
       },
       {
@@ -11188,6 +11297,9 @@
       },
       {
         "__id__": 326
+      },
+      {
+        "__id__": 329
       }
     ],
     "nestedPrefabInstanceRoots": [
@@ -11202,7 +11314,7 @@
       "__id__": 20
     },
     "sourceInfo": {
-      "__id__": 312
+      "__id__": 315
     },
     "propertyPath": [
       "chapterBg"
@@ -11211,7 +11323,7 @@
       "__id__": 20
     },
     "targetInfo": {
-      "__id__": 313
+      "__id__": 316
     }
   },
   {
@@ -11232,7 +11344,7 @@
       "__id__": 20
     },
     "sourceInfo": {
-      "__id__": 315
+      "__id__": 318
     },
     "propertyPath": [
       "passNode"
@@ -11241,7 +11353,7 @@
       "__id__": 20
     },
     "targetInfo": {
-      "__id__": 316
+      "__id__": 319
     }
   },
   {
@@ -11262,7 +11374,7 @@
       "__id__": 20
     },
     "sourceInfo": {
-      "__id__": 318
+      "__id__": 321
     },
     "propertyPath": [
       "unLockImage"
@@ -11271,7 +11383,7 @@
       "__id__": 20
     },
     "targetInfo": {
-      "__id__": 319
+      "__id__": 322
     }
   },
   {
@@ -11292,7 +11404,7 @@
       "__id__": 20
     },
     "sourceInfo": {
-      "__id__": 321
+      "__id__": 324
     },
     "propertyPath": [
       "lockImage"
@@ -11301,7 +11413,7 @@
       "__id__": 20
     },
     "targetInfo": {
-      "__id__": 322
+      "__id__": 325
     }
   },
   {
@@ -11322,7 +11434,7 @@
       "__id__": 20
     },
     "sourceInfo": {
-      "__id__": 324
+      "__id__": 327
     },
     "propertyPath": [
       "chapterLvLabel"
@@ -11331,7 +11443,7 @@
       "__id__": 20
     },
     "targetInfo": {
-      "__id__": 325
+      "__id__": 328
     }
   },
   {
@@ -11352,7 +11464,7 @@
       "__id__": 20
     },
     "sourceInfo": {
-      "__id__": 327
+      "__id__": 330
     },
     "propertyPath": [
       "describeLabel"
@@ -11361,7 +11473,7 @@
       "__id__": 20
     },
     "targetInfo": {
-      "__id__": 328
+      "__id__": 331
     }
   },
   {
@@ -11379,28 +11491,28 @@
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 330
-    },
-    "shadows": {
-      "__id__": 331
-    },
-    "_skybox": {
-      "__id__": 332
-    },
-    "fog": {
       "__id__": 333
     },
-    "octree": {
+    "shadows": {
       "__id__": 334
     },
-    "skin": {
+    "_skybox": {
       "__id__": 335
     },
-    "lightProbeInfo": {
+    "fog": {
       "__id__": 336
     },
-    "postSettings": {
+    "octree": {
       "__id__": 337
+    },
+    "skin": {
+      "__id__": 338
+    },
+    "lightProbeInfo": {
+      "__id__": 339
+    },
+    "postSettings": {
+      "__id__": 340
     },
     "bakedWithStationaryMainLight": false,
     "bakedWithHighpLightmap": false

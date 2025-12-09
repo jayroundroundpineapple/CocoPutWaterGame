@@ -67,8 +67,9 @@ export class SettingUI extends Component {
     protected start() {
         this.PolicyPanel.active = false;
         // 不在 start 中设置文本，延迟到面板打开时再加载，提升性能
-        // this.policyLabel.string = Macro.policyTxt;
         // this.policyRichlb.string = Macro.policyTxt;
+        this.policyLabel.overflow = Label.Overflow.RESIZE_HEIGHT;
+        this.policyLabel.string = Macro.policyTxt;
         if (this.closeBtn) {
             this.closeBtn.on(Node.EventType.TOUCH_END, this.onCloseBtnClick, this);
         } else {
