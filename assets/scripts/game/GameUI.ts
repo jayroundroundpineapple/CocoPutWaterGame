@@ -530,7 +530,7 @@ export class GameUI extends Component {
     private enterChapter(chapter: number, startLevel: number, endLevel: number, showUnlockAnimation: boolean = false): void {
         console.log(`[GameUI] 进入章节 ${chapter}，关卡范围：${startLevel}-${endLevel}`);
         // 保存当前章节信息
-        this.testBtn.active = true;
+        // this.testBtn.active = true;
         this.currentChapter = chapter;
         this.currentStartLevel = startLevel;
         this.currentEndLevel = endLevel;
@@ -859,7 +859,7 @@ export class GameUI extends Component {
      */
     public backToLevelUnlock(): void {
         console.log('[GameUI] 返回关卡解锁界面');
-        this.testBtn.active = true;
+        // this.testBtn.active = true;
         if (this.puzzleGameUI) {
             this.puzzleGameUI.active = false;
         }
