@@ -8,9 +8,10 @@ COCOS_ENGINE_PATH = COCOS_ENGINE_PATH.replace("\\", "/")
 buildDir = "${RES_PATH}/proj/build/${project.name ==~ /^[_a-zA-Z0-9-]+$/ ? project.name : 'CocosGame'}"
 android {
 //    compileSdkVersion PROP_COMPILE_SDK_VERSION.toInteger()
-    compileSdkVersion 33
+    compileSdkVersion 35
     buildToolsVersion PROP_BUILD_TOOLS_VERSION
-    ndkPath PROP_NDK_PATH
+//    ndkPath PROP_NDK_PATH
+    ndkVersion "21.3.6528147"
     namespace APPLICATION_ID
 
     compileOptions {
@@ -21,8 +22,8 @@ android {
     defaultConfig {
         applicationId APPLICATION_ID
         minSdkVersion PROP_MIN_SDK_VERSION
-//        targetSdkVersion PROP_TARGET_SDK_VERSION
-        targetSdkVersion 33
+        targetSdkVersion PROP_TARGET_SDK_VERSION
+//        targetSdkVersion 35
         versionCode 1
         versionName "1.0"
 
