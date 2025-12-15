@@ -10853,7 +10853,7 @@
         "__id__": 301
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 306
@@ -11124,7 +11124,7 @@
     },
     "_enabled": true,
     "__prefab": null,
-    "_alignFlags": 5,
+    "_alignFlags": 45,
     "_target": null,
     "_left": 0,
     "_right": 0,

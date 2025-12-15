@@ -68,7 +68,6 @@ export class WebAdapter extends Component {
                 );
             }
         } else {
-            // 横屏模式：按高度适配
             view.setDesignResolutionSize(
                 this.designWidth, 
                 this.designHeight, 

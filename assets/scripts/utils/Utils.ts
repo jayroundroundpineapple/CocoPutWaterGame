@@ -1,4 +1,4 @@
-import { Node, tween, Vec3 } from 'cc';
+import { Node, tween, Vec3, screen } from 'cc';
 
 export class Utils {
     public static getRandomInt(min: number, max: number): number {
@@ -87,5 +87,21 @@ export class Utils {
                 cb && cb();
             })
             .start();
+    }
+    /**
+     * 获取当前屏幕方向
+     * @returns true 表示竖屏，false 表示横屏
+     */
+    public static isVertical(): boolean {
+        const windowSize = screen.windowSize;
+        return windowSize.height > windowSize.width;
+    }
+    /**
+     * 获取当前屏幕宽高比
+     * @returns 宽度/高度的比值
+     */
+    public static getAspectRatio(): number {
+        const windowSize = screen.windowSize;
+        return windowSize.width / windowSize.height;
     }
 }
