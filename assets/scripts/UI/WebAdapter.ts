@@ -40,23 +40,16 @@ export class WebAdapter extends Component {
 
     /** 核心适配逻辑 */
     private resize(): void {
-        // 获取窗口尺寸
         const windowSize = screen.windowSize;
         const windowWidth = windowSize.width;
         const windowHeight = windowSize.height;
-        
-        // 判断是否为竖屏
         const isVertical = windowHeight > windowWidth;
         const aspectRatio = windowWidth / windowHeight;
-
-        // Cocos Creator 3.x: 使用 view.setDesignResolutionSize 设置适配策略
-        // 适配策略常量（数字）：
         // 0 = SHOW_ALL: 保持比例，完整显示（可能有黑边）
         // 1 = EXACT_FIT: 拉伸填满（可能变形）
         // 2 = FIXED_WIDTH: 固定宽度，高度自适应
         // 3 = FIXED_HEIGHT: 固定高度，宽度自适应
         // 4 = NO_BORDER: 无黑边，可能裁剪
-        
         if (isVertical) {
             // 竖屏模式
             if (aspectRatio > 0.7) {
@@ -65,7 +58,6 @@ export class WebAdapter extends Component {
                     this.designWidth, 
                     this.designHeight, 
                     ResolutionPolicy.FIXED_HEIGHT
-                    // 3  // FIXED_HEIGHT
                 );
             } else {
                 // 宽高比小于等于 0.7，按宽度适配
@@ -73,7 +65,6 @@ export class WebAdapter extends Component {
                     this.designWidth, 
                     this.designHeight, 
                     ResolutionPolicy.FIXED_WIDTH
-                    // 2  // FIXED_WIDTH
                 );
             }
         } else {
@@ -82,7 +73,6 @@ export class WebAdapter extends Component {
                 this.designWidth, 
                 this.designHeight, 
                 ResolutionPolicy.FIXED_HEIGHT
-                // 3  // FIXED_HEIGHT
             );
         }
     }

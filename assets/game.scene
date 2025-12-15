@@ -11623,7 +11623,7 @@
     },
     "_diffuseMapHDR": null,
     "_diffuseMapLDR": null,
-    "_enabled": false,
+    "_enabled": true,
     "_useHDR": true,
     "_editableMaterial": null,
     "_reflectionHDR": null,
