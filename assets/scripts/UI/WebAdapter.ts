@@ -1,8 +1,17 @@
-import { _decorator, Component, Node, view, Size, screen, ResolutionPolicy } from 'cc';
+import { _decorator, Component, Node, view, Size, screen, ResolutionPolicy, Sprite, SpriteFrame, UITransform, Vec3 } from 'cc';
+import { Utils } from '../utils/Utils';
 const { ccclass, property } = _decorator;
 
 @ccclass('WebAdapter')
 export class WebAdapter extends Component {
+    @property(Node)
+    private bgNode: Node = null;
+    @property(SpriteFrame)
+    private bgSpriteFrame: SpriteFrame[]= [];
+    @property(Node)
+    private loadPage: Node = null;
+    @property(SpriteFrame)
+    private loadPageSpriteFrame: SpriteFrame[]= [];
     // 设计分辨率
     private readonly designWidth = 750;
     private readonly designHeight = 1334;
@@ -11,28 +20,23 @@ export class WebAdapter extends Component {
     private resizeTimer: any = null;
 
     protected onLoad(): void {
-        this.scheduleOnce(() => {
-            this.resize();
-        }, 0.1);
+        this.resize();
         window.addEventListener('resize', this.onWindowResize.bind(this));
         window.addEventListener('orientationchange', this.onWindowResize.bind(this));
     }
 
     protected onDestroy(): void {
-        // 移除事件监听，避免内存泄漏
         window.removeEventListener('resize', this.onWindowResize.bind(this));
         window.removeEventListener('orientationchange', this.onWindowResize.bind(this));
         if (this.resizeTimer) {
             clearTimeout(this.resizeTimer);
         }
     }
-
-    /** 窗口大小变化事件（带防抖） */
+    /** 窗口大小变化事件 */
     private onWindowResize(): void {
         if (this.resizeTimer) {
             clearTimeout(this.resizeTimer);
         }
-        // 防抖：延迟执行，避免频繁调用
         this.resizeTimer = setTimeout(() => {
             this.resize();
         }, 10);
@@ -74,5 +78,9 @@ export class WebAdapter extends Component {
                 ResolutionPolicy.FIXED_HEIGHT
             );
         }
+        let isVerticalScreen: boolean = Utils.isVertical();
+        this.bgNode.getComponent(Sprite).spriteFrame = this.bgSpriteFrame[isVerticalScreen ? 0 : 1];
+        this.loadPage.getComponent(Sprite).spriteFrame = this.loadPageSpriteFrame[isVerticalScreen ? 0 : 1];
+        this.loadPage.children[0].setScale(isVerticalScreen ? new Vec3(1, 1, 1) : new Vec3(1.5, 1.5, 1)); 
     }
 }
