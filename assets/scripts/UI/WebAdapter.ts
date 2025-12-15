@@ -1,0 +1,89 @@
+import { _decorator, Component, Node, view, Size, screen, ResolutionPolicy } from 'cc';
+const { ccclass, property } = _decorator;
+
+@ccclass('WebAdapter')
+export class WebAdapter extends Component {
+    // 设计分辨率
+    private readonly designWidth = 750;
+    private readonly designHeight = 1334;
+    
+    // 防抖定时器
+    private resizeTimer: any = null;
+
+    protected onLoad(): void {
+        this.scheduleOnce(() => {
+            this.resize();
+        }, 0.1);
+        window.addEventListener('resize', this.onWindowResize.bind(this));
+        window.addEventListener('orientationchange', this.onWindowResize.bind(this));
+    }
+
+    protected onDestroy(): void {
+        // 移除事件监听，避免内存泄漏
+        window.removeEventListener('resize', this.onWindowResize.bind(this));
+        window.removeEventListener('orientationchange', this.onWindowResize.bind(this));
+        if (this.resizeTimer) {
+            clearTimeout(this.resizeTimer);
+        }
+    }
+
+    /** 窗口大小变化事件（带防抖） */
+    private onWindowResize(): void {
+        if (this.resizeTimer) {
+            clearTimeout(this.resizeTimer);
+        }
+        // 防抖：延迟执行，避免频繁调用
+        this.resizeTimer = setTimeout(() => {
+            this.resize();
+        }, 10);
+    }
+
+    /** 核心适配逻辑 */
+    private resize(): void {
+        // 获取窗口尺寸
+        const windowSize = screen.windowSize;
+        const windowWidth = windowSize.width;
+        const windowHeight = windowSize.height;
+        
+        // 判断是否为竖屏
+        const isVertical = windowHeight > windowWidth;
+        const aspectRatio = windowWidth / windowHeight;
+
+        // Cocos Creator 3.x: 使用 view.setDesignResolutionSize 设置适配策略
+        // 适配策略常量（数字）：
+        // 0 = SHOW_ALL: 保持比例，完整显示（可能有黑边）
+        // 1 = EXACT_FIT: 拉伸填满（可能变形）
+        // 2 = FIXED_WIDTH: 固定宽度，高度自适应
+        // 3 = FIXED_HEIGHT: 固定高度，宽度自适应
+        // 4 = NO_BORDER: 无黑边，可能裁剪
+        
+        if (isVertical) {
+            // 竖屏模式
+            if (aspectRatio > 0.7) {
+                // 宽高比大于 0.7，按高度适配
+                view.setDesignResolutionSize(
+                    this.designWidth, 
+                    this.designHeight, 
+                    ResolutionPolicy.FIXED_HEIGHT
+                    // 3  // FIXED_HEIGHT
+                );
+            } else {
+                // 宽高比小于等于 0.7，按宽度适配
+                view.setDesignResolutionSize(
+                    this.designWidth, 
+                    this.designHeight, 
+                    ResolutionPolicy.FIXED_WIDTH
+                    // 2  // FIXED_WIDTH
+                );
+            }
+        } else {
+            // 横屏模式：按高度适配
+            view.setDesignResolutionSize(
+                this.designWidth, 
+                this.designHeight, 
+                ResolutionPolicy.FIXED_HEIGHT
+                // 3  // FIXED_HEIGHT
+            );
+        }
+    }
+}

@@ -29,7 +29,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 313
+      "__id__": 314
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -60,7 +60,7 @@
     },
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 332
+      "__id__": 333
     },
     "_id": "30c5af41-e954-47fe-a5b7-ce59a31408d8"
   },
@@ -217,8 +217,8 @@
     "__prefab": null,
     "_projection": 1,
     "_priority": 0,
-    "_fov": 45,
-    "_fovAxis": 0,
+    "_fov": 25.253496503496503,
+    "_fovAxis": 1,
     "_orthoHeight": 10,
     "_near": 1,
     "_far": 1000,
@@ -283,6 +283,9 @@
       },
       {
         "__id__": 312
+      },
+      {
+        "__id__": 313
       }
     ],
     "_prefab": null,
@@ -11277,6 +11280,18 @@
     "_id": "8f1aM4EMRM/ZKgx7Fz1Skq"
   },
   {
+    "__type__": "6e6aftTrlhOxphOUz/Qk+kE",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 7
+    },
+    "_enabled": true,
+    "__prefab": null,
+    "_id": "dctW5fj8ZGXZbA0dgMDaHL"
+  },
+  {
     "__type__": "cc.PrefabInfo",
     "root": null,
     "asset": null,
@@ -11284,22 +11299,22 @@
     "instance": null,
     "targetOverrides": [
       {
-        "__id__": 314
+        "__id__": 315
       },
       {
-        "__id__": 317
+        "__id__": 318
       },
       {
-        "__id__": 320
+        "__id__": 321
       },
       {
-        "__id__": 323
+        "__id__": 324
       },
       {
-        "__id__": 326
+        "__id__": 327
       },
       {
-        "__id__": 329
+        "__id__": 330
       }
     ],
     "nestedPrefabInstanceRoots": [
@@ -11314,7 +11329,7 @@
       "__id__": 20
     },
     "sourceInfo": {
-      "__id__": 315
+      "__id__": 316
     },
     "propertyPath": [
       "chapterBg"
@@ -11323,7 +11338,7 @@
       "__id__": 20
     },
     "targetInfo": {
-      "__id__": 316
+      "__id__": 317
     }
   },
   {
@@ -11344,7 +11359,7 @@
       "__id__": 20
     },
     "sourceInfo": {
-      "__id__": 318
+      "__id__": 319
     },
     "propertyPath": [
       "passNode"
@@ -11353,7 +11368,7 @@
       "__id__": 20
     },
     "targetInfo": {
-      "__id__": 319
+      "__id__": 320
     }
   },
   {
@@ -11374,7 +11389,7 @@
       "__id__": 20
     },
     "sourceInfo": {
-      "__id__": 321
+      "__id__": 322
     },
     "propertyPath": [
       "unLockImage"
@@ -11383,7 +11398,7 @@
       "__id__": 20
     },
     "targetInfo": {
-      "__id__": 322
+      "__id__": 323
     }
   },
   {
@@ -11404,7 +11419,7 @@
       "__id__": 20
     },
     "sourceInfo": {
-      "__id__": 324
+      "__id__": 325
     },
     "propertyPath": [
       "lockImage"
@@ -11413,7 +11428,7 @@
       "__id__": 20
     },
     "targetInfo": {
-      "__id__": 325
+      "__id__": 326
     }
   },
   {
@@ -11434,7 +11449,7 @@
       "__id__": 20
     },
     "sourceInfo": {
-      "__id__": 327
+      "__id__": 328
     },
     "propertyPath": [
       "chapterLvLabel"
@@ -11443,7 +11458,7 @@
       "__id__": 20
     },
     "targetInfo": {
-      "__id__": 328
+      "__id__": 329
     }
   },
   {
@@ -11464,7 +11479,7 @@
       "__id__": 20
     },
     "sourceInfo": {
-      "__id__": 330
+      "__id__": 331
     },
     "propertyPath": [
       "describeLabel"
@@ -11473,7 +11488,7 @@
       "__id__": 20
     },
     "targetInfo": {
-      "__id__": 331
+      "__id__": 332
     }
   },
   {
@@ -11491,28 +11506,28 @@
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 333
-    },
-    "shadows": {
       "__id__": 334
     },
-    "_skybox": {
+    "shadows": {
       "__id__": 335
     },
-    "fog": {
+    "_skybox": {
       "__id__": 336
     },
-    "octree": {
+    "fog": {
       "__id__": 337
     },
-    "skin": {
+    "octree": {
       "__id__": 338
     },
-    "lightProbeInfo": {
+    "skin": {
       "__id__": 339
     },
-    "postSettings": {
+    "lightProbeInfo": {
       "__id__": 340
+    },
+    "postSettings": {
+      "__id__": 341
     },
     "bakedWithStationaryMainLight": false,
     "bakedWithHighpLightmap": false
@@ -11608,7 +11623,7 @@
     },
     "_diffuseMapHDR": null,
     "_diffuseMapLDR": null,
-    "_enabled": true,
+    "_enabled": false,
     "_useHDR": true,
     "_editableMaterial": null,
     "_reflectionHDR": null,
