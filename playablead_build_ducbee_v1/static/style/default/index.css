@@ -1,0 +1,91 @@
+#app {
+    padding:20px;
+    color: #fff;
+}
+a {
+    color:#fff;
+    margin: 5px;
+    /* text-decoration: none; */
+}
+h1 {
+    color: #fff;
+    text-align: center;
+}
+h2 {
+    color: #fff;
+    text-align: center;
+}
+h3 {
+    color:  greenyellow;
+    text-align: center;
+}
+p {
+    /* font-size: 16px; */
+}
+
+#guide{
+    color: grey;
+    font-size: 10px;  
+}
+
+#inline_block{
+    display: flex;
+}
+
+#title_behavior{
+    color: yellow;
+    font-family:  'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 25px;
+}
+
+#behavior{
+    font-family:  'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: bold;
+    font-size: 15px;
+    margin-left: 10px;
+}
+
+#help_box{
+    margin-top: 20px;
+    margin-left: 200px;
+}
+
+#help_link{
+    color: rosybrown;
+    font-family:  'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: bold;
+    font-style: italic;
+    font-size: 20px;
+}
+
+#copyright{
+    margin-left: 100px;
+    font-size: 12px;
+}
+
+.img{
+    width: 10px;
+    height: 10px;
+}
+
+.btn_group {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.button-item {
+    padding:10px 20px;
+    border-radius: 5px;
+    color: #fff;
+}
+
+#msg {
+    color: white;
+    padding: 10px;
+    margin-top: 20px;
+    font-size: 20px;
+    line-height: 24px;
+    border-radius: 5px;
+    word-break: break-all;
+    background: #000;
+}

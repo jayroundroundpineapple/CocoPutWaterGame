@@ -1,0 +1,50 @@
+{
+    "package_version": 2,
+    "version": "1.0.0",
+    "name": "playablead_build_ducbee_v1",
+    "description": "i18n:playablead_build_ducbee_v1.description",
+    "main": "./dist/main.js",
+    "dependencies": {
+        "fs-extra": "^10.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^16.0.1",
+        "@types/fs-extra": "^9.0.5",
+        "typescript": "^4.3.4"
+    },
+    "panels": {
+        "default": {
+            "title": "playablead_build_ducbee_v1 Default Panel",
+            "type": "dockable",
+            "main": "dist/panels/default",
+            "size": {
+                "min-width": 712,
+                "min-height": 700,
+                "width": 712,
+                "height": 700
+            }
+        }
+    },
+    "contributions": {
+        "menu": [
+            {
+                "path": "i18n:menu.extension/playablead_build_ducbee_v1",
+                "label": "i18n:playablead_build_ducbee_v1.open_panel",
+                "message": "open-panel"
+            }
+        ],
+        "messages": {
+            "open-panel": {
+                "methods": [
+                    "openPanel"
+                ]
+            }
+        }
+    },
+    "author": "_.toilacho2105",
+    "editor": ">=3.6.0",
+    "scripts": {
+        "build": "tsc -b",
+        "watch": "tsc -w"
+    }
+}
