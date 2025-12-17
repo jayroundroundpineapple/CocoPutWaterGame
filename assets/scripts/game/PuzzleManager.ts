@@ -70,6 +70,9 @@ export class PuzzleManager extends Component {
     private readonly GROUP_SNAP_THRESHOLD = 5; // 组吸附阈值（防止误触）
     // 动画锁定：正在进行的动画数量，用于防止频繁点击导致位置错乱
     private animatingPieceCount: number = 0;
+    // 指引相关
+    private tipStep: number = 0; // 当前指引步骤：0=未开始，1=第一次指引，2=第二次指引，3=完成
+    public onTipStepChange: (step: number, fromPiece: PuzzlePiece | null, backPiece: PuzzlePiece | null) => void = null; // 指引步骤变化回调
     /**
      * 检查是否有动画正在进行
      */
@@ -319,6 +322,7 @@ export class PuzzleManager extends Component {
     public startPuzzle(spriteFrame: SpriteFrame) {
         this.currentImage = spriteFrame;
         this.isCompleted = false;  // 重置完成标志
+        this.tipStep = 0;  // 重置指引步骤
 
         // 获取当前关卡配置
         this.currentConfig = this.getCurrentLevelConfig();
@@ -355,13 +359,12 @@ export class PuzzleManager extends Component {
         if (this.levelConfigs.length === 0) {
             console.warn('[PuzzleManager] 关卡配置为空，尝试重新加载...');
             this.loadRetryCount = 0;  
-            this.loadLevelConfigs();
-            this.scheduleOnce(() => {
-                this.tryStartLevel(level);
-            }, 0.5);
+            // this.loadLevelConfigs();
+            // this.scheduleOnce(() => {
+            //     this.tryStartLevel(level);
+            // }, 0.5);
             return;
         }
-
         this.tryStartLevel(level);
     }
 
@@ -1345,22 +1348,32 @@ export class PuzzleManager extends Component {
         if (!this.currentConfig || this.pieces.length === 0) return;
 
         const totalPieces = this.pieces.length;
-        const indices: number[] = [];
+        let indices: number[] = [];
         for (let i = 0; i < totalPieces; i++) {
             indices.push(i);
         }
-
-        this.shuffleArray(indices);
+        //试玩自定义写死顺序
+        indices = [0, 1, 2, 3, 4, 6, 8, 7, 5];
+        console.log('Jayindices', indices);
+        // this.shuffleArray(indices);
         // 确保不是已经完成的状态
-        let attempts = 0;
-        while (this.isSolved(indices) && attempts < 10) {
-            this.shuffleArray(indices);
-            attempts++;
-        }
+        // let attempts = 0;
+        // while (this.isSolved(indices) && attempts < 10) {
+        //     this.shuffleArray(indices);
+        //     attempts++;
+        // }
         
         // 播放发牌动画：依次将拼图块从右下角移动到目标位置
         const dealDuration = 0.3;  // 每个拼图块的动画时长
         const dealDelay = 0.05;    // 每个拼图块之间的延迟（发牌间隔）
+        const flipDelay = 0.1;     // 所有发牌完成后到开始翻牌的延迟
+        const flipInterval = 0.02; // 每个拼图块翻牌之间的间隔
+        
+        // 计算总发牌时间（最后一个拼图块发牌完成的时间）
+        const totalDealTime = (this.pieces.length - 1) * dealDelay + dealDuration;
+        
+        // 记录发牌完成的拼图块数量
+        let dealCompletedCount = 0;
         
         for (let i = 0; i < this.pieces.length; i++) {
             const targetIndex = indices[i];
@@ -1372,10 +1385,103 @@ export class PuzzleManager extends Component {
             // 延迟后播放发牌动画
             this.scheduleOnce(() => {
                 // 使用 moveToPosition 播放动画，不播放音效（发牌时不需要音效）
-                piece.moveToPosition(this.positions[targetIndex], targetIndex, dealDuration, false);
+                piece.moveToPosition(this.positions[targetIndex], targetIndex, dealDuration, false, () => {
+                    dealCompletedCount++;
+                    // 当所有拼图块都发牌完成后，开始播放翻牌动画
+                    if (dealCompletedCount === this.pieces.length) {
+                        // 延迟后开始依次翻牌
+                        this.scheduleOnce(() => {
+                            let flipCompletedCount = 0;
+                            for (let j = 0; j < this.pieces.length; j++) {
+                                const flipDelayTime = j * flipInterval;
+                                this.pieces[j].playFlipAnimation(0.4, flipDelayTime, () => {
+                                    flipCompletedCount++;
+                                    // 所有翻牌动画完成后，开始指引
+                                    if (flipCompletedCount === this.pieces.length) {
+                                        this.scheduleOnce(() => {
+                                            this.startTipGuide();
+                                        }, 0.5);
+                                    }
+                                });
+                            }
+                        }, flipDelay);
+                    }
+                });
             }, delay);
         }
     }
+    /**
+     * 开始指引
+     */
+    private startTipGuide(): void {
+        this.tipStep = 1;
+        this.showTipStep(1);
+    }
+
+    /**
+     * 显示指引步骤
+     * @param step 步骤：1=第一次指引，2=第二次指引
+     */
+    private showTipStep(step: number): void {
+        // 先隐藏所有指引光效
+        for (const piece of this.pieces) {
+            piece.hideTipLight();
+        }
+
+        if (step === 1) {
+            // 第一次指引：将第九块（correctIndex=6，当前在位置5）
+            const fontPiece = this.pieces.find(p => p.currentIndex === 8);
+            const backPiece = this.pieces.find(p => p.currentIndex === 6);
+            if (fontPiece && backPiece) {
+                fontPiece.showTipLight();
+                if (this.onTipStepChange) {
+                    this.onTipStepChange(1, fontPiece, backPiece);
+                }
+            }
+        } else if (step === 2) {
+            // 第二次指引：将第六块（correctIndex=5，当前在位置5）移动到第九块的位置（correctIndex=8，当前在位置8）
+            const fontPiece = this.pieces.find(p => p.currentIndex === 5);
+            const backPiece = this.pieces.find(p => p.currentIndex === 8);
+            if (fontPiece && backPiece) {
+                fontPiece.showTipLight();
+                if (this.onTipStepChange) {
+                    this.onTipStepChange(2, fontPiece, backPiece);
+                }
+            }
+        }
+    }
+
+    /**
+     * 检查指引步骤是否完成
+     */
+    private checkTipStepComplete(): void {
+        if (this.tipStep === 1) {
+            // 检查第一次指引是否完成：第九块（correctIndex=8）是否在位置6
+            const piece8 = this.pieces.find(p => p.correctIndex === 8);
+            if (piece8 && piece8.currentIndex === 6) {
+                // 第一次指引完成，开始第二次指引
+                this.tipStep = 2;
+                this.scheduleOnce(() => {
+                    this.showTipStep(2);
+                }, 0.5);
+            }
+        } else if (this.tipStep === 2) {
+            // 检查第二次指引是否完成：第六块（correctIndex=5）是否在位置8
+            const piece5 = this.pieces.find(p => p.correctIndex === 5);
+            if (piece5 && piece5.currentIndex === 8) {
+                // 第二次指引完成
+                this.tipStep = 3;
+                // 隐藏所有指引
+                for (const piece of this.pieces) {
+                    piece.hideTipLight();
+                }
+                if (this.onTipStepChange) {
+                    this.onTipStepChange(3, null, null);
+                }
+            }
+        }
+    }
+
     /**
      * 打乱数组
      */
@@ -1672,6 +1778,11 @@ export class PuzzleManager extends Component {
         // 执行移动（统一处理动画和边框更新）
         const moveDuration = 0.2;
         this.safeMovePiecesWithBorderUpdate(movePlan, moveDuration, true, true);
+        
+        // 检查指引步骤是否完成
+        this.scheduleOnce(() => {
+            this.checkTipStepComplete();
+        }, moveDuration + 0.1);
     }
 
     /**
@@ -2006,7 +2117,7 @@ export class PuzzleManager extends Component {
      */
     public preloadAllImages(onProgress?: (loaded: number, total: number) => void, onComplete?: () => void): void {
         if (this.levelConfigs.length === 0) {
-            console.warn('[PuzzleManager] 关卡配置为空，无法预加载图片');
+            console.log('[PuzzleManager] 关卡配置为空，无法预加载图片');
             // 如果配置未加载，先加载配置，然后再预加载图片
             this.loadLevelConfigs();
             this.scheduleOnce(() => {
@@ -2069,16 +2180,6 @@ export class PuzzleManager extends Component {
      */
     public isImagePreloaded(level: number): boolean {
         return this.imageCache.has(level);
-    }
-
-    /**
-     * 获取预加载进度
-     */
-    public getPreloadProgress(): { loaded: number; total: number } {
-        return {
-            loaded: this.imageCache.size,
-            total: this.levelConfigs.length
-        };
     }
 
     /**
@@ -2148,7 +2249,7 @@ export class PuzzleManager extends Component {
                         bottomState.hideTop = true;
                         topState.hideBottom = true;
                     } else {
-                        console.error(`[PuzzleManager] 边框状态未找到: piece=${piece?.correctIndex}, topPiece=${topPiece?.correctIndex}, state1=${!!state1}, state2=${!!state2}`);
+                        console.error(`[PuzzleManager] 边框状态未找到: piece=${piece?.correctIndex}, topPiece=${topPiece?.correctIndex}, bottomState=${!!bottomState}, topState=${!!topState}`);
                     }
                 }
             }

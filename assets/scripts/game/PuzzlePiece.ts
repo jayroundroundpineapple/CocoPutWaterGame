@@ -10,6 +10,10 @@ const { ccclass, property } = _decorator;
  */
 @ccclass('PuzzlePiece')
 export class PuzzlePiece extends Component {
+    @property(Node)
+    private tipLight: Node = null;
+    @property(Node)
+    private cardMask: Node = null;
     @property(Sprite)
     private sprite: Sprite = null;
     @property(Graphics)
@@ -32,8 +36,8 @@ export class PuzzlePiece extends Component {
     // 边框配置
     // private readonly BORDER_WIDTH = 3
     private BORDER_WIDTH: number = 6;   //竖屏是3 横屏是6
-    private readonly BORDER_COLOR = new Color(30, 30, 30, 255);
-    private readonly CORNER_RADIUS = 5;
+    private readonly BORDER_COLOR = new Color(245, 245, 245, 255);
+    private readonly CORNER_RADIUS = 15;
     private readonly Puzzle_CORNER_RADIUS = 3;
 
 
@@ -85,6 +89,14 @@ export class PuzzlePiece extends Component {
             this.setupSpriteNode();
         }
 
+        // 初始化时显示卡牌背面，隐藏拼图内容
+        if (this.cardMask) {
+            this.cardMask.active = true;
+        }
+        if (this.sprite && this.sprite.node) {
+            this.sprite.node.active = false;
+        }
+
         // 添加触摸事件（绑定到 PuzzlePiece 节点，确保整个节点都可以响应触摸）
         this.node.on(Node.EventType.TOUCH_START, this.onTouchStart, this);
         this.node.on(Node.EventType.TOUCH_MOVE, this.onTouchMove, this);
@@ -113,7 +125,8 @@ export class PuzzlePiece extends Component {
         this.maskNode.getComponent(UITransform).height = nodeTransform.height;
         const maskGraphics = this.maskNode.getComponent(Graphics);
         maskGraphics.roundRect(-nodeTransform.width / 2, -nodeTransform.height / 2, nodeTransform.width, nodeTransform.height, this.Puzzle_CORNER_RADIUS);
-        maskGraphics.fillColor = new Color(30, 30, 30, 255);
+        maskGraphics.fillColor = new Color(255, 255, 255, 255);
+        maskGraphics.strokeColor = new Color(255, 255, 255, 255);
         maskGraphics.fill();
         maskGraphics.stroke();
 
@@ -135,7 +148,7 @@ export class PuzzlePiece extends Component {
 
         // 清空之前的绘制
         this.borderGraphics.clear();
-        this.BORDER_WIDTH = Utils.isVertical() ? 3 : 5;
+        this.BORDER_WIDTH = Utils.isVertical() ? 5 : 6;
         this.borderGraphics.lineWidth = this.BORDER_WIDTH;
         this.borderGraphics.strokeColor = this.BORDER_COLOR;
 
@@ -487,5 +500,73 @@ export class PuzzlePiece extends Component {
     public isNearPosition(position: Vec3, threshold: number = 50): boolean {
         const distance = Vec3.distance(this.node.position, position);
         return distance < threshold;
+    }
+
+    /**
+     * 播放翻牌动画
+     * @param duration 动画时长，默认 0.4 秒
+     * @param delay 延迟时间，默认 0
+     * @param onComplete 动画完成回调
+     */
+    public playFlipAnimation(duration: number = 0.3, delay: number = 0, onComplete?: () => void): void {
+        if (!this.cardMask) {
+            // 如果没有 cardMask，直接显示内容
+            if (this.sprite && this.sprite.node) {
+                this.sprite.node.active = true;
+            }
+            if (onComplete) {
+                onComplete();
+            }
+            return;
+        }
+        if (delay > 0) {
+            this.scheduleOnce(() => {
+                this.doFlipAnimation(duration, onComplete);
+            }, delay);
+        } else {
+            this.doFlipAnimation(duration, onComplete);
+        }
+    }
+
+    /**
+     * 执行翻牌动画
+     */
+    private doFlipAnimation(duration: number, onComplete?: () => void): void {
+        const halfDuration = duration / 2;
+        tween(this.node)
+            .to(halfDuration, { scale: new Vec3(0, 1, 1) }, { easing: 'sineIn' })
+            .call(() => {
+                if (this.cardMask) {
+                    this.cardMask.active = false;
+                }
+                if (this.sprite && this.sprite.node) {
+                    this.sprite.node.active = true;
+                }
+            })
+            .to(halfDuration, { scale: new Vec3(1, 1, 1) }, { easing: 'sineOut' })
+            .call(() => {
+                if (onComplete) {
+                    onComplete();
+                }
+            })
+            .start();
+    }
+
+    /**
+     * 显示指引光效
+     */
+    public showTipLight(): void {
+        if (this.tipLight) {
+            this.tipLight.active = true;
+        }
+    }
+
+    /**
+     * 隐藏指引光效
+     */
+    public hideTipLight(): void {
+        if (this.tipLight) {
+            this.tipLight.active = false;
+        }
     }
 }

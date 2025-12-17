@@ -6,12 +6,8 @@ const { ccclass, property } = _decorator;
 export class WebAdapter extends Component {
     @property(Node)
     private bgNode: Node = null;
-    @property(SpriteFrame)
-    private bgSpriteFrame: SpriteFrame[]= [];
     @property(Node)
-    private loadPage: Node = null;
-    @property(SpriteFrame)
-    private loadPageSpriteFrame: SpriteFrame[]= [];
+    private maxBg: Node = null;
     // 设计分辨率
     private readonly designWidth = 750;
     private readonly designHeight = 1334;
@@ -79,8 +75,6 @@ export class WebAdapter extends Component {
             );
         }
         let isVerticalScreen: boolean = Utils.isVertical();
-        this.bgNode.getComponent(Sprite).spriteFrame = this.bgSpriteFrame[isVerticalScreen ? 0 : 1];
-        this.loadPage.getComponent(Sprite).spriteFrame = this.loadPageSpriteFrame[isVerticalScreen ? 0 : 1];
-        this.loadPage.children[0].setScale(isVerticalScreen ? new Vec3(1, 1, 1) : new Vec3(1.5, 1.5, 1)); 
+        this.maxBg.active = !isVerticalScreen;
     }
 }

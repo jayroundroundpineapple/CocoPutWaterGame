@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, EventTouch, view, Color, Label, tween, Vec3, sys } from 'cc';
+import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, EventTouch, view, Color, Label, tween, Vec3, sys, Widget, director } from 'cc';
 import { Utils } from '../utils/Utils';
 import { AudioManager } from '../utils/AudioManager';
 const { ccclass, property } = _decorator;
@@ -11,10 +11,6 @@ const { ccclass, property } = _decorator;
 export class PuzzleSuccessUI extends Component {
     @property(Node)
     private nextLevelBtn: Node = null;  
-    @property(Node)
-    private coinIcon: Node = null; 
-    @property(Label) 
-    private coinLabel: Label = null;
     @property(Node)
     private backgroundMask: Node = null;  // 背景遮罩层
     
@@ -72,35 +68,18 @@ export class PuzzleSuccessUI extends Component {
             return;
         }
         // 设置图片
-        if (image && this.successImage) {
-            this.currentImage = image;
-            this.successImage.spriteFrame = image;
-        }
+        // if (image && this.successImage) {
+        //     this.currentImage = image;
+        //     this.successImage.spriteFrame = image;
+        // }
         this.isShowing = true;
         AudioManager.getInstance().playtrueSound();
         
-        // 计算应该加的金币数量
-        let coinsToAddFinal = 0;
-        if (shouldAddCoins) {
-            if (coinsToAdd === -1) {
-                // 计算累计金币（从第1关到当前关的所有未通关关卡的金币）
-                coinsToAddFinal = this.calculateCoinsForLevel(level);
-            } else {
-                coinsToAddFinal = coinsToAdd;
-            }
-            
-            // 只有当前关卡未通关过，才加金币
-            if (!this.completedLevels.has(level) && coinsToAddFinal > 0) {
-                this.addCoins(coinsToAddFinal);
-                // 标记关卡已通关
-                this.markLevelCompleted(level);
-            }
-        }
-        
+        director.getScene().getComponentsInChildren(Widget).forEach(function(t){
+            t.updateAlignment();
+        });
         Utils.showPopup(this.node, duration, 'backOut', () => {
             console.log('[PuzzleSuccessUI] 成功弹窗显示完成');
-            // 弹窗显示完成后，播放金币动画
-            this.playCoinAnimation();
         });
     }
 
@@ -178,8 +157,6 @@ export class PuzzleSuccessUI extends Component {
         } else {
             this.currentCoins = 0;
         }
-        // 更新显示
-        this.updateCoinDisplay();
     }
 
     /**
@@ -201,70 +178,6 @@ export class PuzzleSuccessUI extends Component {
         this.currentCoins += amount;
         this.saveCoins();
     }
-
-    /**
-     * 更新金币显示
-     */
-    private updateCoinDisplay(): void {
-        if (this.coinLabel) {
-            this.coinLabel.string = this.currentCoins.toString();
-        }
-    }
-
-    /**
-     * 播放金币动画（缩放效果）
-     */
-    private playCoinAnimation(): void {
-        if (!this.coinIcon || !this.coinLabel) {
-            return;
-        }
-
-        // 先更新金币数值
-        this.updateCoinDisplay();
-
-        // 保存原始缩放值
-        const originalScale = new Vec3(1, 1, 1);
-        
-        // 金币图标和标签同时播放缩放动画
-        const scaleSequence = [
-            { scale: new Vec3(1.1, 1.1, 1), duration: 0.3 },  // 放大
-            { scale: new Vec3(0.9, 0.9, 1), duration: 0.2 },  // 缩小
-            { scale: new Vec3(1.2, 1.2, 1), duration: 0.2 },  // 再放大
-            { scale: new Vec3(1, 1, 1), duration: 0.2 }        // 恢复
-        ];
-
-        // 金币图标动画
-        let iconTween = tween(this.coinIcon);
-        scaleSequence.forEach((step, index) => {
-            iconTween = iconTween.to(step.duration, { scale: step.scale });
-        });
-        iconTween.start();
-
-        // 金币标签动画
-        let labelTween = tween(this.coinLabel.node);
-        scaleSequence.forEach((step, index) => {
-            labelTween = labelTween.to(step.duration, { scale: step.scale });
-        });
-        labelTween.start();
-    }
-
-    /**
-     * 获取当前金币数量
-     */
-    public getCoins(): number {
-        return this.currentCoins;
-    }
-
-    /**
-     * 设置金币数量（用于测试或特殊场景）
-     * @param amount 金币数量
-     */
-    public setCoins(amount: number): void {
-        this.currentCoins = Math.max(0, amount);
-        this.saveCoins();
-        this.updateCoinDisplay();
-    }
-
     /**
      * 加载已通关关卡
      */
