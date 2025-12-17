@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, Vec3, Prefab, instantiate, resources, JsonAsset, EventTouch } from 'cc';
+import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, Vec3, Prefab, instantiate, resources, JsonAsset, EventTouch, tween } from 'cc';
 import { PuzzlePiece } from './PuzzlePiece';
 import { UnionFind } from './UnionFind';
 const { ccclass, property } = _decorator;
@@ -73,6 +73,7 @@ export class PuzzleManager extends Component {
     // 指引相关
     private tipStep: number = 0; // 当前指引步骤：0=未开始，1=第一次指引，2=第二次指引，3=完成
     public onTipStepChange: (step: number, fromPiece: PuzzlePiece | null, backPiece: PuzzlePiece | null) => void = null; // 指引步骤变化回调
+    private previousGroupMap: Map<number, number[]> = new Map(); // 记录移动前的组信息，用于检测新形成的组
     /**
      * 检查是否有动画正在进行
      */
@@ -127,6 +128,15 @@ export class PuzzleManager extends Component {
     ): void {
         if (movePlan.size === 0) return;
         
+        // 记录移动前的组信息（用于检测新形成的组）
+        this.previousGroupMap.clear();
+        for (const [groupId, members] of this.groupMap) {
+            this.previousGroupMap.set(groupId, [...members]);
+        }
+        
+        // 立即隐藏指引（手指和光效）
+        this.hideTipGuide();
+        
         // 增加动画计数（所有拼图块共享一个计数）
         this.incrementAnimatingCount();
         
@@ -144,6 +154,8 @@ export class PuzzleManager extends Component {
                         if (updateBorders) {
                             this.updatePieceBorders();
                         }
+                        // 检查是否有新形成的组，如果有则播放缩放动画
+                        this.checkAndPlayGroupScaleAnimation();
                         if (checkComplete) {
                             this.checkComplete();
                         }
@@ -1452,12 +1464,89 @@ export class PuzzleManager extends Component {
     }
 
     /**
+     * 隐藏指引（手指和光效）
+     */
+    private hideTipGuide(): void {
+        // 隐藏所有指引光效
+        for (const piece of this.pieces) {
+            piece.hideTipLight();
+        }
+        // 通知 GameUI 隐藏手指
+        if (this.onTipStepChange) {
+            this.onTipStepChange(0, null, null);
+        }
+    }
+
+    /**
+     * 检查是否有新形成的组，如果有则播放缩放动画
+     */
+    private checkAndPlayGroupScaleAnimation(): void {
+        // 找出新形成的组（在移动前不存在，移动后存在）
+        const newGroups: PuzzlePiece[][] = [];
+        
+        for (const [groupId, members] of this.groupMap) {
+            // 如果组内块数大于1，才视为有效组
+            if (members.length <= 1) continue;
+            
+            // 检查这个组是否是新形成的（在 previousGroupMap 中不存在，或者成员不同）
+            const previousMembers = this.previousGroupMap.get(groupId);
+            if (!previousMembers || previousMembers.length !== members.length) {
+                // 这是一个新形成的组
+                const groupPieces = members
+                    .map(idx => this.pieces.find(p => p.correctIndex === idx))
+                    .filter(p => p !== undefined) as PuzzlePiece[];
+                
+                if (groupPieces.length > 1) {
+                    newGroups.push(groupPieces);
+                }
+            } else {
+                // 检查成员是否相同
+                const previousSet = new Set(previousMembers);
+                const currentSet = new Set(members);
+                if (previousSet.size !== currentSet.size || 
+                    !Array.from(previousSet).every(m => currentSet.has(m))) {
+                    // 成员发生了变化，可能是合并了其他组
+                    const groupPieces = members
+                        .map(idx => this.pieces.find(p => p.correctIndex === idx))
+                        .filter(p => p !== undefined) as PuzzlePiece[];
+                    
+                    if (groupPieces.length > 1) {
+                        newGroups.push(groupPieces);
+                    }
+                }
+            }
+        }
+        
+        // 为新形成的组播放缩放动画
+        for (const group of newGroups) {
+            this.playGroupScaleAnimation(group);
+        }
+    }
+
+    /**
+     * 播放组的缩放动画
+     * @param group 拼图块组
+     */
+    private playGroupScaleAnimation(group: PuzzlePiece[]): void {
+        if (group.length === 0) return;
+        
+        // 为组内所有拼图块播放缩放动画
+        for (const piece of group) {
+            const originalScale = piece.node.scale.clone();
+            tween(piece.node)
+                .to(0.15, { scale: new Vec3(originalScale.x * 1.15, originalScale.y * 1.15, 1) }, { easing: 'sineOut' })
+                .to(0.15, { scale: originalScale }, { easing: 'sineIn' })
+                .start();
+        }
+    }
+
+    /**
      * 检查指引步骤是否完成
      */
     private checkTipStepComplete(): void {
         if (this.tipStep === 1) {
             // 检查第一次指引是否完成：第九块（correctIndex=8）是否在位置6
-            const piece8 = this.pieces.find(p => p.correctIndex === 8);
+            const piece8 = this.pieces.find(p => p.correctIndex === 6);
             if (piece8 && piece8.currentIndex === 6) {
                 // 第一次指引完成，开始第二次指引
                 this.tipStep = 2;
@@ -1782,7 +1871,7 @@ export class PuzzleManager extends Component {
         // 检查指引步骤是否完成
         this.scheduleOnce(() => {
             this.checkTipStepComplete();
-        }, moveDuration + 0.1);
+        }, moveDuration + 0.05);
     }
 
     /**
