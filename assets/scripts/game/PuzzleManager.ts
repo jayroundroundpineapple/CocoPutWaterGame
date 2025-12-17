@@ -39,8 +39,8 @@ export class PuzzleManager extends Component {
     private levelConfigs: LevelConfig[] = [];
 
     // 当前关卡的网格信息
-    private currentRows: number = 0;
-    private currentCols: number = 0;
+    private currentRows: number = 0; //当前关卡的行数
+    private currentCols: number = 0; //当前关卡的列数
 
     // 相邻关系映射：记录每个拼图块在正确位置时，上下左右应该是什么拼图块（用correctIndex表示）
     // Map<correctIndex, { top: number, bottom: number, left: number, right: number }>
@@ -2142,11 +2142,11 @@ export class PuzzleManager extends Component {
                     }
 
                     // 上方是正确的相邻拼图块，隐藏相邻边
-                    const state1 = borderState.get(piece);
-                    const state2 = borderState.get(topPiece);
-                    if (state1 && state2) {
-                        state1.hideTop = true;
-                        state2.hideBottom = true;
+                    const bottomState = borderState.get(piece);
+                    const topState = borderState.get(topPiece);
+                    if (bottomState && topState) {
+                        bottomState.hideTop = true;
+                        topState.hideBottom = true;
                     } else {
                         console.error(`[PuzzleManager] 边框状态未找到: piece=${piece?.correctIndex}, topPiece=${topPiece?.correctIndex}, state1=${!!state1}, state2=${!!state2}`);
                     }

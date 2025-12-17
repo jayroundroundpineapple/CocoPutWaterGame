@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, Vec3, EventTouch, tween, Texture2D, Rect, Graphics, Color } from 'cc';
 import { PuzzleManager } from './PuzzleManager';
 import { AudioManager } from '../utils/AudioManager';
+import { Utils } from '../utils/Utils';
 const { ccclass, property } = _decorator;
 
 /**
@@ -29,7 +30,8 @@ export class PuzzlePiece extends Component {
     private dragOffset: Vec3 = new Vec3();
     private originalPosition: Vec3 = new Vec3();
     // 边框配置
-    private readonly BORDER_WIDTH = 3;
+    // private readonly BORDER_WIDTH = 3
+    private BORDER_WIDTH: number = 6;   //竖屏是3 横屏是6
     private readonly BORDER_COLOR = new Color(30, 30, 30, 255);
     private readonly CORNER_RADIUS = 5;
     private readonly Puzzle_CORNER_RADIUS = 3;
@@ -133,6 +135,7 @@ export class PuzzlePiece extends Component {
 
         // 清空之前的绘制
         this.borderGraphics.clear();
+        this.BORDER_WIDTH = Utils.isVertical() ? 3 : 5;
         this.borderGraphics.lineWidth = this.BORDER_WIDTH;
         this.borderGraphics.strokeColor = this.BORDER_COLOR;
 
@@ -145,7 +148,6 @@ export class PuzzlePiece extends Component {
 
         // 构建连续的路径，按顺时针顺序绘制
         // 关键：当两个可见边之间有空隙（隐藏的边）时，使用 moveTo 跳转，避免出现对角线
-
         // 辅助函数：检查两个边是否相邻（在顺时针方向上）
         const isAdjacent = (edge1: string | null, edge2: string): boolean => {
             if (edge1 === null) return false;
