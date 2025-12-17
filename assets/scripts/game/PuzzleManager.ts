@@ -339,7 +339,7 @@ export class PuzzleManager extends Component {
         // 获取当前关卡配置
         this.currentConfig = this.getCurrentLevelConfig();
         if (!this.currentConfig) {
-            console.error('[PuzzleManager] 无法获取关卡配置');
+            console.log('[PuzzleManager] 无法获取关卡配置');
             return;
         }
         // 保存网格信息
@@ -576,7 +576,7 @@ export class PuzzleManager extends Component {
         return groupPieces.length > 0 ? groupPieces : null;
     }
 
-    // 新增：组拖动开始
+    //组拖动开始
     private onGroupDragStart(touchPiece: PuzzlePiece, event: EventTouch): void {
         // 如果正在动画中，禁止开始新的拖拽
         if (this.isAnimating()) {
@@ -1308,7 +1308,7 @@ export class PuzzleManager extends Component {
         return center;
     }
 
-    // 新增：计算组的目标索引（基于参考点偏移）
+    // 计算组的目标索引（基于参考点偏移）
     private calculateGroupTargetIndices(group: PuzzlePiece[], groupCenter: Vec3): number[] {
         // 找到组中心最近的网格位置（作为参考点）
         let referenceTargetIdx = -1;
@@ -1483,11 +1483,9 @@ export class PuzzleManager extends Component {
     private checkAndPlayGroupScaleAnimation(): void {
         // 找出新形成的组（在移动前不存在，移动后存在）
         const newGroups: PuzzlePiece[][] = [];
-        
         for (const [groupId, members] of this.groupMap) {
             // 如果组内块数大于1，才视为有效组
             if (members.length <= 1) continue;
-            
             // 检查这个组是否是新形成的（在 previousGroupMap 中不存在，或者成员不同）
             const previousMembers = this.previousGroupMap.get(groupId);
             if (!previousMembers || previousMembers.length !== members.length) {
@@ -1518,24 +1516,67 @@ export class PuzzleManager extends Component {
         }
         
         // 为新形成的组播放缩放动画
+        console.log('JaynewGroups', newGroups);
         for (const group of newGroups) {
             this.playGroupScaleAnimation(group);
         }
     }
 
     /**
-     * 播放组的缩放动画
+     * 播放组的缩放动画（整体缩放）
      * @param group 拼图块组
      */
     private playGroupScaleAnimation(group: PuzzlePiece[]): void {
         if (group.length === 0) return;
+        console.log('Jaygroup', group); 
         
-        // 为组内所有拼图块播放缩放动画
-        for (const piece of group) {
-            const originalScale = piece.node.scale.clone();
-            tween(piece.node)
-                .to(0.15, { scale: new Vec3(originalScale.x * 1.15, originalScale.y * 1.15, 1) }, { easing: 'sineOut' })
-                .to(0.15, { scale: originalScale }, { easing: 'sineIn' })
+        // 计算组的中心点
+        const groupCenter = this.calculateGroupCenter(group);
+        
+        // 保存每个拼图块的原始状态
+        const originalStates = group.map(piece => ({
+            piece: piece,
+            originalScale: piece.node.scale.clone(),
+            originalPosition: piece.node.position.clone(),
+            // 计算相对于中心点的偏移
+            offsetFromCenter: new Vec3(
+                piece.node.position.x - groupCenter.x,
+                piece.node.position.y - groupCenter.y,
+                0
+            )
+        }));
+        
+        const scaleFactor = 1.1;
+        const duration = 0.15;
+        
+        // 为每个拼图块创建同步的缩放和位置动画
+        for (const state of originalStates) {
+            const targetScale = new Vec3(
+                state.originalScale.x * scaleFactor,
+                state.originalScale.y * scaleFactor,
+                state.originalScale.z
+            );
+            const targetPosition = new Vec3(
+                groupCenter.x + state.offsetFromCenter.x * scaleFactor,
+                groupCenter.y + state.offsetFromCenter.y * scaleFactor,
+                state.piece.node.position.z
+            );
+            
+            // 第一阶段：放大
+            tween(state.piece.node)
+                .to(duration, { 
+                    scale: targetScale,
+                    position: targetPosition
+                }, { easing: 'sineOut' })
+                .call(() => {
+                    // 第二阶段：恢复
+                    tween(state.piece.node)
+                        .to(duration, { 
+                            scale: state.originalScale,
+                            position: state.originalPosition
+                        }, { easing: 'sineIn' })
+                        .start();
+                })
                 .start();
         }
     }

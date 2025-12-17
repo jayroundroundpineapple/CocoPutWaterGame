@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, view, Size, screen, ResolutionPolicy, Sprite, SpriteFrame, UITransform, Vec3 } from 'cc';
+import { _decorator, Component, Node, view, Size, screen, ResolutionPolicy, Sprite, SpriteFrame, UITransform, Vec3, Widget } from 'cc';
 import { Utils } from '../utils/Utils';
 const { ccclass, property } = _decorator;
 
@@ -76,5 +76,6 @@ export class WebAdapter extends Component {
         }
         let isVerticalScreen: boolean = Utils.isVertical();
         this.maxBg.active = !isVerticalScreen;
+        this.bgNode.getComponent(Widget).right = isVerticalScreen ? 0 : windowSize.width / 3
     }
 }

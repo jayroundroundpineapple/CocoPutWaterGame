@@ -1,6 +1,7 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, EventTouch, view, Color, Label, tween, Vec3, sys, Widget, director } from 'cc';
 import { Utils } from '../utils/Utils';
 import { AudioManager } from '../utils/AudioManager';
+import { GameUI } from '../game/GameUI';
 const { ccclass, property } = _decorator;
 
 /**
@@ -80,6 +81,7 @@ export class PuzzleSuccessUI extends Component {
         });
         Utils.showPopup(this.node, duration, 'backOut', () => {
             console.log('[PuzzleSuccessUI] 成功弹窗显示完成');
+            this.node.on(Node.EventType.TOUCH_END, this.onNextLevelBtnClick, this);
         });
     }
 
@@ -102,14 +104,14 @@ export class PuzzleSuccessUI extends Component {
      */
     private onNextLevelBtnClick(): void {
         AudioManager.getInstance().playClickSound();
-        Utils.setScale(this.nextLevelBtn, 0.95, 0.1, () => {
-            this.hide();
-            if (this.onNextLevel) {
-                this.onNextLevel();
-            }
-        });
+        GameUI.getInstance().cashoutFunc();
+        // Utils.setScale(this.nextLevelBtn, 0.95, 0.1, () => {
+        //     this.hide();
+        //     if (this.onNextLevel) {
+        //         this.onNextLevel();
+        //     }
+        // });
     }
-
     /**
      * 创建背景遮罩层
      */
@@ -250,6 +252,7 @@ export class PuzzleSuccessUI extends Component {
         if (this.backgroundMask) {
             this.backgroundMask.off(Node.EventType.TOUCH_START, this.setupBackgroundMask, this);
         }
+        this.node.off(Node.EventType.TOUCH_END, this.onNextLevelBtnClick, this);
     }
 }
 

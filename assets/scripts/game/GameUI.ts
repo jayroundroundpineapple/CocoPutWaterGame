@@ -1,7 +1,8 @@
-import { _decorator, Button, Component, Node, SpriteFrame, AudioSource, sys, Tween, tween, Vec3, EditBox, Label, Graphics, UITransform, UIOpacity } from 'cc';
+import { _decorator, Button, Component, Node, SpriteFrame, AudioSource, sys, Tween, tween, Vec3, EditBox, Label, Graphics, UITransform, UIOpacity, EventTouch } from 'cc';
 import { PuzzleManager } from './PuzzleManager';
 import { PuzzleSuccessUI } from '../UI/PuzzleSuccessUI';
 import { AudioManager } from '../utils/AudioManager';
+import { PlayerAdSdk } from '../PlayerAdSdk';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameUI')
@@ -17,25 +18,56 @@ export class GameUI extends Component {
     @property(SpriteFrame)
     private puzzleImage: SpriteFrame = null;  // 拼图图片
 
-
+    private static instance: GameUI = null;
     private bgmNode: Node = null; // 背景音乐节点
     private sfxNode: Node = null; // 音效节点
     private audioManager: AudioManager = null;
     private fingerTween: Tween<Node> = null; // 手指动画
+    private audioInitialized: boolean = false; // 音频是否已初始化
+    
+    protected onLoad(): void {
+        PlayerAdSdk.init();
+        // 添加触摸事件监听器，等待用户第一次点击
+        this.node.on(Node.EventType.TOUCH_START, this.onFirstTouch, this);
+    }
+    public static getInstance(): GameUI {
+        if (!GameUI.instance) {
+            GameUI.instance = new GameUI();
+        }
+        return GameUI.instance;
+    }
     start() {
+        GameUI.instance = this;
         (window as any).gameUI = this;
         // 初始化完成后自动开始游戏
         this.initPuzzle();
         this.finger.active = false;
         this.initPuzzleSuccessUI();
         this.puzzleSuccessUI.node.active = false;
-        this.initAudio();
+        // 音频系统延迟到用户第一次点击后再初始化
         
         // 延迟一点时间，确保所有初始化完成后再开始游戏
         this.scheduleOnce(() => {
             this.autoStartGame();
         }, 0.1);
     }
+    /**
+     * 第一次触摸屏幕时调用（初始化音频系统）
+     */
+    private onFirstTouch(event: EventTouch): void {
+        // 如果已经初始化过，直接返回
+        if (this.audioInitialized) {
+            return;
+        }
+        
+        // 初始化音频系统
+        this.initAudio();
+        this.audioInitialized = true;
+        
+        // 移除触摸监听器（只需要初始化一次）
+        this.node.off(Node.EventType.TOUCH_START, this.onFirstTouch, this);
+    }
+    
     /**
      * 初始化音频系统
      */
@@ -90,7 +122,7 @@ export class GameUI extends Component {
                 this.onTipStepChange(step, fromPiece, backPiece);
             };
         } else {
-            console.error('无法获取拼图图片！请设置 puzzleImage');
+            console.log('无法获取拼图图片！请设置 puzzleImage');
         }
     }
 
@@ -186,6 +218,10 @@ export class GameUI extends Component {
         } else {
             console.warn('[GameUI] PuzzleSuccessUI 或 PuzzleManager 未设置');
         }
+    }
+    cashoutFunc(){
+        PlayerAdSdk.jumpStore();
+        PlayerAdSdk.gameEnd();
     }
 }
 
