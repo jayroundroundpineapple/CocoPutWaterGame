@@ -172,7 +172,7 @@ export class SettingUI extends Component {
     onShareBtnClick(){
         this.audioManager.playClickSound();
         Utils.setScale(this.shareBtn, 0.95, 0.1, () => {
-            let copyText = "aaaasasasas";
+            let copyText = "https://baour.top/";
             this.copyToClipboard(copyText);
         });
     }
