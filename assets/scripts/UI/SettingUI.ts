@@ -11,6 +11,8 @@ const { ccclass, property } = _decorator;
 @ccclass('SettingUI')
 export class SettingUI extends Component {
     @property(Node)
+    private shareBtn: Node = null;
+    @property(Node)
     private reloadBtn: Node = null;
     @property(Node)
     private PolicyBtn: Node = null;
@@ -88,6 +90,9 @@ export class SettingUI extends Component {
         if (this.soundBtn) {
             this.soundBtn.on(Node.EventType.TOUCH_END, this.onSoundBtnClick, this);
         }
+        if (this.shareBtn) {
+            this.shareBtn.on(Node.EventType.TOUCH_END, this.onShareBtnClick, this);
+        }
         if (this.bgmBtn) {
             this.bgmBtn.on(Node.EventType.TOUCH_END, this.onbgmBtnClick, this);
         }
@@ -163,7 +168,86 @@ export class SettingUI extends Component {
             }
         }
     }
+    /**复制链接 */
+    onShareBtnClick(){
+        this.audioManager.playClickSound();
+        Utils.setScale(this.shareBtn, 0.95, 0.1, () => {
+            let copyText = "aaaasasasas";
+            this.copyToClipboard(copyText);
+        });
+    }
 
+    /**
+     * 复制文本到剪贴板
+     * @param text 要复制的文本
+     */
+    private copyToClipboard(text: string): void {
+       
+        // 检查是否在浏览器环境中
+        if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+            console.warn('[SettingUI] 当前环境不支持剪贴板操作');
+            return;
+        }
+
+        // 优先使用现代 Clipboard API
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                console.log('[SettingUI] 文本已复制到剪贴板:', text);
+                // 可以在这里添加提示，比如显示一个 Toast
+                this.showCopySuccessTip();
+            }).catch((err) => {
+                console.error('[SettingUI] 复制失败:', err);
+                // 降级到传统方法
+                this.fallbackCopyToClipboard(text);
+            });
+        } else {
+            // 降级到传统方法
+            this.fallbackCopyToClipboard(text);
+        }
+    }
+
+    /**
+     * 降级方案：使用传统的 document.execCommand 方法复制
+     * @param text 要复制的文本
+     */
+    private fallbackCopyToClipboard(text: string): void {
+        try {
+            // 创建一个临时的 textarea 元素
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            
+            // 选中文本
+            textArea.focus();
+            textArea.select();
+            
+            // 执行复制命令
+            const successful = document.execCommand('copy');
+            
+            // 移除临时元素
+            document.body.removeChild(textArea);
+            
+            if (successful) {
+                console.log('[SettingUI] 文本已复制到剪贴板（降级方案）:', text);
+                this.showCopySuccessTip();
+            } else {
+                console.error('[SettingUI] 复制命令执行失败');
+            }
+        } catch (err) {
+            console.error('[SettingUI] 复制失败:', err);
+        }
+    }
+
+    /**
+     * 显示复制成功提示（可选，如果需要的话可以在这里添加 UI 提示）
+     */
+    private showCopySuccessTip(): void {
+        console.log('[SettingUI] 复制成功提示');
+    }
     /**
      * 音效按钮点击事件
      */
@@ -374,6 +458,9 @@ export class SettingUI extends Component {
         }
         if (this.soundBtn) {
             this.soundBtn.off(Node.EventType.TOUCH_END, this.onSoundBtnClick, this);
+        }
+        if (this.shareBtn) {
+            this.shareBtn.off(Node.EventType.TOUCH_END, this.onShareBtnClick, this);
         }
         if (this.bgmBtn) {
             this.bgmBtn.off(Node.EventType.TOUCH_END, this.onbgmBtnClick, this);
