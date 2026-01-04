@@ -11,6 +11,8 @@ const { ccclass, property } = _decorator;
 @ccclass('SettingUI')
 export class SettingUI extends Component {
     @property(Node)
+    private copyToast: Node = null;
+    @property(Node)
     private shareBtn: Node = null;
     @property(Node)
     private reloadBtn: Node = null;
@@ -49,7 +51,7 @@ export class SettingUI extends Component {
 
     // 返回首页回调
     public onHome: () => void = null;
-
+    canCopy: boolean = true;
     // 重置关卡回调（仅在游戏中有效）
     public onReloadLevel: () => void = null;
 
@@ -67,7 +69,7 @@ export class SettingUI extends Component {
     }
 
     protected start() {
-        this.PolicyPanel.active = false;
+        this.copyToast.active = this.PolicyPanel.active = false;
         // 不在 start 中设置文本，延迟到面板打开时再加载，提升性能
         // this.policyRichlb.string = Macro.policyTxt;
         this.policyLabel.overflow = Label.Overflow.RESIZE_HEIGHT;
@@ -170,10 +172,19 @@ export class SettingUI extends Component {
     }
     /**复制链接 */
     onShareBtnClick(){
+        if (!this.canCopy) {
+            return;
+        }
+        this.canCopy = false;
         this.audioManager.playClickSound();
+        this.copyToast.active = true;
         Utils.setScale(this.shareBtn, 0.95, 0.1, () => {
             let copyText = "https://baour.top/";
             this.copyToClipboard(copyText);
+            this.scheduleOnce(() => {
+                this.copyToast.active = false;
+                this.canCopy = true;
+            }, 0.5);
         });
     }
 
@@ -182,26 +193,21 @@ export class SettingUI extends Component {
      * @param text 要复制的文本
      */
     private copyToClipboard(text: string): void {
-       
         // 检查是否在浏览器环境中
         if (typeof window === 'undefined' || typeof navigator === 'undefined') {
             console.warn('[SettingUI] 当前环境不支持剪贴板操作');
             return;
         }
-
         // 优先使用现代 Clipboard API
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text).then(() => {
-                console.log('[SettingUI] 文本已复制到剪贴板:', text);
                 // 可以在这里添加提示，比如显示一个 Toast
                 this.showCopySuccessTip();
             }).catch((err) => {
                 console.error('[SettingUI] 复制失败:', err);
-                // 降级到传统方法
                 this.fallbackCopyToClipboard(text);
             });
         } else {
-            // 降级到传统方法
             this.fallbackCopyToClipboard(text);
         }
     }
@@ -242,9 +248,6 @@ export class SettingUI extends Component {
         }
     }
 
-    /**
-     * 显示复制成功提示（可选，如果需要的话可以在这里添加 UI 提示）
-     */
     private showCopySuccessTip(): void {
         console.log('[SettingUI] 复制成功提示');
     }
