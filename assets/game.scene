@@ -6717,14 +6717,14 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "musicIcon",
+    "_name": "shareIcon",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
       "__id__": 192
     },
     "_children": [],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 194
@@ -6737,7 +6737,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": -2,
-      "y": 5,
+      "y": 6,
       "z": 0
     },
     "_lrot": {
@@ -6775,8 +6775,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 48,
-      "height": 56
+      "width": 50,
+      "height": 52
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -6806,7 +6806,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "ca262ff7-5a76-48af-8972-0f3d7b14daa4@f9941",
+      "__uuid__": "f50fa3a2-7eba-477c-9ce1-b8ef8b60bef0@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
