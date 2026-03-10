@@ -31,11 +31,10 @@ export class PuzzleSuccessUI extends Component {
     private currentImage: SpriteFrame = null;
     
     // 金币相关
-    private readonly COIN_STORAGE_KEY = 'puzzle_game_coins';  // 金币存储键
-    private readonly COMPLETED_LEVELS_KEY = 'puzzle_completed_levels';  // 已通关关卡存储键
+    private readonly MAX_COMPLETED_LEVEL_KEY = 'puzzle_max_completed_level';  // 最大已通关关卡存储键
     private readonly COIN_PER_LEVEL = 10;  // 每关获得的金币数量
-    private currentCoins: number = 0;  // 当前金币数量
-    private completedLevels: Set<number> = new Set();  // 已通关的关卡集合
+    private currentCoins: number = 0;  // 当前金币数量（根据最大已通关关卡数计算）
+    private maxCompletedLevel: number = 0;  // 最大已通关关卡数（如果为5，表示1-5关都已通关）
 
     protected onLoad() {
         this.audioManager = AudioManager.getInstance();
@@ -44,10 +43,10 @@ export class PuzzleSuccessUI extends Component {
         } else {
             this.setupBackgroundMask(this.backgroundMask);
         }
-        // 加载金币数量
-        this.loadCoins();
-        // 加载已通关关卡
-        this.loadCompletedLevels();
+        // 加载最大已通关关卡数
+        this.loadMaxCompletedLevel();
+        // 根据最大已通关关卡数计算金币
+        this.calculateAndUpdateCoins();
     }
     
     protected start() {
@@ -62,9 +61,9 @@ export class PuzzleSuccessUI extends Component {
      * 显示成功弹窗
      * @param image 完成的拼图图片
      * @param duration 动画时长（秒），默认 0.3
-     * @param level 完成的关卡编号（可选，用于计算金币）
+     * @param level 完成的关卡编号（用于更新最大已通关关卡数和计算金币）
      * @param shouldAddCoins 是否应该加金币，默认 true（重新玩同一关时为 false）
-     * @param coinsToAdd 应该加的金币数量（如果为 -1，则计算累计金币）
+     * @param coinsToAdd 已废弃，保留用于兼容性
      */
     public show(image: SpriteFrame, duration: number = 0.3, level: number = 1, shouldAddCoins: boolean = true, coinsToAdd: number = -1): void {
         if (this.isShowing) {
@@ -79,21 +78,14 @@ export class PuzzleSuccessUI extends Component {
         this.isShowing = true;
         AudioManager.getInstance().playtrueSound();
         
-        // 计算应该加的金币数量
-        let coinsToAddFinal = 0;
+        // 处理通关逻辑
         if (shouldAddCoins) {
-            if (coinsToAdd === -1) {
-                // 计算累计金币（从第1关到当前关的所有未通关关卡的金币）
-                coinsToAddFinal = this.calculateCoinsForLevel(level);
-            } else {
-                coinsToAddFinal = coinsToAdd;
-            }
-            
-            // 只有当前关卡未通关过，才加金币
-            if (!this.completedLevels.has(level) && coinsToAddFinal > 0) {
-                this.addCoins(coinsToAddFinal);
-                // 标记关卡已通关
-                this.markLevelCompleted(level);
+            // 如果当前关卡大于最大已通关关卡，更新最大已通关关卡
+            if (level > this.maxCompletedLevel) {
+                this.maxCompletedLevel = level;
+                this.saveMaxCompletedLevel();
+                // 重新计算金币总数（最大已通关关卡数 × 10）
+                this.calculateAndUpdateCoins();
             }
         }
         
@@ -164,42 +156,13 @@ export class PuzzleSuccessUI extends Component {
     }
 
     /**
-     * 加载金币数量
+     * 根据最大已通关关卡数计算并更新金币数量
+     * 金币总数 = 最大已通关关卡数 × 10
      */
-    private loadCoins(): void {
-        const saved = sys.localStorage.getItem(this.COIN_STORAGE_KEY);
-        if (saved) {
-            try {
-                this.currentCoins = parseInt(saved, 10) || 0;
-            } catch (e) {
-                console.error('[PuzzleSuccessUI] 加载金币数量失败:', e);
-                this.currentCoins = 0;
-            }
-        } else {
-            this.currentCoins = 0;
-        }
+    private calculateAndUpdateCoins(): void {
+        this.currentCoins = this.maxCompletedLevel * this.COIN_PER_LEVEL;
         // 更新显示
         this.updateCoinDisplay();
-    }
-
-    /**
-     * 保存金币数量
-     */
-    private saveCoins(): void {
-        try {
-            sys.localStorage.setItem(this.COIN_STORAGE_KEY, this.currentCoins.toString());
-        } catch (e) {
-            console.error('[PuzzleSuccessUI] 保存金币数量失败:', e);
-        }
-    }
-
-    /**
-     * 添加金币
-     * @param amount 金币数量
-     */
-    private addCoins(amount: number): void {
-        this.currentCoins += amount;
-        this.saveCoins();
     }
 
     /**
@@ -257,76 +220,52 @@ export class PuzzleSuccessUI extends Component {
 
     /**
      * 设置金币数量（用于测试或特殊场景）
+     * 注意：此方法会根据金币数量反推最大已通关关卡数
      * @param amount 金币数量
      */
     public setCoins(amount: number): void {
-        this.currentCoins = Math.max(0, amount);
-        this.saveCoins();
-        this.updateCoinDisplay();
+        const targetLevels = Math.floor(Math.max(0, amount) / this.COIN_PER_LEVEL);
+        this.maxCompletedLevel = targetLevels;
+        this.saveMaxCompletedLevel();
+        // 重新计算金币
+        this.calculateAndUpdateCoins();
     }
 
     /**
-     * 加载已通关关卡
+     * 加载最大已通关关卡数
      */
-    private loadCompletedLevels(): void {
-        const saved = sys.localStorage.getItem(this.COMPLETED_LEVELS_KEY);
+    private loadMaxCompletedLevel(): void {
+        const saved = sys.localStorage.getItem(this.MAX_COMPLETED_LEVEL_KEY);
         if (saved) {
             try {
-                const levels = JSON.parse(saved) as number[];
-                this.completedLevels = new Set(levels);
+                this.maxCompletedLevel = parseInt(saved, 10) || 0;
             } catch (e) {
-                console.error('[PuzzleSuccessUI] 加载已通关关卡失败:', e);
-                this.completedLevels = new Set();
+                console.error('[PuzzleSuccessUI] 加载最大已通关关卡数失败:', e);
+                this.maxCompletedLevel = 0;
             }
         } else {
-            this.completedLevels = new Set();
+            this.maxCompletedLevel = 0;
         }
     }
 
     /**
-     * 保存已通关关卡
+     * 保存最大已通关关卡数
      */
-    private saveCompletedLevels(): void {
+    private saveMaxCompletedLevel(): void {
         try {
-            const levels = Array.from(this.completedLevels);
-            sys.localStorage.setItem(this.COMPLETED_LEVELS_KEY, JSON.stringify(levels));
+            sys.localStorage.setItem(this.MAX_COMPLETED_LEVEL_KEY, this.maxCompletedLevel.toString());
         } catch (e) {
-            console.error('[PuzzleSuccessUI] 保存已通关关卡失败:', e);
+            console.error('[PuzzleSuccessUI] 保存最大已通关关卡数失败:', e);
         }
-    }
-
-    /**
-     * 标记关卡已通关
-     * @param level 关卡编号
-     */
-    private markLevelCompleted(level: number): void {
-        this.completedLevels.add(level);
-        this.saveCompletedLevels();
     }
 
     /**
      * 检查关卡是否已通关
      * @param level 关卡编号
-     * @returns 是否已通关
+     * @returns 是否已通关（如果关卡编号 <= 最大已通关关卡数，则已通关）
      */
     public isLevelCompleted(level: number): boolean {
-        return this.completedLevels.has(level);
-    }
-
-    /**
-     * 计算应该加的金币数量（累计从第1关到当前关的所有未通关关卡的金币）
-     * @param level 当前关卡编号
-     * @returns 应该加的金币数量
-     */
-    private calculateCoinsForLevel(level: number): number {
-        let totalCoins = 0;
-        // 从第1关到当前关，计算所有未通关关卡的金币
-        for (let i = 1; i <= level; i++) {
-            if (!this.completedLevels.has(i)) {
-                totalCoins += this.COIN_PER_LEVEL;
-            }
-        }
-        return totalCoins;
+        return level <= this.maxCompletedLevel;
     }
 
     protected onDestroy() {
