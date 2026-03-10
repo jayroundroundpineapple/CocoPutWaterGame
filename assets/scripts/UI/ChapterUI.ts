@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, Button, sys, tween, Vec3, Prefab, instantiate } from 'cc';
 import { ChapterItem } from './ChapterItem';
+import { sdkManager } from '../sdk/SDKManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -25,6 +26,8 @@ export class ChapterUI extends Component {
 
     @property(Prefab)
     private chapterItemPrefab: Prefab = null; 
+    @property(Node)
+    private initSdkButton: Node = null;
     
     @property(SpriteFrame)
     private chapter1Image: SpriteFrame = null;  // 第一章背景图
@@ -59,6 +62,16 @@ export class ChapterUI extends Component {
         this.initChapters();
         this.loadChapterUnlockStates();
         this.createChapterUI();
+        this.initSdkButton.on(Node.EventType.TOUCH_END, this.onInitSdkButtonClick, this);
+    }
+    onInitSdkButtonClick(){
+        sdkManager.CPAllInitSdk((success: boolean, msg: string) => {
+            if (success) {
+                console.log('SDK 初始化成功',msg);
+            } else {
+                console.log('SDK 初始化失败',msg);
+            }
+        });
     }
 
     /**
