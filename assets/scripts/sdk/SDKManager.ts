@@ -147,6 +147,7 @@ export class SDKManager extends Component {
      * 全量初始化 SDK
      */
     public CPAllInitSdk(callback: mixCompletionCallback) {
+        console.log('Java_CPAllInitSdk');
         this._mixCallback = callback;
         this.callAndroidStaticMethod(
             "com.sttn.bxvi.AAAC_TGSDKUnityHelper",
@@ -319,7 +320,7 @@ export class SDKManager extends Component {
         );
     }
 
-    // 以下为占位接口（和 Unity 保持一致）
+    // 以下为占位接口
     public ShowProductPage(appleId: string, callback?: (success: boolean, msg: string) => void) {
         callback?.(true, "success");
     }

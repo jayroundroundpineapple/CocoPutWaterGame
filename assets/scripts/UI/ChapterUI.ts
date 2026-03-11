@@ -1,6 +1,6 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, Button, sys, tween, Vec3, Prefab, instantiate } from 'cc';
 import { ChapterItem } from './ChapterItem';
-import { sdkManager } from '../sdk/SDKManager';
+import { SDKManager } from '../sdk/SDKManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -65,7 +65,7 @@ export class ChapterUI extends Component {
         this.initSdkButton.on(Node.EventType.TOUCH_END, this.onInitSdkButtonClick, this);
     }
     onInitSdkButtonClick(){
-        sdkManager.CPAllInitSdk((success: boolean, msg: string) => {
+        SDKManager.instance.CPAllInitSdk((success: boolean, msg: string) => {
             if (success) {
                 console.log('SDK 初始化成功',msg);
             } else {
