@@ -20,15 +20,15 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * AAAC_TGSDKUnityHelper - 适配 Cocos Creator 使用的原生帮助类
+ * AAAC_TGSDocosHelper - 适配 Cocos Creator 使用的原生帮助类
  * 由用户提供的 Unity 版本代码简化改造而来：
  * - 内部使用 CP_CPSDK
  * - 对外暴露静态方法，提供给 Cocos 的 jsb.reflection 调用
  * - 通过 Cocos2dxJavascriptJavaBridge 把结果回调到 TS（window.xxx）
  */
-public class AAAC_TGSDKUnityHelper {
+public class AAAC_TGSDocosHelper {
     private static final String TAG = "TGSDK_Cocos";
-    private static AAAC_TGSDKUnityHelper instance;
+    private static AAAC_TGSDocosHelper instance;
     private Activity mActivity;
     private Application mApplication;
 
@@ -38,9 +38,9 @@ public class AAAC_TGSDKUnityHelper {
     private boolean resultSent = false;    // 混合回调发送标志
 
     // 单例初始化（适配 Cocos Activity）
-    public static synchronized AAAC_TGSDKUnityHelper getInstance() {
+    public static synchronized AAAC_TGSDocosHelper getInstance() {
         if (instance == null) {
-            instance = new AAAC_TGSDKUnityHelper();
+            instance = new AAAC_TGSDocosHelper();
         }
         return instance;
     }
