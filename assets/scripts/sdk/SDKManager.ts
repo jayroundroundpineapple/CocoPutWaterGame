@@ -1,7 +1,7 @@
 import { native, _decorator, Component, Node, sys, log, error, warn, director, Scene } from 'cc';
 const { ccclass, property } = _decorator;
 
-// 广告类型枚举（和 Unity 保持一致）
+// 广告类型枚举
 export enum CPAdType {
     AD_TYPE_OPEN = 10,          // 开屏广告
     AD_TYPE_NATIVE = 11,        // 原生广告（禁用）
@@ -10,7 +10,7 @@ export enum CPAdType {
     AD_TYPE_REWARD = 14         // 激励广告
 }
 
-// 广告事件枚举（和 Unity 保持一致）
+// 广告事件枚举
 export enum CPAdEvent {
     Loaded = 1,              // 广告加载完成
     Displayed = 2,           // 广告展示完成
@@ -47,24 +47,41 @@ export class SDKManager extends Component {
 
     // 单例获取
     public static get instance(): SDKManager {
-        if (!this._instance) {
-            const node = new Node('SDKManager');
-            this._instance = node.addComponent(SDKManager);
-            
-            // 获取当前场景并挂载节点
-            const currentScene = director.getScene();
-            if (currentScene) {
-                node.parent = currentScene;
-                // 设置为常驻节点
-                director.addPersistRootNode(node);
-                log('[SDKManager] SDKManager 已挂载到场景并设置为常驻节点');
-            } else {
-                warn('[SDKManager] 当前没有场景，节点未挂载');
-            }
-            
-            // 注册全局回调（供安卓调用）
-            this._instance.registerGlobalCallbacks();
+        // 1. 先检查是否已有实例
+        if (this._instance) {
+            return this._instance;
         }
+
+        // 2. 全局搜索场景中是否已存在 SDKManager 节点（防止重复创建）
+        const existingNode = director.getScene()?.getChildByName('SDKManager');
+        if (existingNode) {
+            this._instance = existingNode.getComponent(SDKManager);
+            if (this._instance) {
+                log('[SDKManager] 发现已存在的 SDKManager 实例，复用');
+                return this._instance;
+            } else {
+                warn('[SDKManager] 发现 SDKManager 节点但未挂载组件，将重新创建');
+                existingNode.destroy();
+            }
+        }
+
+        // 3. 无实例时才创建新节点和组件
+        const node = new Node('SDKManager');
+        this._instance = node.addComponent(SDKManager);
+        
+        // 获取当前场景并挂载节点
+        const currentScene = director.getScene();
+        if (currentScene) {
+            node.parent = currentScene;
+            // 设置为常驻节点
+            director.addPersistRootNode(node);
+            log('[SDKManager] SDKManager 已挂载到场景并设置为常驻节点');
+        } else {
+            warn('[SDKManager] 当前没有场景，节点未挂载');
+        }
+        
+        // 注册全局回调（安卓 -> TS），确保只注册一次
+        this._instance.registerGlobalCallbacks();
         return this._instance;
     }
 
@@ -330,5 +347,5 @@ export class SDKManager extends Component {
     }
 }
 
-// 全局导出单例
-export const sdkManager = SDKManager.instance;
+// // 全局导出单例
+// export const SDkManager = SDKManager.instance;
