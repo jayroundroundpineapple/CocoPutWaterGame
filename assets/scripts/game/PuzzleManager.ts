@@ -6,12 +6,14 @@ const { ccclass, property } = _decorator;
 /**
  * 关卡配置接口
  */
-interface LevelConfig {
+export interface LevelConfig {
     level: number;
     rows: number;
     cols: number;
     imagePath: string;
     isHardTip?: boolean;  // 是否为困难模式
+    haveReward?: boolean;  // 是否有激励广告
+    haveInter?: boolean;   // 是否有插屏广告
 }
 
 /**
@@ -114,7 +116,7 @@ export class PuzzleManager extends Component {
      * @param movePlan 移动计划 Map<PuzzlePiece, number>
      * @param duration 动画时长
      * @param updateBorders 是否更新边框，默认 true
-     * @param checkComplete 是否检查完成，默认 true
+     * @param checkComplete 是否检查完成，默认 true 
      */
     private safeMovePiecesWithBorderUpdate(
         movePlan: Map<PuzzlePiece, number>,
@@ -262,6 +264,21 @@ export class PuzzleManager extends Component {
             console.warn(`[PuzzleManager] 找不到关卡 ${this.currentLevel} 的配置，使用第一关配置`);
             return this.levelConfigs[0];
         }
+        return config || null;
+    }
+
+    /**
+     * 获取指定关卡的配置（公共方法）
+     * @param level 关卡编号
+     * @returns 关卡配置，如果不存在则返回 null
+     */
+    public getLevelConfig(level: number): LevelConfig | null {
+        if (this.levelConfigs.length === 0) {
+            console.warn('[PuzzleManager] 关卡配置为空，无法获取关卡配置');
+            return null;
+        }
+        
+        const config = this.levelConfigs.find(c => c.level === level);
         return config || null;
     }
 
@@ -2148,7 +2165,7 @@ export class PuzzleManager extends Component {
                         bottomState.hideTop = true;
                         topState.hideBottom = true;
                     } else {
-                        console.error(`[PuzzleManager] 边框状态未找到: piece=${piece?.correctIndex}, topPiece=${topPiece?.correctIndex}, state1=${!!state1}, state2=${!!state2}`);
+                        console.error(`[PuzzleManager] 边框状态未找到: piece=${piece?.correctIndex}, topPiece=${topPiece?.correctIndex}, bottomState=${!!bottomState}, topState=${!!topState}`);
                     }
                 }
             }

@@ -487,6 +487,10 @@ export class GameUI extends Component {
             this.puzzleSuccessUI.onNextLevel = () => {
                 this.onNextLevelClick();
             };
+            // 设置 PuzzleManager
+            if (this.puzzleManager) {
+                this.puzzleSuccessUI.setPuzzleManager(this.puzzleManager);
+            }
         }
     }
 

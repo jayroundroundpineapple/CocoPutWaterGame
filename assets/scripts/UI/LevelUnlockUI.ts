@@ -532,18 +532,14 @@ export class LevelUnlockUI extends Component {
             if (nextCardNode && nextCardNode.isValid) {
                 const nextCardItem = nextCardNode.getComponent(CardItem);
                 if (nextCardItem) {
-                    // 下一关现在可以玩了
                     nextCardItem.setCanPlay(true);
-                    console.log(`[LevelUnlockUI] 关卡 ${level + 1} 现在可以玩了`);
                 }
             }
         }
         // 检查章节是否全部完成
         this.checkChapterComplete();
-        
         // 更新关卡标签显示
         this.updateLevelLabel();
-        
         console.log(`[LevelUnlockUI] 关卡 ${level} 已解锁`);
     }
     

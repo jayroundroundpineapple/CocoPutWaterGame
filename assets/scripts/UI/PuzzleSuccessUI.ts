@@ -1,6 +1,8 @@
-import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, EventTouch, view, Color, Label, tween, Vec3, sys } from 'cc';
+import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, EventTouch, view, Color, Label, tween, Vec3, sys, Button } from 'cc';
 import { Utils } from '../utils/Utils';
 import { AudioManager } from '../utils/AudioManager';
+import { SDKManager, CPAdType, CPAdEvent } from '../sdk/SDKManager';
+import { PuzzleManager, LevelConfig } from '../game/PuzzleManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -9,6 +11,12 @@ const { ccclass, property } = _decorator;
  */
 @ccclass('PuzzleSuccessUI')
 export class PuzzleSuccessUI extends Component {
+    @property(Node)
+    private adBox:Node = null;
+    @property(Node)
+    private adBtn:Node = null;
+    @property(Node)
+    private normalBtn:Node = null;
     @property(Node)
     private nextLevelBtn: Node = null;  
     @property(Node)
@@ -21,23 +29,31 @@ export class PuzzleSuccessUI extends Component {
     @property(Sprite)
     private successImage: Sprite = null;  // 显示完成的拼图图片
     
-    private isShowing: boolean = false;
-    private audioManager: AudioManager = null;
+    private puzzleManager: PuzzleManager = null;  // 拼图管理器引用
     
+    private isShowing: boolean = false;
     // 下一关回调
     public onNextLevel: () => void = null;
-    
-    // 当前显示的图片
-    private currentImage: SpriteFrame = null;
-    
     // 金币相关
     private readonly MAX_COMPLETED_LEVEL_KEY = 'puzzle_max_completed_level';  // 最大已通关关卡存储键
     private readonly COIN_PER_LEVEL = 10;  // 每关获得的金币数量
+    private readonly COIN_PER_LEVEL_DOUBLE = 20;  // 双倍金币数量（观看广告后）
     private currentCoins: number = 0;  // 当前金币数量（根据最大已通关关卡数计算）
     private maxCompletedLevel: number = 0;  // 最大已通关关卡数（如果为5，表示1-5关都已通关）
+    
+    // 广告相关
+    private currentLevel: number = 1;  // 当前关卡编号
+    private currentLevelConfig: LevelConfig | null = null;  // 当前关卡配置
+    private isWaitingForAdReward: boolean = false;  // 是否正在等待广告奖励
+
+    /**
+     * 设置 PuzzleManager 引用
+     */
+    public setPuzzleManager(puzzleManager: PuzzleManager): void {
+        this.puzzleManager = puzzleManager;
+    }
 
     protected onLoad() {
-        this.audioManager = AudioManager.getInstance();
         if (!this.backgroundMask) {
             this.createBackgroundMask();
         } else {
@@ -47,13 +63,19 @@ export class PuzzleSuccessUI extends Component {
         this.loadMaxCompletedLevel();
         // 根据最大已通关关卡数计算金币
         this.calculateAndUpdateCoins();
+        // 初始化广告相关UI
+        this.initAdUI();
     }
     
     protected start() {
         if (this.nextLevelBtn) {
             this.nextLevelBtn.on(Node.EventType.TOUCH_END, this.onNextLevelBtnClick, this);
-        } else {
-            console.warn('[PuzzleSuccessUI] 未设置下一关按钮');
+        } 
+        if (this.adBtn) {
+            this.adBtn.on(Node.EventType.TOUCH_END, this.onAdBtnClick, this);
+        }
+        if (this.normalBtn) {
+            this.normalBtn.on(Node.EventType.TOUCH_END, this.onNormalBtnClick, this);
         }
     }
     
@@ -70,29 +92,55 @@ export class PuzzleSuccessUI extends Component {
             console.warn('[PuzzleSuccessUI] 成功弹窗已经显示');
             return;
         }
+        // 设置当前关卡
+        this.currentLevel = level;
+        // 从 PuzzleManager 获取当前关卡配置
+        if (this.puzzleManager) {
+            this.currentLevelConfig = this.puzzleManager.getLevelConfig(level);
+            console.log(`[PuzzleSuccessUI] 关卡 ${level}，配置:`, this.currentLevelConfig);
+        } else {
+            console.warn('[PuzzleSuccessUI] PuzzleManager 未设置，无法获取关卡配置');
+            this.currentLevelConfig = null;
+        }
+        
         // 设置图片
         if (image && this.successImage) {
-            this.currentImage = image;
             this.successImage.spriteFrame = image;
         }
         this.isShowing = true;
         AudioManager.getInstance().playtrueSound();
         
-        // 处理通关逻辑
-        if (shouldAddCoins) {
-            // 如果当前关卡大于最大已通关关卡，更新最大已通关关卡
-            if (level > this.maxCompletedLevel) {
-                this.maxCompletedLevel = level;
-                this.saveMaxCompletedLevel();
-                // 重新计算金币总数（最大已通关关卡数 × 10）
-                this.calculateAndUpdateCoins();
+        // 重置广告相关状态
+        this.isWaitingForAdReward = false;
+        
+        const hasReward = this.currentLevelConfig?.haveReward === true;
+        console.log(`[PuzzleSuccessUI] 关卡 ${level}，haveReward: ${hasReward}`);
+        
+        // 使用 scheduleOnce 确保在 onLoad 执行后再设置
+        if (hasReward && shouldAddCoins) {
+            this.scheduleOnce(() => {
+                this.showAdBox();
+            }, 0);
+        } else {
+            // 没有激励广告，直接处理通关逻辑
+            if (shouldAddCoins) {
+                // 如果当前关卡大于最大已通关关卡，更新最大已通关关卡
+                if (level > this.maxCompletedLevel) {
+                    this.maxCompletedLevel = level;
+                    this.saveMaxCompletedLevel();
+                    // 重新计算金币总数（最大已通关关卡数 × 10）
+                    this.calculateAndUpdateCoins();
+                }
             }
+            this.scheduleOnce(() => {
+                this.hideAdBox();
+            }, 0);
         }
         
         Utils.showPopup(this.node, duration, 'backOut', () => {
-            console.log('[PuzzleSuccessUI] 成功弹窗显示完成');
-            // 弹窗显示完成后，播放金币动画
-            this.playCoinAnimation();
+            if (!hasReward) {
+                this.playCoinAnimation();
+            }
         });
     }
 
@@ -181,14 +229,7 @@ export class PuzzleSuccessUI extends Component {
         if (!this.coinIcon || !this.coinLabel) {
             return;
         }
-
-        // 先更新金币数值
         this.updateCoinDisplay();
-
-        // 保存原始缩放值
-        const originalScale = new Vec3(1, 1, 1);
-        
-        // 金币图标和标签同时播放缩放动画
         const scaleSequence = [
             { scale: new Vec3(1.1, 1.1, 1), duration: 0.3 },  // 放大
             { scale: new Vec3(0.9, 0.9, 1), duration: 0.2 },  // 缩小
@@ -196,14 +237,12 @@ export class PuzzleSuccessUI extends Component {
             { scale: new Vec3(1, 1, 1), duration: 0.2 }        // 恢复
         ];
 
-        // 金币图标动画
         let iconTween = tween(this.coinIcon);
         scaleSequence.forEach((step, index) => {
             iconTween = iconTween.to(step.duration, { scale: step.scale });
         });
         iconTween.start();
 
-        // 金币标签动画
         let labelTween = tween(this.coinLabel.node);
         scaleSequence.forEach((step, index) => {
             labelTween = labelTween.to(step.duration, { scale: step.scale });
@@ -268,10 +307,118 @@ export class PuzzleSuccessUI extends Component {
         return level <= this.maxCompletedLevel;
     }
 
+    /**
+     * 初始化广告相关UI
+     */
+    private initAdUI(): void {
+        if (this.adBox && !this.isShowing) {
+            this.adBox.active = false;
+        }
+    }
+
+    /**
+     * 显示广告选择框
+     */
+    private showAdBox(): void {
+        if (this.adBox) {
+            this.adBox.active = true;
+        }
+    }
+
+    /**
+     * 隐藏广告选择框
+     */
+    private hideAdBox(): void {
+        if (this.adBox) {
+            this.adBox.active = false;
+        }
+    }
+
+    /**
+     * 广告按钮点击事件（播放激励广告）
+     */
+    private onAdBtnClick(): void {
+        AudioManager.getInstance().playClickSound();
+        Utils.setScale(this.adBtn, 0.95, 0.1, () => {
+            if (!SDKManager.instance.IsAdReady(CPAdType.AD_TYPE_REWARD)) {
+                console.warn('[PuzzleSuccessUI] 激励广告未就绪，使用普通奖励');
+                this.addCoinsAndCloseAdBox(this.COIN_PER_LEVEL);
+                return;
+            }
+            // 设置广告事件回调
+            this.isWaitingForAdReward = true;
+            SDKManager.instance.CPLoadAD(CPAdType.AD_TYPE_REWARD, (adType: CPAdType, event: CPAdEvent, msg: string) => {
+                if (adType === CPAdType.AD_TYPE_REWARD) {
+                    if (event === CPAdEvent.Rewarded) {
+                        // 广告播放完成并获得奖励，给予双倍金币
+                        console.log('[PuzzleSuccessUI] 激励广告播放完成，获得双倍金币');
+                        this.addCoinsAndCloseAdBox(this.COIN_PER_LEVEL_DOUBLE);
+                        this.isWaitingForAdReward = false;
+                    } else if (event === CPAdEvent.DisplayFailed || event === CPAdEvent.LoadFailed) {
+                        // 广告播放失败，给予普通金币
+                        console.warn('[PuzzleSuccessUI] 激励广告播放失败，使用普通奖励');
+                        this.addCoinsAndCloseAdBox(this.COIN_PER_LEVEL);
+                        this.isWaitingForAdReward = false;
+                    } else if (event === CPAdEvent.Hidden) {
+                        // 广告关闭但未获得奖励，给予普通金币
+                        if (this.isWaitingForAdReward) {
+                            console.warn('[PuzzleSuccessUI] 激励广告关闭但未获得奖励，使用普通奖励');
+                            this.addCoinsAndCloseAdBox(this.COIN_PER_LEVEL);
+                            this.isWaitingForAdReward = false;
+                        }
+                    }
+                }
+            });
+            SDKManager.instance.CPShowAd(CPAdType.AD_TYPE_REWARD, 'puzzle_success');
+        });
+    }
+
+    /**
+     * 普通按钮点击事件（不加倍，直接给普通金币）
+     */
+    private onNormalBtnClick(): void {
+        AudioManager.getInstance().playClickSound();
+        if (!this.normalBtn) return;
+        
+        Utils.setScale(this.normalBtn, 0.95, 0.1, () => {
+            this.addCoinsAndCloseAdBox(this.COIN_PER_LEVEL);
+        });
+    }
+
+    /**
+     * 添加金币并关闭广告选择框
+     * @param coinsToAdd 要添加的金币数量（10 或 20）
+     */
+    private addCoinsAndCloseAdBox(coinsToAdd: number): void {
+        // 关闭广告选择框
+        this.hideAdBox();
+        
+        // 更新最大已通关关卡数（如果当前关卡是新通关的）
+        const wasNewLevel = this.currentLevel > this.maxCompletedLevel;
+        if (wasNewLevel) {
+            this.maxCompletedLevel = this.currentLevel;
+            this.saveMaxCompletedLevel();
+        }
+        const baseCoins = this.maxCompletedLevel * this.COIN_PER_LEVEL;
+        if (coinsToAdd === this.COIN_PER_LEVEL_DOUBLE && wasNewLevel) {
+            this.currentCoins = baseCoins + 10;
+        } else {
+            this.currentCoins = baseCoins;
+        }
+        this.updateCoinDisplay();
+        this.playCoinAnimation();
+    }
+
+
     protected onDestroy() {
-        // 清理事件监听
         if (this.nextLevelBtn) {
             this.nextLevelBtn.off(Node.EventType.TOUCH_END, this.onNextLevelBtnClick, this);
+        }
+        if (this.adBtn) {
+            this.adBtn.off(Node.EventType.TOUCH_END, this.onAdBtnClick, this);
+        }
+        if (this.normalBtn) {
+            this.normalBtn.off(Node.EventType.TOUCH_END, this.onNormalBtnClick, this);
         }
         if (this.backgroundMask) {
             this.backgroundMask.off(Node.EventType.TOUCH_START, this.setupBackgroundMask, this);

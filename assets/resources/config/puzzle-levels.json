@@ -6,7 +6,7 @@
             "cols": 3,
             "imagePath": "images/pintu/pic1/spriteFrame",
             "isHardTip": false,
-            "haveReward": false,
+            "haveReward": true,
             "haveInter": false
         },
         {

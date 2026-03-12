@@ -167,7 +167,7 @@ export class SDKManager extends Component {
         console.log('Java_CPAllInitSdk');
         this._mixCallback = callback;
         this.callAndroidStaticMethod(
-            "com.sttn.bxvi.AAAC_TGSDKUnityHelper",
+            "com.sttn.bxvi.AAAC_TGSDocosHelper",
             "Anncf_initSdkWithCombinedCallback",
             "()V"
         );
@@ -180,7 +180,7 @@ export class SDKManager extends Component {
         this._initCallback = initCallback;
         this._attributeCallback = attrCallback;
         this.callAndroidStaticMethod(
-            "com.sttn.bxvi.AAAC_TGSDKUnityHelper",
+            "com.sttn.bxvi.AAAC_TGSDocosHelper",
             "Anncf_initSdk",
             "()V"
         );
@@ -193,13 +193,13 @@ export class SDKManager extends Component {
         this._adEventCallback = eventListener;
         switch (adtype) {
             case CPAdType.AD_TYPE_OPEN:
-                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDKUnityHelper", "Anncf_loadOpenAd", "()V");
+                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_loadOpenAd", "()V");
                 break;
             case CPAdType.AD_TYPE_INTERSTITIAL:
-                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDKUnityHelper", "Anncf_loadInterstitialAd", "()V");
+                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_loadInterstitialAd", "()V");
                 break;
             case CPAdType.AD_TYPE_REWARD:
-                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDKUnityHelper", "Anncf_loadRewardAd", "()V");
+                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_loadRewardAd", "()V");
                 break;
             default:
                 warn(`未知广告类型: ${adtype}`);
@@ -214,7 +214,7 @@ export class SDKManager extends Component {
         switch (adtype) {
             case CPAdType.AD_TYPE_OPEN:
                 this.callAndroidStaticMethod(
-                    "com.sttn.bxvi.AAAC_TGSDKUnityHelper",
+                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
                     "Anncf_showOpenAd",
                     "(Ljava/lang/String;)V",
                     [placement]
@@ -222,7 +222,7 @@ export class SDKManager extends Component {
                 break;
             case CPAdType.AD_TYPE_INTERSTITIAL:
                 this.callAndroidStaticMethod(
-                    "com.sttn.bxvi.AAAC_TGSDKUnityHelper",
+                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
                     "Anncf_showInterstitialAd",
                     "(Ljava/lang/String;)V",
                     [placement]
@@ -230,7 +230,7 @@ export class SDKManager extends Component {
                 break;
             case CPAdType.AD_TYPE_REWARD:
                 this.callAndroidStaticMethod(
-                    "com.sttn.bxvi.AAAC_TGSDKUnityHelper",
+                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
                     "Anncf_showRewardAd",
                     "(Ljava/lang/String;)V",
                     [placement]
@@ -250,21 +250,21 @@ export class SDKManager extends Component {
         switch (adtype) {
             case CPAdType.AD_TYPE_OPEN:
                 result = this.callAndroidStaticMethod(
-                    "com.sttn.bxvi.AAAC_TGSDKUnityHelper",
+                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
                     "Anncf_isOpenAdReady",
                     "()I"
                 ) || 0;
                 break;
             case CPAdType.AD_TYPE_INTERSTITIAL:
                 result = this.callAndroidStaticMethod(
-                    "com.sttn.bxvi.AAAC_TGSDKUnityHelper",
+                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
                     "Anncf_isInterstitialAdReady",
                     "()I"
                 ) || 0;
                 break;
             case CPAdType.AD_TYPE_REWARD:
                 result = this.callAndroidStaticMethod(
-                    "com.sttn.bxvi.AAAC_TGSDKUnityHelper",
+                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
                     "Anncf_isRewardAdReady",
                     "()I"
                 ) || 0;
@@ -282,13 +282,13 @@ export class SDKManager extends Component {
     public cancelAdShow(adtype: CPAdType) {
         switch (adtype) {
             case CPAdType.AD_TYPE_OPEN:
-                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDKUnityHelper", "Anncf_cancelOpenAdShow", "()V");
+                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_cancelOpenAdShow", "()V");
                 break;
             case CPAdType.AD_TYPE_INTERSTITIAL:
-                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDKUnityHelper", "Anncf_cancelInterstitialAdShow", "()V");
+                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_cancelInterstitialAdShow", "()V");
                 break;
             case CPAdType.AD_TYPE_REWARD:
-                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDKUnityHelper", "Anncf_cancelRewardAdShow", "()V");
+                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_cancelRewardAdShow", "()V");
                 break;
             default:
                 warn(`未知广告类型: ${adtype}`);
@@ -303,7 +303,7 @@ export class SDKManager extends Component {
         try {
             const jsonData = JSON.stringify(properties);
             this.callAndroidStaticMethod(
-                "com.sttn.bxvi.AAAC_TGSDKUnityHelper",
+                "com.sttn.bxvi.AAAC_TGSDocosHelper",
                 "Anncf_trackReport",
                 "(Ljava/lang/String;Ljava/lang/String;)V",
                 [eventName, jsonData]
@@ -318,7 +318,7 @@ export class SDKManager extends Component {
      */
     public Swp(title: string) {
         this.callAndroidStaticMethod(
-            "com.sttn.bxvi.AAAC_TGSDKUnityHelper",
+            "com.sttn.bxvi.AAAC_TGSDocosHelper",
             "Anncf_HSwp",
             "(Ljava/lang/String;)V",
             [title]
@@ -331,7 +331,7 @@ export class SDKManager extends Component {
     public GetEibit(callback: EibitCallback) {
         this._eibitCallback = callback;
         this.callAndroidStaticMethod(
-            "com.sttn.bxvi.AAAC_TGSDKUnityHelper",
+            "com.sttn.bxvi.AAAC_TGSDocosHelper",
             "Anncf_cpGetEibit",
             "()V"
         );
