@@ -65,15 +65,12 @@ export class SDKManager extends Component {
             }
         }
 
-        // 3. 无实例时才创建新节点和组件
         const node = new Node('SDKManager');
         this._instance = node.addComponent(SDKManager);
         
-        // 获取当前场景并挂载节点
         const currentScene = director.getScene();
         if (currentScene) {
             node.parent = currentScene;
-            // 设置为常驻节点
             director.addPersistRootNode(node);
             log('[SDKManager] SDKManager 已挂载到场景并设置为常驻节点');
         } else {
@@ -132,7 +129,7 @@ export class SDKManager extends Component {
         };
     }
 
-    // ===================== 通用 JNI 调用方法 =====================
+    // ===================== 通用平台调用方法 =====================
     /**
      * 调用安卓静态方法
      * @param className 类名（完整包名）
@@ -148,7 +145,6 @@ export class SDKManager extends Component {
         args: any[] = []
     ): any {
         if (sys.platform !== sys.Platform.ANDROID) {
-            warn("非安卓平台，跳过原生方法调用");
             return null;
         }
         try {
@@ -159,18 +155,61 @@ export class SDKManager extends Component {
         }
     }
 
+    /**
+     * 调用 iOS 静态方法（预留接口）
+     * @param className 类名
+     * @param methodName 方法名
+     * @param signature 方法签名（iOS 可能需要不同的签名格式）
+     * @param args 方法参数
+     * @returns 方法返回值
+     */
+    private callIOSStaticMethod(
+        className: string,
+        methodName: string,
+        signature: string,
+        args: any[] = []
+    ): any {
+        if (sys.platform !== sys.Platform.IOS) {
+            return null;
+        }
+        try {
+            // iOS 预留接口
+            return native.reflection.callStaticMethod(className, methodName, signature, args);
+        } catch (e) {
+            error(`调用 iOS 方法失败: ${className}.${methodName}, 错误: ${(e as Error).message}`);
+            return null;
+        }
+    }
+
     // ===================== SDK 核心接口 =====================
     /**
      * 全量初始化 SDK
      */
     public CPAllInitSdk(callback: mixCompletionCallback) {
-        console.log('Java_CPAllInitSdk');
         this._mixCallback = callback;
-        this.callAndroidStaticMethod(
-            "com.sttn.bxvi.AAAC_TGSDocosHelper",
-            "Anncf_initSdkWithCombinedCallback",
-            "()V"
-        );
+        
+        if (sys.platform === sys.Platform.ANDROID) {
+            // Android 平台
+            this.callAndroidStaticMethod(
+                "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                "Anncf_initSdkWithCombinedCallback",
+                "()V"
+            );
+        } else if (sys.platform === sys.Platform.IOS) {
+            // iOS 平台（预留接口）
+            // TODO: 实现 iOS 初始化逻辑
+            warn("[SDKManager] iOS 平台初始化暂未实现");
+            // 模拟初始化失败
+            this.scheduleOnce(() => {
+                callback?.(false, "iOS platform not implemented");
+            }, 0.1);
+        } else {
+            // 其他平台（编辑器、Web等）
+            warn("[SDKManager] 非原生平台，跳过 SDK 初始化");
+            this.scheduleOnce(() => {
+                callback?.(false, "Not native platform");
+            }, 0.1);
+        }
     }
 
     /**
@@ -179,11 +218,27 @@ export class SDKManager extends Component {
     public CPInitSdk(initCallback: InitCallback, attrCallback: AttributeCompletionCallback) {
         this._initCallback = initCallback;
         this._attributeCallback = attrCallback;
-        this.callAndroidStaticMethod(
-            "com.sttn.bxvi.AAAC_TGSDocosHelper",
-            "Anncf_initSdk",
-            "()V"
-        );
+        
+        if (sys.platform === sys.Platform.ANDROID) {
+            // Android 平台
+            this.callAndroidStaticMethod(
+                "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                "Anncf_initSdk",
+                "()V"
+            );
+        } else if (sys.platform === sys.Platform.IOS) {
+            // iOS 平台（预留接口）
+            warn("[SDKManager] iOS 平台初始化暂未实现");
+            this.scheduleOnce(() => {
+                initCallback?.(false, "iOS platform not implemented");
+            }, 0.1);
+        } else {
+            // 其他平台
+            warn("[SDKManager] 非原生平台，跳过 SDK 初始化");
+            this.scheduleOnce(() => {
+                initCallback?.(false, "Not native platform");
+            }, 0.1);
+        }
     }
 
     /**
@@ -191,19 +246,30 @@ export class SDKManager extends Component {
      */
     public CPLoadAD(adtype: CPAdType, eventListener: AdEventCallback) {
         this._adEventCallback = eventListener;
-        switch (adtype) {
-            case CPAdType.AD_TYPE_OPEN:
-                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_loadOpenAd", "()V");
-                break;
-            case CPAdType.AD_TYPE_INTERSTITIAL:
-                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_loadInterstitialAd", "()V");
-                break;
-            case CPAdType.AD_TYPE_REWARD:
-                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_loadRewardAd", "()V");
-                break;
-            default:
-                warn(`未知广告类型: ${adtype}`);
-                break;
+        
+        if (sys.platform === sys.Platform.ANDROID) {
+            // Android 平台
+            switch (adtype) {
+                case CPAdType.AD_TYPE_OPEN:
+                    this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_loadOpenAd", "()V");
+                    break;
+                case CPAdType.AD_TYPE_INTERSTITIAL:
+                    this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_loadInterstitialAd", "()V");
+                    break;
+                case CPAdType.AD_TYPE_REWARD:
+                    this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_loadRewardAd", "()V");
+                    break;
+                default:
+                    warn(`未知广告类型: ${adtype}`);
+                    break;
+            }
+        } else if (sys.platform === sys.Platform.IOS) {
+            // iOS 平台（预留接口）
+            warn(`[SDKManager] iOS 平台加载广告暂未实现: ${adtype}`);
+            // TODO: 实现 iOS 加载广告逻辑
+        } else {
+            // 其他平台
+            warn(`[SDKManager] 非原生平台，跳过广告加载: ${adtype}`);
         }
     }
 
@@ -211,34 +277,44 @@ export class SDKManager extends Component {
      * 显示广告
      */
     public CPShowAd(adtype: CPAdType, placement: string = "default") {
-        switch (adtype) {
-            case CPAdType.AD_TYPE_OPEN:
-                this.callAndroidStaticMethod(
-                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
-                    "Anncf_showOpenAd",
-                    "(Ljava/lang/String;)V",
-                    [placement]
-                );
-                break;
-            case CPAdType.AD_TYPE_INTERSTITIAL:
-                this.callAndroidStaticMethod(
-                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
-                    "Anncf_showInterstitialAd",
-                    "(Ljava/lang/String;)V",
-                    [placement]
-                );
-                break;
-            case CPAdType.AD_TYPE_REWARD:
-                this.callAndroidStaticMethod(
-                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
-                    "Anncf_showRewardAd",
-                    "(Ljava/lang/String;)V",
-                    [placement]
-                );
-                break;
-            default:
-                warn(`未知广告类型: ${adtype}`);
-                break;
+        if (sys.platform === sys.Platform.ANDROID) {
+            // Android 平台
+            switch (adtype) {
+                case CPAdType.AD_TYPE_OPEN:
+                    this.callAndroidStaticMethod(
+                        "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                        "Anncf_showOpenAd",
+                        "(Ljava/lang/String;)V",
+                        [placement]
+                    );
+                    break;
+                case CPAdType.AD_TYPE_INTERSTITIAL:
+                    this.callAndroidStaticMethod(
+                        "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                        "Anncf_showInterstitialAd",
+                        "(Ljava/lang/String;)V",
+                        [placement]
+                    );
+                    break;
+                case CPAdType.AD_TYPE_REWARD:
+                    this.callAndroidStaticMethod(
+                        "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                        "Anncf_showRewardAd",
+                        "(Ljava/lang/String;)V",
+                        [placement]
+                    );
+                    break;
+                default:
+                    warn(`未知广告类型: ${adtype}`);
+                    break;
+            }
+        } else if (sys.platform === sys.Platform.IOS) {
+            // iOS 平台（预留接口）
+            warn(`[SDKManager] iOS 平台显示广告暂未实现: ${adtype}`);
+            // TODO: 实现 iOS 显示广告逻辑
+        } else {
+            // 其他平台
+            warn(`[SDKManager] 非原生平台，跳过广告显示: ${adtype}`);
         }
     }
 
@@ -246,53 +322,66 @@ export class SDKManager extends Component {
      * 检查广告是否就绪（解决 bool 字节对齐问题）
      */
     public IsAdReady(adtype: CPAdType): boolean {
-        let result = 0;
-        switch (adtype) {
-            case CPAdType.AD_TYPE_OPEN:
-                result = this.callAndroidStaticMethod(
-                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
-                    "Anncf_isOpenAdReady",
-                    "()I"
-                ) || 0;
-                break;
-            case CPAdType.AD_TYPE_INTERSTITIAL:
-                result = this.callAndroidStaticMethod(
-                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
-                    "Anncf_isInterstitialAdReady",
-                    "()I"
-                ) || 0;
-                break;
-            case CPAdType.AD_TYPE_REWARD:
-                result = this.callAndroidStaticMethod(
-                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
-                    "Anncf_isRewardAdReady",
-                    "()I"
-                ) || 0;
-                break;
-            default:
-                return false;
+        if (sys.platform === sys.Platform.ANDROID) {
+            // Android 平台
+            let result = 0;
+            switch (adtype) {
+                case CPAdType.AD_TYPE_OPEN:
+                    result = this.callAndroidStaticMethod(
+                        "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                        "Anncf_isOpenAdReady",
+                        "()I"
+                    ) || 0;
+                    break;
+                case CPAdType.AD_TYPE_INTERSTITIAL:
+                    result = this.callAndroidStaticMethod(
+                        "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                        "Anncf_isInterstitialAdReady",
+                        "()I"
+                    ) || 0;
+                    break;
+                case CPAdType.AD_TYPE_REWARD:
+                    result = this.callAndroidStaticMethod(
+                        "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                        "Anncf_isRewardAdReady",
+                        "()I"
+                    ) || 0;
+                    break;
+                default:
+                    return false;
+            }
+            // 转换 int 为 bool（0 = false，非0 = true）
+            return (result & 0xFF) !== 0;
+        } else if (sys.platform === sys.Platform.IOS) {
+            return false;
+        } else {
+            return true;
         }
-        // 转换 int 为 bool（0 = false，非0 = true）
-        return (result & 0xFF) !== 0;
     }
 
     /**
      * 取消广告显示
      */
     public cancelAdShow(adtype: CPAdType) {
-        switch (adtype) {
-            case CPAdType.AD_TYPE_OPEN:
-                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_cancelOpenAdShow", "()V");
-                break;
-            case CPAdType.AD_TYPE_INTERSTITIAL:
-                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_cancelInterstitialAdShow", "()V");
-                break;
-            case CPAdType.AD_TYPE_REWARD:
-                this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_cancelRewardAdShow", "()V");
-                break;
-            default:
-                warn(`未知广告类型: ${adtype}`);
-                break;
+        if (sys.platform === sys.Platform.ANDROID) {
+            switch (adtype) {
+                case CPAdType.AD_TYPE_OPEN:
+                    this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_cancelOpenAdShow", "()V");
+                    break;
+                case CPAdType.AD_TYPE_INTERSTITIAL:
+                    this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_cancelInterstitialAdShow", "()V");
+                    break;
+                case CPAdType.AD_TYPE_REWARD:
+                    this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_cancelRewardAdShow", "()V");
+                    break;
+                default:
+                    warn(`未知广告类型: ${adtype}`);
+                    break;
+            }
+        } else if (sys.platform === sys.Platform.IOS) {
+            warn(`[SDKManager] iOS 平台取消广告显示暂未实现: ${adtype}`);
+        } else {
+            warn(`[SDKManager] 非原生平台，跳过取消广告显示: ${adtype}`);
         }
     }
 
@@ -300,16 +389,23 @@ export class SDKManager extends Component {
      * 埋点事件上报
      */
     public TrackEvent(eventName: string, properties: Record<string, any>) {
-        try {
-            const jsonData = JSON.stringify(properties);
-            this.callAndroidStaticMethod(
-                "com.sttn.bxvi.AAAC_TGSDocosHelper",
-                "Anncf_trackReport",
-                "(Ljava/lang/String;Ljava/lang/String;)V",
-                [eventName, jsonData]
-            );
-        } catch (e) {
-            warn(`埋点上报失败: ${(e as Error).message}`);
+        if (sys.platform === sys.Platform.ANDROID) {
+            // Android 平台
+            try {
+                const jsonData = JSON.stringify(properties);
+                this.callAndroidStaticMethod(
+                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                    "Anncf_trackReport",
+                    "(Ljava/lang/String;Ljava/lang/String;)V",
+                    [eventName, jsonData]
+                );
+            } catch (e) {
+                warn(`埋点上报失败: ${(e as Error).message}`);
+            }
+        } else if (sys.platform === sys.Platform.IOS) {
+            warn(`[SDKManager] iOS 平台埋点上报暂未实现: ${eventName}`);
+        } else {
+            log(`[SDKManager] Cocos平台，跳过埋点上报: ${eventName}`);
         }
     }
 
@@ -317,12 +413,19 @@ export class SDKManager extends Component {
      * 显示网页
      */
     public Swp(title: string) {
-        this.callAndroidStaticMethod(
-            "com.sttn.bxvi.AAAC_TGSDocosHelper",
-            "Anncf_HSwp",
-            "(Ljava/lang/String;)V",
-            [title]
-        );
+        if (sys.platform === sys.Platform.ANDROID) {
+            // Android 平台
+            this.callAndroidStaticMethod(
+                "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                "Anncf_HSwp",
+                "(Ljava/lang/String;)V",
+                [title]
+            );
+        } else if (sys.platform === sys.Platform.IOS) {
+            warn(`[SDKManager] iOS 平台显示网页暂未实现: ${title}`);
+        } else {
+            warn(`[SDKManager] Cocos平台，跳过显示网页: ${title}`);
+        }
     }
 
     /**
@@ -330,11 +433,28 @@ export class SDKManager extends Component {
      */
     public GetEibit(callback: EibitCallback) {
         this._eibitCallback = callback;
-        this.callAndroidStaticMethod(
-            "com.sttn.bxvi.AAAC_TGSDocosHelper",
-            "Anncf_cpGetEibit",
-            "()V"
-        );
+        
+        if (sys.platform === sys.Platform.ANDROID) {
+            // Android 平台
+            this.callAndroidStaticMethod(
+                "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                "Anncf_cpGetEibit",
+                "()V"
+            );
+        } else if (sys.platform === sys.Platform.IOS) {
+            // iOS 平台（预留接口）
+            warn("[SDKManager] iOS 平台获取分组信息暂未实现");
+            // TODO: 实现 iOS 获取分组信息逻辑
+            this.scheduleOnce(() => {
+                callback?.({ t: "", tid: -1 });
+            }, 0.1);
+        } else {
+            // 其他平台
+            warn("[SDKManager] 非原生平台，跳过获取分组信息");
+            this.scheduleOnce(() => {
+                callback?.({ t: "", tid: -1 });
+            }, 0.1);
+        }
     }
 
     // 以下为占位接口
