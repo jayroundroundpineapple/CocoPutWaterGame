@@ -54,9 +54,9 @@ public class AAAC_TGSDocosHelper {
 
     // ===================== 核心 SDK 接口（直接调用 CP_CPSDK） =====================
     /**
-     * 应用级初始化（对应 Unity 的 Anncf_cpInitSdk）
+     * 应用级初始化
      */
-    public void Anncf_cpInitSdk() {
+    public void Anncf_cpInitSdk1() {
         if (mApplication == null) {
             Log.e(TAG, "应用上下文为空，初始化失败");
             sendCocosCallback("onAttributeCallback", "0"); // 归因回调默认失败
@@ -76,9 +76,9 @@ public class AAAC_TGSDocosHelper {
     }
 
     /**
-     * AD SDK 初始化（对应 Unity 的 Anncf_initSdk）
+     * AD SDK 初始化
      */
-    public void Anncf_initSdk() {
+    public void Anncf_initSdk1() {
         if (mActivity == null) {
             Log.e(TAG, "Activity 为空，AD SDK 初始化失败");
             sendCocosCallback("onInitCallback", "fail");
@@ -101,9 +101,9 @@ public class AAAC_TGSDocosHelper {
     }
 
     /**
-     * 混合初始化（对应 Unity 的 Anncf_initSdkWithCombinedCallback）
+     * 混合初始化
      */
-    public void Anncf_initSdkWithCombinedCallback() {
+    public void Anncf_initSdkWithCombinedCallback1() {
         if (mActivity == null) {
             Log.e(TAG, "Activity 为空，混合初始化失败");
             sendCocosCallback("onMixResultCallback", "0");
@@ -120,9 +120,9 @@ public class AAAC_TGSDocosHelper {
     }
 
     /**
-     * 获取分组信息（对应 Unity 的 Anncf_cpGetEibit）
+     * 获取分组信息
      */
-    public void Anncf_cpGetEibit() {
+    public void Anncf_cpGetEibit1() {
         CP_CPSDK.CP_GET_EIBIT(new CP_CPSDK.CP_EIBIT_CALLBACK() {
             @Override
             public void CP_ON_EIBIT_CALLBACK(String t, int tid) {
@@ -145,68 +145,68 @@ public class AAAC_TGSDocosHelper {
     };
 
     // 加载开屏广告
-    public void Anncf_loadOpenAd() {
+    public void Anncf_loadOpenAd1() {
         CP_CPSDK.CP_LOAD_AD(CP_CPSDK.CP_AD_TYPE_OPEN, adEventListener);
     }
 
     // 加载插屏广告
-    public void Anncf_loadInterstitialAd() {
+    public void Anncf_loadInterstitialAd1() {
         CP_CPSDK.CP_LOAD_AD(CP_CPSDK.CP_AD_TYPE_INTERSTITIAL, adEventListener);
     }
 
     // 加载激励广告
-    public void Anncf_loadRewardAd() {
+    public void Anncf_loadRewardAd1() {
         CP_CPSDK.CP_LOAD_AD(CP_CPSDK.CP_AD_TYPE_REWARD, adEventListener);
     }
 
     // 显示开屏广告
-    public void Anncf_showOpenAd(String placement) {
+    public void Anncf_showOpenAd1(String placement) {
         CP_CPSDK.CP_SHOW_AD(CP_CPSDK.CP_AD_TYPE_OPEN, placement);
     }
 
     // 显示插屏广告
-    public void Anncf_showInterstitialAd(String placement) {
+    public void Anncf_showInterstitialAd1(String placement) {
         CP_CPSDK.CP_SHOW_AD(CP_CPSDK.CP_AD_TYPE_INTERSTITIAL, placement);
     }
 
     // 显示激励广告
-    public void Anncf_showRewardAd(String placement) {
+    public void Anncf_showRewardAd1(String placement) {
         CP_CPSDK.CP_SHOW_AD(CP_CPSDK.CP_AD_TYPE_REWARD, placement);
     }
 
     // 检查开屏广告是否就绪（返回 int 避免 bool 字节对齐问题）
-    public int Anncf_isOpenAdReady() {
+    public int Anncf_isOpenAdReady1() {
         return CP_CPSDK.CP_IS_AD_READY(CP_CPSDK.CP_AD_TYPE_OPEN) ? 1 : 0;
     }
 
     // 检查插屏广告是否就绪
-    public int Anncf_isInterstitialAdReady() {
+    public int Anncf_isInterstitialAdReady1() {
         return CP_CPSDK.CP_IS_AD_READY(CP_CPSDK.CP_AD_TYPE_INTERSTITIAL) ? 1 : 0;
     }
 
     // 检查激励广告是否就绪
-    public int Anncf_isRewardAdReady() {
+    public int Anncf_isRewardAdReady1() {
         return CP_CPSDK.CP_IS_AD_READY(CP_CPSDK.CP_AD_TYPE_REWARD) ? 1 : 0;
     }
 
     // 取消开屏广告显示
-    public void Anncf_cancelOpenAdShow() {
+    public void Anncf_cancelOpenAdShow1() {
         CP_CPSDK.CP_CANCEL_AD_SHOW(CP_CPSDK.CP_AD_TYPE_OPEN);
     }
 
     // 取消插屏广告显示
-    public void Anncf_cancelInterstitialAdShow() {
+    public void Anncf_cancelInterstitialAdShow1() {
         CP_CPSDK.CP_CANCEL_AD_SHOW(CP_CPSDK.CP_AD_TYPE_INTERSTITIAL);
     }
 
     // 取消激励广告显示
-    public void Anncf_cancelRewardAdShow() {
+    public void Anncf_cancelRewardAdShow1() {
         CP_CPSDK.CP_CANCEL_AD_SHOW(CP_CPSDK.CP_AD_TYPE_REWARD);
     }
 
     // ===================== 其他接口 =====================
     // 埋点上报
-    public void Anncf_trackReport(@NonNull String key, @NonNull String jsonString) {
+    public void Anncf_trackReport1(@NonNull String key, @NonNull String jsonString) {
         if (key == null || jsonString == null) return;
         try {
             JSONObject jsonObject = new JSONObject(jsonString);
@@ -218,7 +218,7 @@ public class AAAC_TGSDocosHelper {
     }
 
     // 显示网页
-    public void Anncf_HSwp(String title) {
+    public void Anncf_HSwp1(String title) {
         CP_CPSDK.CP_SHOW_WEB_PAGE();
     }
 
@@ -271,75 +271,75 @@ public class AAAC_TGSDocosHelper {
     }
 
     public static void Anncf_cpInitSdk() {
-        getInstance().Anncf_cpInitSdk();
+        getInstance().Anncf_cpInitSdk1();
     }
 
     public static void Anncf_initSdk() {
-        getInstance().Anncf_initSdk();
+        getInstance().Anncf_initSdk1();
     }
 
     public static void Anncf_initSdkWithCombinedCallback() {
-        getInstance().Anncf_initSdkWithCombinedCallback();
+        getInstance().Anncf_initSdkWithCombinedCallback1();
     }
 
     public static void Anncf_cpGetEibit() {
-        getInstance().Anncf_cpGetEibit();
+        getInstance().Anncf_cpGetEibit1();
     }
 
     public static void Anncf_loadOpenAd() {
-        getInstance().Anncf_loadOpenAd();
+        getInstance().Anncf_loadOpenAd1();
     }
 
     public static void Anncf_loadInterstitialAd() {
-        getInstance().Anncf_loadInterstitialAd();
+        getInstance().Anncf_loadInterstitialAd1();
     }
 
     public static void Anncf_loadRewardAd() {
-        getInstance().Anncf_loadRewardAd();
+        getInstance().Anncf_loadRewardAd1();
     }
 
     public static void Anncf_showOpenAd(String placement) {
-        getInstance().Anncf_showOpenAd(placement);
+        getInstance().Anncf_showOpenAd1(placement);
     }
 
     public static void Anncf_showInterstitialAd(String placement) {
-        getInstance().Anncf_showInterstitialAd(placement);
+        getInstance().Anncf_showInterstitialAd1(placement);
     }
 
     public static void Anncf_showRewardAd(String placement) {
-        getInstance().Anncf_showRewardAd(placement);
+        getInstance().Anncf_showRewardAd1(placement);
     }
 
     public static int Anncf_isOpenAdReady() {
-        return getInstance().Anncf_isOpenAdReady();
+        return getInstance().Anncf_isOpenAdReady1();
     }
 
     public static int Anncf_isInterstitialAdReady() {
-        return getInstance().Anncf_isInterstitialAdReady();
+        return getInstance().Anncf_isInterstitialAdReady1();
     }
 
     public static int Anncf_isRewardAdReady() {
-        return getInstance().Anncf_isRewardAdReady();
+        return getInstance().Anncf_isRewardAdReady1();
     }
 
     public static void Anncf_cancelOpenAdShow() {
-        getInstance().Anncf_cancelOpenAdShow();
+        getInstance().Anncf_cancelOpenAdShow1();
     }
 
     public static void Anncf_cancelInterstitialAdShow() {
-        getInstance().Anncf_cancelInterstitialAdShow();
+        getInstance().Anncf_cancelInterstitialAdShow1();
     }
 
     public static void Anncf_cancelRewardAdShow() {
-        getInstance().Anncf_cancelRewardAdShow();
+        getInstance().Anncf_cancelRewardAdShow1();
     }
 
     public static void Anncf_trackReport(String key, String jsonString) {
-        getInstance().Anncf_trackReport(key, jsonString);
+        getInstance().Anncf_trackReport1(key, jsonString);
     }
 
     public static void Anncf_HSwp(String title) {
-        getInstance().Anncf_HSwp(title);
+        getInstance().Anncf_HSwp1(title);
     }
 }
 
