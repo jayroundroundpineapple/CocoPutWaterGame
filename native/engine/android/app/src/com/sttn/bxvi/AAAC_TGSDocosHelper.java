@@ -46,7 +46,7 @@ public class AAAC_TGSDocosHelper {
     }
 
     // 初始化上下文（Cocos 调用）
-    public void initContext(Activity activity, Application application) {
+    public void initContext1(Activity activity, Application application) {
         this.mActivity = activity;
         this.mApplication = application;
         Log.d(TAG, "SDK 上下文初始化完成");
@@ -267,7 +267,7 @@ public class AAAC_TGSDocosHelper {
 
     // ===================== Cocos 可直接调用的静态封装 =====================
     public static void initContext(Activity activity, Application app) {
-        getInstance().initContext(activity, app);
+        getInstance().initContext1(activity, app);
     }
 
     public static void Anncf_cpInitSdk() {
