@@ -24,7 +24,7 @@ export enum CPAdEvent {
     Loading = 10             // 广告加载中
 }
 
-// 回调类型定义（和 Unity 保持一致）
+// 回调类型定义
 export type InitCallback = (success: boolean, msg: string) => void;
 export type AttributeCompletionCallback = (isAttributed: boolean) => void;
 export type mixCompletionCallback = (success: boolean, data: any) => void;

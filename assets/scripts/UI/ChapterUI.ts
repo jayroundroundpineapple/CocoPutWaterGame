@@ -1,6 +1,6 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform, Button, sys, tween, Vec3, Prefab, instantiate } from 'cc';
 import { ChapterItem } from './ChapterItem';
-import { SDKManager } from '../sdk/SDKManager';
+import { CPAdEvent, CPAdType, SDKManager } from '../sdk/SDKManager';
 const { ccclass, property } = _decorator;
 
 /**
@@ -66,11 +66,29 @@ export class ChapterUI extends Component {
     }
     onInitSdkButtonClick(){
         SDKManager.instance.CPAllInitSdk((success: boolean, msg: string) => {
+            console.log('SDK 初始化回调',success,msg);
+            this.CPLoadAD()
             if (success) {
-                console.log('SDK 初始化成功',msg);
+                console.log('SDK初始化成功/买量用户',msg);
             } else {
-                console.log('SDK 初始化失败',msg);
+                console.log('SDK初始化成功/非买量用户',msg);
             }
+        });
+    }
+    CPLoadAD(){
+        SDKManager.instance.CPLoadAD(CPAdType.AD_TYPE_REWARD, (adType: CPAdType, event: CPAdEvent, msg: string) => {
+            console.log('激励广告加载回调',adType,event,msg);
+            if(event === CPAdEvent.Loaded){
+                console.log('激励广告加载成功');
+            } else if(event === CPAdEvent.Hidden){
+                console.log('激励广告隐藏');
+            }
+        });
+        SDKManager.instance.CPLoadAD(CPAdType.AD_TYPE_INTERSTITIAL, (adType: CPAdType, event: CPAdEvent, msg: string) => {
+            console.log('插屏广告加载回调',adType,event,msg);
+        });
+        SDKManager.instance.CPLoadAD(CPAdType.AD_TYPE_OPEN, (adType: CPAdType, event: CPAdEvent, msg: string) => {
+            console.log('开屏广告加载回调',adType,event,msg);
         });
     }
 
