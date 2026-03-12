@@ -80,7 +80,10 @@ export class ChapterUI extends Component {
             console.log('激励广告加载回调',adType,event,msg);
             if(event === CPAdEvent.Loaded){
                 console.log('激励广告加载成功');
-            } else if(event === CPAdEvent.Hidden){
+            }else if(event === CPAdEvent.Displayed){
+                console.log('激励视频展示完成');
+            }
+            else if(event === CPAdEvent.Hidden){
                 console.log('激励广告隐藏');
             }
         });
