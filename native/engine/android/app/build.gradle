@@ -2,76 +2,21 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 apply plugin: 'com.android.application'
 apply plugin: 'com.sensorsdata.analytics.android'
-//apply plugin: 'com.google.gms.google-services'
-//apply plugin: 'com.google.firebase.crashlytics'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
 
-dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    // implementation 'com.applovin.mediation:facebook-adapter:[6.19.0.2]'
-    implementation 'com.applovin:applovin-sdk:13.0.1'
-
-    // ChartBoost
-    // implementation 'com.applovin.mediation:chartboost-adapter:9.9.2.0'
-    // implementation 'com.chartboost:chartboost-sdk:9.9.2'
-    // implementation 'com.google.android.gms:play-services-base:16.1.0'
-
-    implementation 'com.github.getActivity:XXPermissions:18.6'
-    implementation 'androidx.work:work-runtime:2.7.1'
-    // AF归因
-    implementation 'com.appsflyer:af-android-sdk:6.13.0'
-    implementation 'com.appsflyer:oaid:6.9.0'
-    implementation 'com.huawei.hms:ads-identifier:3.4.56.300'
-
-    // implementation 'com.google.android.material:material:1.12.0'
-    // implementation 'androidx.constraintlayout:constraintlayout:2.2.0'   //先注释一下
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
-
-// 广告模块依赖库:
-
-    implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
-    implementation 'com.applovin.mediation:bigoads-adapter:5.1.0.0'
-    implementation 'com.bigossp:bigo-ads:5.1.0'
-    implementation 'com.applovin.mediation:fyber-adapter:8.3.3.0'
-    implementation 'com.fyber:marketplace-sdk:8.3.3'
-    implementation 'com.applovin.mediation:google-ad-manager-adapter:23.6.0.0'
-    implementation 'com.applovin.mediation:google-adapter:23.6.0.0'
-    implementation 'com.google.android.gms:play-services-ads:23.6.0'
-    implementation 'com.applovin.mediation:ironsource-adapter:8.5.0.0.0'
-    implementation 'com.applovin.mediation:vungle-adapter:7.4.2.1'
-    implementation 'com.vungle:vungle-ads:7.4.2'
-    implementation 'com.applovin.mediation:mintegral-adapter:16.8.91.0'
-    implementation 'com.mbridge.msdk.oversea:mbridge_android_sdk:16.8.91'
-    implementation 'com.applovin.mediation:bytedance-adapter:6.4.0.2.0'
-    implementation 'com.pangle.global:ads-sdk:6.4.0.2'
-    implementation 'com.applovin.mediation:unityads-adapter:4.12.5.0'
-    implementation 'com.unity3d.ads:unity-ads:4.12.5'
-
-    // Mintegral需要，不然在debug模式时会弹框显示Mintegral“Invalid Integration”的问题。
-    implementation 'androidx.recyclerview:recyclerview:1.1.0'
-    // GDPR弹框用到
-    implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
-    implementation 'androidx.media3:media3-exoplayer:1.0.0-alpha01'
-    implementation 'androidx.annotation:annotation:1.2.0'
-    //神策
-    implementation 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK:6.8.4'
-    // 引入Firebase BOM以确保依赖版本兼容
-    implementation platform('com.google.firebase:firebase-bom:32.5.0')
-    implementation 'com.google.firebase:firebase-analytics'
-    implementation 'com.google.firebase:firebase-crashlytics'
-    implementation 'com.google.firebase:firebase-messaging'
-    //外显WebView
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.7.0'
-    implementation(name: 'CloverHitSlot_Android_Pro_v1.5.5_1', ext:'aar')
-
-}
 
 RES_PATH = RES_PATH.replace("\\", "/")
 COCOS_ENGINE_PATH = COCOS_ENGINE_PATH.replace("\\", "/")
 
 buildDir = "${RES_PATH}/proj/build/${project.name ==~ /^[_a-zA-Z0-9-]+$/ ? project.name : 'CocosGame'}"
+
+repositories {
+    flatDir {
+        dirs 'libs', '../libs'
+    }
+}
+
 android {
 //    compileSdkVersion PROP_COMPILE_SDK_VERSION.toInteger()
     compileSdkVersion 35
@@ -100,6 +45,15 @@ android {
             }
             ndk { abiFilters PROP_APP_ABI.split(':') }
         }
+    }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE.md'
+        exclude 'META-INF/LICENSE-notice.md'
+    }
+
+    lint {
+        abortOnError false
     }
 
     sourceSets.main {
@@ -175,6 +129,65 @@ dependencies {
     implementation fileTree(dir: "${COCOS_ENGINE_PATH}/cocos/platform/android/java/libs", include: ['*.jar'])
     implementation project(':libservice')
     implementation project(':libcocos')
+    // implementation 'com.applovin.mediation:facebook-adapter:[6.19.0.2]'
+    implementation 'com.applovin:applovin-sdk:13.0.1'
+
+    // ChartBoost
+    // implementation 'com.applovin.mediation:chartboost-adapter:9.9.2.0'
+    // implementation 'com.chartboost:chartboost-sdk:9.9.2'
+    // implementation 'com.google.android.gms:play-services-base:16.1.0'
+
+    implementation 'com.github.getActivity:XXPermissions:18.6'
+    implementation 'androidx.work:work-runtime:2.7.1'
+    // AF归因
+    implementation 'com.appsflyer:af-android-sdk:6.13.0'
+    implementation 'com.appsflyer:oaid:6.9.0'
+    implementation 'com.huawei.hms:ads-identifier:3.4.56.300'
+
+    // implementation 'com.google.android.material:material:1.12.0'
+    // implementation 'androidx.constraintlayout:constraintlayout:2.2.0'   //先注释一下
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+
+// 广告模块依赖库:
+
+    implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
+    implementation 'com.applovin.mediation:bigoads-adapter:5.1.0.0'
+    implementation 'com.bigossp:bigo-ads:5.1.0'
+    implementation 'com.applovin.mediation:fyber-adapter:8.3.3.0'
+    implementation 'com.fyber:marketplace-sdk:8.3.3'
+    implementation 'com.applovin.mediation:google-ad-manager-adapter:23.6.0.0'
+    implementation 'com.applovin.mediation:google-adapter:23.6.0.0'
+    implementation 'com.google.android.gms:play-services-ads:23.6.0'
+    implementation 'com.applovin.mediation:ironsource-adapter:8.5.0.0.0'
+    implementation 'com.applovin.mediation:vungle-adapter:7.4.2.1'
+    implementation 'com.vungle:vungle-ads:7.4.2'
+    implementation 'com.applovin.mediation:mintegral-adapter:16.8.91.0'
+    implementation 'com.mbridge.msdk.oversea:mbridge_android_sdk:16.8.91'
+    implementation 'com.applovin.mediation:bytedance-adapter:6.4.0.2.0'
+    implementation 'com.pangle.global:ads-sdk:6.4.0.2'
+    implementation 'com.applovin.mediation:unityads-adapter:4.12.5.0'
+    implementation 'com.unity3d.ads:unity-ads:4.12.5'
+
+    // Mintegral需要，不然在debug模式时会弹框显示Mintegral“Invalid Integration”的问题。
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    // GDPR弹框用到
+    implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
+    implementation 'androidx.media3:media3-exoplayer:1.0.0-alpha01'
+    implementation 'androidx.annotation:annotation:1.2.0'
+    //神策
+    implementation 'com.sensorsdata.analytics.android:SensorsAnalyticsSDK:6.8.4'
+    // 引入Firebase BOM以确保依赖版本兼容
+    implementation platform('com.google.firebase:firebase-bom:32.5.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-messaging'
+    //外显WebView
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.7.0'
+    // CloverHitSlot AAR 已通过 fileTree 自动包含，无需显式引用
+    // implementation(name: 'CloverHitSlot_Android_Pro_v1.5.5_1', ext:'aar')
     if (Boolean.parseBoolean(PROP_ENABLE_INPUTSDK)) {
         implementation 'com.google.android.libraries.play.games:inputmapping:1.1.0-beta'
         implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.10"
