@@ -28,6 +28,8 @@ export class ChapterUI extends Component {
     private chapterItemPrefab: Prefab = null; 
     @property(Node)
     private initSdkButton: Node = null;
+    @property(Node)
+    private showAdButton: Node = null;  // 广告展示按钮
     
     @property(SpriteFrame)
     private chapter1Image: SpriteFrame = null;  // 第一章背景图
@@ -63,6 +65,9 @@ export class ChapterUI extends Component {
         this.loadChapterUnlockStates();
         this.createChapterUI();
         this.initSdkButton.on(Node.EventType.TOUCH_END, this.onInitSdkButtonClick, this);
+        if (this.showAdButton) {
+            this.showAdButton.on(Node.EventType.TOUCH_END, this.onShowAdButtonClick, this);
+        }
     }
     onInitSdkButtonClick(){
         SDKManager.instance.CPAllInitSdk((success: boolean, msg: string) => {
@@ -93,6 +98,18 @@ export class ChapterUI extends Component {
         SDKManager.instance.CPLoadAD(CPAdType.AD_TYPE_OPEN, (adType: CPAdType, event: CPAdEvent, msg: string) => {
             console.log('开屏广告加载回调',adType,event,msg);
         });
+    }
+
+    /**
+     * 广告展示按钮点击事件
+     */
+    onShowAdButtonClick() {
+        console.log('[ChapterUI] 点击广告展示按钮');
+        // 先检查激励广告是否就绪
+        if (SDKManager.instance.IsAdReady(CPAdType.AD_TYPE_REWARD)) {
+            console.log('[ChapterUI] 激励广告已就绪，开始展示');
+            SDKManager.instance.CPShowAd(CPAdType.AD_TYPE_REWARD, "chapter_show_reward");
+        } 
     }
 
     /**
@@ -389,6 +406,12 @@ export class ChapterUI extends Component {
             if (chapterNode && chapterNode.isValid) {
                 chapterNode.off(Node.EventType.TOUCH_END);
             }
+        }
+        if (this.initSdkButton) {
+            this.initSdkButton.off(Node.EventType.TOUCH_END, this.onInitSdkButtonClick, this);
+        }
+        if (this.showAdButton) {
+            this.showAdButton.off(Node.EventType.TOUCH_END, this.onShowAdButtonClick, this);
         }
     }
 }
