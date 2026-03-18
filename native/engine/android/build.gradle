@@ -5,6 +5,20 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        // JitPack (e.g. com.github.getActivity:XXPermissions)
+        maven { url 'https://jitpack.io' }
+
+        // Huawei HMS (e.g. com.huawei.hms:ads-identifier)
+        maven { url 'https://developer.huawei.com/repo/' }
+
+        // IronSource
+        maven { url 'https://android-sdk.is.com/' }
+
+        // Pangle / ByteDance
+        maven { url 'https://artifact.bytedance.com/repository/pangle' }
+
+        // Mintegral (MBridge) overseas
+        maven { url 'https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea' }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.9.2'
@@ -15,6 +29,20 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // JitPack (e.g. com.github.getActivity:XXPermissions)
+        maven { url 'https://jitpack.io' }
+
+        // Huawei HMS (e.g. com.huawei.hms:ads-identifier)
+        maven { url 'https://developer.huawei.com/repo/' }
+
+        // IronSource
+        maven { url 'https://android-sdk.is.com/' }
+
+        // Pangle / ByteDance
+        maven { url 'https://artifact.bytedance.com/repository/pangle' }
+
+        // Mintegral (MBridge) overseas
+        maven { url 'https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea' }
     }
 }
 
