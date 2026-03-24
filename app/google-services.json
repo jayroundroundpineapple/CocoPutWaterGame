@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "546878740396",
+    "project_id": "faxingsdk-gp-lamb",
+    "storage_bucket": "faxingsdk-gp-lamb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:546878740396:android:20b8f649739d4b9ffecc09",
+        "android_client_info": {
+          "package_name": "com.faxing.withcp.lamb"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGsxQ7SPJ14CUGQWangi5-KM2wzT4xyjw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
