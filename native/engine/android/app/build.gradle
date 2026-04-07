@@ -1,9 +1,38 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import groovy.json.JsonSlurper
 
 apply plugin: 'com.android.application'
 apply plugin: 'com.sensorsdata.analytics.android'
-apply plugin: 'com.google.gms.google-services'
-apply plugin: 'com.google.firebase.crashlytics'
+
+
+// Firebase/Google Services: only apply when google-services.json exists AND contains current APPLICATION_ID.
+// This avoids build failure: "No matching client found for package name ..."
+boolean _enableGoogleServices = false
+try {
+    def gsFile = file('google-services.json')
+    if (gsFile.exists()) {
+        def gs = new JsonSlurper().parse(gsFile)
+        def clients = (gs?.client ?: [])
+        def appId = (APPLICATION_ID ?: '').toString()
+        _enableGoogleServices = clients.any { c ->
+            def pkg = c?.client_info?.android_client_info?.package_name
+            return pkg != null && pkg.toString() == appId
+        }
+        if (!_enableGoogleServices) {
+            println("[WARN] google-services.json does not match APPLICATION_ID=${appId}, skip google-services/crashlytics plugins")
+        }
+    } else {
+        println('[WARN] google-services.json not found, skip google-services/crashlytics plugins')
+    }
+} catch (Throwable t) {
+    println('[WARN] Failed to parse google-services.json, skip google-services/crashlytics plugins: ' + t)
+    _enableGoogleServices = false
+}
+
+if (_enableGoogleServices) {
+    apply plugin: 'com.google.gms.google-services'
+    apply plugin: 'com.google.firebase.crashlytics'
+}
 
 
 RES_PATH = RES_PATH.replace("\\", "/")
@@ -18,8 +47,8 @@ repositories {
 }
 
 android {
-//    compileSdkVersion PROP_COMPILE_SDK_VERSION.toInteger()
-    compileSdkVersion 35
+    compileSdkVersion PROP_COMPILE_SDK_VERSION.toInteger()
+//    compileSdkVersion 35
     buildToolsVersion PROP_BUILD_TOOLS_VERSION
 //    ndkPath PROP_NDK_PATH
     ndkVersion "28.2.13676358"

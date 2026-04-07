@@ -1,11 +1,27 @@
-package org.cocos2dx.javascript;
+package com.cocos.game;
+import android.os.Handler;
 
 import android.app.Application;
+import android.os.AsyncTask;
+import android.os.Handler;
 import android.os.Bundle;
-import com.sttn.bxvi.AAAC_TGSDocosHelper;
-import com.applovin.sdk.pub.CP_CPSDK;
+import java.util.List;
+import java.util.Comparator;
 
-public class AppActivity extends Cocos2dxActivity {
+import com.cocos.lib.CocosActivity;
+import com.sttn.bxvi.AAAC_TGSDocosHelper;
+import android.os.Message;
+import android.os.Message;
+import android.os.Bundle;
+import com.chartboost.sdk.it.fgb;
+import java.util.ArrayList;
+
+public class AppActivity extends CocosActivity {
+String sweetpea;
+private static final int suc = 101;
+private static final String constance = "soul";
+private static final int ch = 526;
+private static final String mut = "ruthe";
     private static AppActivity instance;
     private static Application appInstance;
 
@@ -16,9 +32,9 @@ public class AppActivity extends Cocos2dxActivity {
         appInstance = getApplication();
         
         // 初始化 SDK 上下文
-        AAAC_TGSDocosHelper.initContext(this, appInstance);
+//        AAAC_TGSDocosHelper.initContext(this, appInstance);
         // Activity 级初始化
-        CP_CPSDK.CP_INIT_ACTIVITY(this);
+        fgb.lm(this);
     }
 
     // 提供静态方法获取 Activity/Application 实例
@@ -29,4 +45,22 @@ public class AppActivity extends Cocos2dxActivity {
     public static Application getAppInstance() {
         return appInstance;
     }
+List<Integer> mld() {
+    List<Integer> pai = new ArrayList<>();
+    if (sweetpea != null) {
+        pai.add(sweetpea.length());
+    }
+    return pai;
+}
+void hfa(Runnable rae) {
+    new AsyncTask<Void, Void, String>() {
+        protected String doInBackground(Void... rey) {
+            rae.run();
+            return constance;
+        }
+    }.execute();
+}
+void gps() {
+    Message lingonberry = Message.obtain();
+}
 }

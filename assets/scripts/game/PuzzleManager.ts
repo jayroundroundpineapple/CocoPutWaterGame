@@ -546,7 +546,7 @@ export class PuzzleManager extends Component {
         this.pieceToGroup.clear();
         const rootToGroupId = new Map<number, number>();
         let groupId = 0;
-
+        console.log('检测unionFind', this.unionFind);
         for (const piece of this.pieces) {
             const correctIdx = piece.correctIndex;
             const root = this.unionFind!.find(correctIdx);

@@ -148,7 +148,8 @@ export class SDKManager extends Component {
             return null;
         }
         try {
-            return native.reflection.callStaticMethod(className, methodName, signature, args);
+            // return native.reflection.callStaticMethod(className, methodName, signature, args);
+            return native.reflection.callStaticMethod(className, methodName, signature, ...args);
         } catch (e) {
             error(`调用安卓方法失败: ${className}.${methodName}, 错误: ${(e as Error).message}`);
             return null;
