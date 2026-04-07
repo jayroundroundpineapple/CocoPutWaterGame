@@ -41,6 +41,10 @@
 -dontwarn android.net.http.SslError
 -dontwarn android.webkit.WebViewClient
 
+# Keep Cocos reflection target classes
+-keep class com.sttn.bxvi.** { *; }
+-dontwarn com.sttn.bxvi.**
+
 # This is generated automatically by the Android Gradle plugin.
 -dontwarn android.hardware.BatteryState
 -dontwarn android.hardware.lights.Light

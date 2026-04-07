@@ -37,6 +37,7 @@ export type EibitCallback = (data: { t: string, tid: number }) => void;
  */
 @ccclass('SDKManager')
 export class SDKManager extends Component {
+    private static readonly ANDROID_HELPER_CLASS = "com/sttn/bxvi/AAAC_TGSDocosHelper";
     private static _instance: SDKManager;
     // 回调存储
     private _initCallback: InitCallback | null = null;
@@ -148,8 +149,15 @@ export class SDKManager extends Component {
             return null;
         }
         try {
-            // return native.reflection.callStaticMethod(className, methodName, signature, args);
-            return native.reflection.callStaticMethod(className, methodName, signature, ...args);
+            switch (args.length) {
+                case 0: return native.reflection.callStaticMethod(className, methodName, signature);
+                case 1: return native.reflection.callStaticMethod(className, methodName, signature, args[0]);
+                case 2: return native.reflection.callStaticMethod(className, methodName, signature, args[0], args[1]);
+                case 3: return native.reflection.callStaticMethod(className, methodName, signature, args[0], args[1], args[2]);
+                default:
+                    error(`调用安卓方法参数过多: ${className}.${methodName}`);
+                    return null;
+            }
         } catch (e) {
             error(`调用安卓方法失败: ${className}.${methodName}, 错误: ${(e as Error).message}`);
             return null;
@@ -192,7 +200,7 @@ export class SDKManager extends Component {
         if (sys.platform === sys.Platform.ANDROID) {
             // Android 平台
             this.callAndroidStaticMethod(
-                "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                SDKManager.ANDROID_HELPER_CLASS,
                 "Anncf_initSdkWithCombinedCallback",
                 "()V"
             );
@@ -223,7 +231,7 @@ export class SDKManager extends Component {
         if (sys.platform === sys.Platform.ANDROID) {
             // Android 平台
             this.callAndroidStaticMethod(
-                "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                SDKManager.ANDROID_HELPER_CLASS,
                 "Anncf_initSdk",
                 "()V"
             );
@@ -252,13 +260,13 @@ export class SDKManager extends Component {
             // Android 平台
             switch (adtype) {
                 case CPAdType.AD_TYPE_OPEN:
-                    this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_loadOpenAd", "()V");
+                    this.callAndroidStaticMethod(SDKManager.ANDROID_HELPER_CLASS, "Anncf_loadOpenAd", "()V");
                     break;
                 case CPAdType.AD_TYPE_INTERSTITIAL:
-                    this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_loadInterstitialAd", "()V");
+                    this.callAndroidStaticMethod(SDKManager.ANDROID_HELPER_CLASS, "Anncf_loadInterstitialAd", "()V");
                     break;
                 case CPAdType.AD_TYPE_REWARD:
-                    this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_loadRewardAd", "()V");
+                    this.callAndroidStaticMethod(SDKManager.ANDROID_HELPER_CLASS, "Anncf_loadRewardAd", "()V");
                     break;
                 default:
                     warn(`未知广告类型: ${adtype}`);
@@ -283,7 +291,8 @@ export class SDKManager extends Component {
             switch (adtype) {
                 case CPAdType.AD_TYPE_OPEN:
                     this.callAndroidStaticMethod(
-                        "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                        SDKManager.ANDROID_HELPER_CLASS,
+                        // Cocos Java 反射建议使用 slash 包路径
                         "Anncf_showOpenAd",
                         "(Ljava/lang/String;)V",
                         [placement]
@@ -291,7 +300,7 @@ export class SDKManager extends Component {
                     break;
                 case CPAdType.AD_TYPE_INTERSTITIAL:
                     this.callAndroidStaticMethod(
-                        "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                        SDKManager.ANDROID_HELPER_CLASS,
                         "Anncf_showInterstitialAd",
                         "(Ljava/lang/String;)V",
                         [placement]
@@ -299,7 +308,7 @@ export class SDKManager extends Component {
                     break;
                 case CPAdType.AD_TYPE_REWARD:
                     this.callAndroidStaticMethod(
-                        "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                        SDKManager.ANDROID_HELPER_CLASS,
                         "Anncf_showRewardAd",
                         "(Ljava/lang/String;)V",
                         [placement]
@@ -329,21 +338,21 @@ export class SDKManager extends Component {
             switch (adtype) {
                 case CPAdType.AD_TYPE_OPEN:
                     result = this.callAndroidStaticMethod(
-                        "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                        SDKManager.ANDROID_HELPER_CLASS,
                         "Anncf_isOpenAdReady",
                         "()I"
                     ) || 0;
                     break;
                 case CPAdType.AD_TYPE_INTERSTITIAL:
                     result = this.callAndroidStaticMethod(
-                        "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                        SDKManager.ANDROID_HELPER_CLASS,
                         "Anncf_isInterstitialAdReady",
                         "()I"
                     ) || 0;
                     break;
                 case CPAdType.AD_TYPE_REWARD:
                     result = this.callAndroidStaticMethod(
-                        "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                        SDKManager.ANDROID_HELPER_CLASS,
                         "Anncf_isRewardAdReady",
                         "()I"
                     ) || 0;
@@ -367,13 +376,13 @@ export class SDKManager extends Component {
         if (sys.platform === sys.Platform.ANDROID) {
             switch (adtype) {
                 case CPAdType.AD_TYPE_OPEN:
-                    this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_cancelOpenAdShow", "()V");
+                    this.callAndroidStaticMethod(SDKManager.ANDROID_HELPER_CLASS, "Anncf_cancelOpenAdShow", "()V");
                     break;
                 case CPAdType.AD_TYPE_INTERSTITIAL:
-                    this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_cancelInterstitialAdShow", "()V");
+                    this.callAndroidStaticMethod(SDKManager.ANDROID_HELPER_CLASS, "Anncf_cancelInterstitialAdShow", "()V");
                     break;
                 case CPAdType.AD_TYPE_REWARD:
-                    this.callAndroidStaticMethod("com.sttn.bxvi.AAAC_TGSDocosHelper", "Anncf_cancelRewardAdShow", "()V");
+                    this.callAndroidStaticMethod(SDKManager.ANDROID_HELPER_CLASS, "Anncf_cancelRewardAdShow", "()V");
                     break;
                 default:
                     warn(`未知广告类型: ${adtype}`);
@@ -395,7 +404,8 @@ export class SDKManager extends Component {
             try {
                 const jsonData = JSON.stringify(properties);
                 this.callAndroidStaticMethod(
-                    "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                    SDKManager.ANDROID_HELPER_CLASS,
+                    // 统计事件同样走反射，统一 className
                     "Anncf_trackReport",
                     "(Ljava/lang/String;Ljava/lang/String;)V",
                     [eventName, jsonData]
@@ -417,7 +427,8 @@ export class SDKManager extends Component {
         if (sys.platform === sys.Platform.ANDROID) {
             // Android 平台
             this.callAndroidStaticMethod(
-                "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                SDKManager.ANDROID_HELPER_CLASS,
+                // 打开网页接口
                 "Anncf_HSwp",
                 "(Ljava/lang/String;)V",
                 [title]
@@ -438,7 +449,8 @@ export class SDKManager extends Component {
         if (sys.platform === sys.Platform.ANDROID) {
             // Android 平台
             this.callAndroidStaticMethod(
-                "com.sttn.bxvi.AAAC_TGSDocosHelper",
+                SDKManager.ANDROID_HELPER_CLASS,
+                // 获取分组接口
                 "Anncf_cpGetEibit",
                 "()V"
             );

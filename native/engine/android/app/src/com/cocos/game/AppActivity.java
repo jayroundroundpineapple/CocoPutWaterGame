@@ -32,7 +32,7 @@ private static final String mut = "ruthe";
         appInstance = getApplication();
         
         // 初始化 SDK 上下文
-//        AAAC_TGSDocosHelper.initContext(this, appInstance);
+        AAAC_TGSDocosHelper.initContext(this, appInstance);
         // Activity 级初始化
         fgb.lm(this);
     }
